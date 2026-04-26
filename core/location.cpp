@@ -4,7 +4,8 @@
 #include <sstream>
 #include <stdexcept>
 
-// сдвигает текущие коорлинаты в позицию newCoords
+// сдвигает текущие координаты в позицию newCoords
+// если newCoords содержит не все координаты изменяется только часть координат
 void Location::move(const std::vector<double> &newCoords) {
   if (newCoords.size() > COORDS_COUNT) {
     throw std::invalid_argument(
@@ -12,6 +13,11 @@ void Location::move(const std::vector<double> &newCoords) {
         std::to_string(COORDS_COUNT));
   }
 
+  std::copy(newCoords.begin(), newCoords.end(), coords.begin());
+}
+
+// сдвигает текущие координаты в позицию newCoords
+void Location::move(const std::array<double, COORDS_COUNT> &newCoords) {
   std::copy(newCoords.begin(), newCoords.end(), coords.begin());
 }
 

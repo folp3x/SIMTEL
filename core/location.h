@@ -2,8 +2,8 @@
 #define LOCATION_H
 
 #include <array>
-#include <vector>
 #include <string>
+#include <vector>
 
 class Location {
 private:
@@ -11,7 +11,8 @@ private:
   std::array<double, COORDS_COUNT> coords = {0, 0, 0};
 
 public:
-  void move(const std::vector<double>& newCoords);
+  void move(const std::vector<double> &newCoords);
+  void move(const std::array<double, COORDS_COUNT> &newCoords);
   std::string toStr() const;
   bool coordsEqual(const std::vector<double> &otherCoords) const;
 };

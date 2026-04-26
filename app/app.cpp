@@ -1,8 +1,8 @@
 #include "app.h"
 
+#include <iostream>
 #include <stdexcept>
 #include <variant>
-#include <iostream>
 
 #include "menu/menu.h"
 
@@ -42,6 +42,14 @@ std::string App::handleProtocolCommand(const ProtocolCommand &cmd) {
   }
 }
 
+App::App(const Config &config) {
+  ip = config.ip;
+  port = config.port;
+  imei = config.imei;
+  imsi = config.imsi;
+  location.move(config.loc);
+}
+
 // получает команды от пользователя через меню и выполняет их
 void App::run() {
   Menu menu;
@@ -72,7 +80,7 @@ void App::run() {
     } else {
       message = "";
     }
-    
+
     if (!message.empty()) {
       menu.showMessage(message);
     }
