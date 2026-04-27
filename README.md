@@ -32,9 +32,6 @@
 git clone git@github.com:folp3x/protei.git
 cd protei
 
-# создание директории для сборки
-mkdir build && cd build
-
 # генерация файлов сборки и компиляция
 cmake -S . -B build
 cmake --build build --target app
