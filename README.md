@@ -29,7 +29,7 @@
 
 ```bash
 # клонирование репозитория
-git clone https://github.com/folp3x/protei.git
+git clone git@github.com:folp3x/protei.git
 cd protei
 
 # создание директории для сборки
