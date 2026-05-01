@@ -1,5 +1,6 @@
 #include "str.h"
 
+#include <algorithm>
 #include <sstream>
 
 // возвращает строку в нижнем регистре
@@ -31,4 +32,9 @@ bool hasDataAfterPos(const std::string &str, const std::streampos &pos) {
   streamCopy >> std::ws;
 
   return streamCopy.peek() != EOF;
+}
+
+// проверяет что все символы строки - цифры
+bool allDigits(const std::string &str) {
+  return std::all_of(str.begin(), str.end(), ::isdigit);
 }

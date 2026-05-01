@@ -9,8 +9,7 @@ private:
   static const int MAX_AVAILABLE_PORT = 65535;
   static const int IMEI_LENGTH = 15;
   static const int IMSI_LENGTH = 15;
-
-  static bool allDigits(const std::string &str);
+  
   static bool isCorrectJsonPath(const std::string &filePath);
 
 public:

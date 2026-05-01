@@ -1,18 +1,16 @@
 #include "validator.h"
 
-#include <algorithm>
 #include <arpa/inet.h>
+#include <cstring>
 #include <filesystem>
 
-// проверяет что все символы строки - цифры
-bool Validator::allDigits(const std::string &str) {
-  return std::all_of(str.begin(), str.end(), ::isdigit);
-}
+#include "utils/str.h"
 
 // проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(const std::string &filePath) {
-  return (filePath.size() < 5) ||
-         filePath.substr(filePath.size() - 5) == ".json";
+  int jsonExtLen = std::strlen(".json");
+  return (filePath.size() < jsonExtLen) ||
+         filePath.substr(filePath.size() - jsonExtLen) == ".json";
 }
 
 std::string Validator::isCorrectIP(const std::string &ip) {
