@@ -9,7 +9,7 @@ bool Validator::allDigits(const std::string &str) {
   return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-// проверяет что путть является путем к файлу JSON
+// проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(const std::string &filePath) {
   return (filePath.size() < 5) ||
          filePath.substr(filePath.size() - 5) == ".json";

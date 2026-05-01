@@ -1,9 +1,9 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-#include <vector>
 #include <string>
 #include <variant>
+#include <vector>
 
 struct InvalidCommand {
   std::string error = "";
@@ -18,7 +18,6 @@ struct ActiveCommand {
 };
 
 struct MoveCommand {
-  static const int COORDS_COUNT = 3;
   std::vector<double> coords = {};
 };
 

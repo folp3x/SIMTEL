@@ -3,6 +3,7 @@
 #include <sstream>
 #include <variant>
 
+#include "common/constants.h"
 #include "core/protocol.h"
 #include "utils/str.h"
 
@@ -39,7 +40,7 @@ Command CommandParser::parseActiveArgs(std::istringstream &stream) {
 Command CommandParser::parseMoveArgs(std::istringstream &stream) {
   std::string coordStr;
   std::vector<double> coords = {};
-  while (coords.size() < MoveCommand::COORDS_COUNT) {
+  while (coords.size() < Constants::LOCATION_COORDS_COUNT) {
     if (!(stream >> coordStr)) {
       // если в потоке закончились аргументы
       break;
