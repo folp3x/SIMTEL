@@ -46,9 +46,7 @@ void Menu::showMessage(const std::string &message) const {
 // выводит информацию о доутспных командах
 void Menu::showCommandsInfo() const {
   const auto &commands = getCommandsInfo();
-  for (const auto &cmd : commands) {
-    CommandInfo info = cmd.second;
-
+  for (const auto& [_, info] : commands) {
     std::cout << "- " << info.usage << " - " << info.description << std::endl;
   }
 }

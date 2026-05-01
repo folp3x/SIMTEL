@@ -9,7 +9,7 @@
 
 class Menu {
 private:
-  const int HEADER_LENGTH = 60;
+  static constexpr int HEADER_LENGTH = 60;
   CommandParser parser;
 
 public:
