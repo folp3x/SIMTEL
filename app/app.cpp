@@ -29,17 +29,17 @@ std::string App::handleMoveCommand(const MoveCommand &cmd) {
 
 // выполняет команду 'protocol', возвращает сообщение
 std::string App::handleProtocolCommand(const ProtocolCommand &cmd) {
-  try {
-    Protocol newProtocol = protocolFromStr(cmd.value);
+  auto protocolParseResult = protocolFromStr(cmd.value);
+  if (protocolParseResult) {
+    Protocol newProtocol = *protocolParseResult;
     std::string protocolStr = protocolToStr(newProtocol);
     if (newProtocol != protocol) {
       protocol = newProtocol;
       return "Protocol changed to " + protocolStr;
     }
     return "Protocol already set to " + protocolStr;
-  } catch (const std::invalid_argument &e) {
-    return "Ivalid protocol";
   }
+  return "Ivalid protocol";
 }
 
 App::App(const Config &config) {
