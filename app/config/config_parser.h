@@ -1,5 +1,4 @@
-#ifndef CONFIG_PARSER_H
-#define CONFIG_PARSER_H
+#pragma once
 
 #include <nlohmann/json.hpp>
 
@@ -20,5 +19,3 @@ private:
 public:
   bool parse(const std::string &filePath, std::string &msg, Config &config);
 };
-
-#endif // CONFIG_PARSER_H

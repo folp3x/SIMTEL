@@ -1,5 +1,4 @@
-#ifndef COMMAND_PARSER_H
-#define COMMAND_PARSER_H
+#pragma once
 
 #include "command.h"
 #include "command_info.h"
@@ -14,5 +13,3 @@ private:
 public:
   Command parseCommand(const std::string &str);
 };
-
-#endif // COMMAND_PARSER_H

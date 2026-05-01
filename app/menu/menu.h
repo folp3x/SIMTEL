@@ -1,5 +1,4 @@
-#ifndef MENU_H
-#define MENU_H
+#pragma once
 
 #include <string>
 
@@ -20,5 +19,3 @@ public:
   void showMessage(const std::string &message) const;
   void showCommandsInfo() const;
 };
-
-#endif // MENU_H

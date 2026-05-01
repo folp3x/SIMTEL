@@ -1,5 +1,4 @@
-#ifndef APP_H
-#define APP_H
+#pragma once
 
 #include "app_state.h"
 #include "config/config.h"
@@ -27,5 +26,3 @@ public:
 
   void run();
 };
-
-#endif // APP_H

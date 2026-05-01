@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include <array>
 #include <string>
@@ -13,5 +12,3 @@ struct Config {
   std::string imsi = "unknown";
   std::array<double, Constants::LOCATION_COORDS_COUNT> loc = {0, 0, 0};
 };
-
-#endif // CONFIG_H

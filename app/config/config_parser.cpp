@@ -110,8 +110,8 @@ bool ConfigParser::parseLoc(
   }
 
   if (json["loc"].size() != Constants::LOCATION_COORDS_COUNT) {
-    msg = "'loc' must have exactly" +
-          std::to_string(Constants::LOCATION_COORDS_COUNT) + "elements";
+    msg = "'loc' must have exactly " +
+          std::to_string(Constants::LOCATION_COORDS_COUNT) + " elements";
     return false;
   }
 

@@ -1,5 +1,4 @@
-#ifndef LOCATION_H
-#define LOCATION_H
+#pragma once
 
 #include <array>
 #include <string>
@@ -18,5 +17,3 @@ public:
   std::string toStr() const;
   bool coordsEqual(const std::vector<double> &otherCoords) const;
 };
-
-#endif // LOCATION_H

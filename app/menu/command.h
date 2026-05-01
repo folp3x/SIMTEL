@@ -1,5 +1,4 @@
-#ifndef COMMAND_H
-#define COMMAND_H
+#pragma once
 
 #include <string>
 #include <variant>
@@ -29,4 +28,3 @@ struct ProtocolCommand {
 using Command = std::variant<InvalidCommand, UnknownCommand, ExitCommand,
                              ActiveCommand, MoveCommand, ProtocolCommand>;
 
-#endif // COMMAND_H
