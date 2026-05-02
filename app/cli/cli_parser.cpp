@@ -3,45 +3,48 @@
 #include "app/validator/validator.h"
 
 // задает аргументы командной строки и правила их проверки
-void CLIParser::setupOptions() {
-  ip_opt = cliApp.add_option("-a, --ip", config.ip, "Set IP address")
-               ->check(Validator::isCorrectIP)
-               ->type_name("IPv4");
+void CLIParser::initOptions() {
+  ipOpt = cliApp.add_option("-a, --ip", config.ip, "Set IP address");
+  ipOpt->check(Validator::isCorrectIP);
+  ipOpt->type_name("IPv4");
+  configOpts.push_back(ipOpt);
 
-  port_opt = cliApp.add_option("-p, --port", config.port, "Set port")
-                 ->check([](const std::string &val) {
-                   try {
-                     int port = std::stoi(val);
-                     return Validator::isCorrectPort(port);
-                   } catch (const std::invalid_argument &e) {
-                     return std::string("Port number must be integer");
-                   }
-                 })
-                 ->type_name("integer");
+  portOpt = cliApp.add_option("-p, --port", config.port, "Set port");
+  portOpt->check(Validator::isCorrectPortStr);
+  portOpt->type_name("integer");
+  configOpts.push_back(portOpt);
 
-  imei_opt = cliApp.add_option("-e, --imei", config.imei, "Set IMEI")
-                 ->check(Validator::isCorrectIMEI)
-                 ->type_name("char[15]");
+  imeiOpt = cliApp.add_option("-e, --imei", config.imei, "Set IMEI");
+  imeiOpt->check(Validator::isCorrectIMEI);
+  imeiOpt->type_name("char[15]");
+  configOpts.push_back(imeiOpt);
 
-  imsi_opt = cliApp.add_option("-i, --imsi", config.imsi, "Set IMSI")
-                 ->check(Validator::isCorrectIMSI)
-                 ->type_name("char[15]");
+  imsiOpt = cliApp.add_option("-i, --imsi", config.imsi, "Set IMSI");
+  imsiOpt->check(Validator::isCorrectIMSI);
+  imsiOpt->type_name("char[15]");
+  configOpts.push_back(imsiOpt);
 
-  loc_opt = cliApp.add_option("-l, --loc", config.loc, "Set position vector")
-                ->type_name("x y z (real)");
+  locOpt = cliApp.add_option("-l, --loc", config.loc, "Set position vector");
+  locOpt->type_name("x y z (real)");
+  configOpts.push_back(locOpt);
 
-  config_opt = cliApp
-                   .add_option("-k, --config", configFilePath,
-                               "Load config from specified config.json")
-                   ->check(Validator::isCorrectConfigPath)
-                   ->type_name("string");
+  configFileOpt = cliApp.add_option("-k, --config", configFilePath,
+                                    "Load config from specified JSON file");
+  configFileOpt->check(Validator::isCorrectConfigPath);
+  configFileOpt->type_name("string");
 
-  nodes_opt = cliApp
-                  .add_option("-n, --nodes", nodesFilePath,
-                              "Load nodes from specified nodes.json")
-                  ->check(Validator::isCorrectNodesPath)
-                  ->type_name("string");
+  nodesFileOpt = cliApp.add_option("-n, --nodes", nodesFilePath,
+                                   "Load nodes from specified JSON file");
+  nodesFileOpt->check(Validator::isCorrectNodesPath);
+  nodesFileOpt->type_name("string");
 }
+
+// проверяет указана ли опция
+bool CLIParser::isOptSet(CLI::Option *opt) {
+  return opt && opt->count() > 0;
+}
+
+CLIParser::CLIParser() { initOptions(); }
 
 // парсит аргументы, передает в msg сообщение об ошибке или help
 bool CLIParser::parse(int argc, char *argv[], std::string &msg,
@@ -59,23 +62,57 @@ bool CLIParser::parse(int argc, char *argv[], std::string &msg,
   }
 }
 
-// проверяет указана ли опция --config
-bool CLIParser::hasConfig() const {
-  return config_opt && config_opt->count() > 0;
+// проверяет указаны ли все опции для полей config
+bool CLIParser::allConfigOptsSet() const {
+  return std::all_of(configOpts.begin(), configOpts.end(), isOptSet);
 }
 
-// проверяет указана ли любая опция кроме --config
-bool CLIParser::hasAnyNonConfig() const {
-  return (ip_opt && ip_opt->count() > 0) ||
-         (port_opt && port_opt->count() > 0) ||
-         (imei_opt && imei_opt->count() > 0) ||
-         (imsi_opt && imsi_opt->count() > 0) ||
-         (loc_opt && loc_opt->count() > 0) ||
-         (nodes_opt && nodes_opt->count() > 0);
+std::optional<std::string> CLIParser::getParsedIP() const {
+  if (isOptSet(ipOpt)) {
+    return config.ip;
+  }
+  return std::nullopt;
 }
 
-Config CLIParser::getConfig() const { return config; }
+std::optional<int> CLIParser::getParsedPort() const {
+  if (isOptSet(portOpt)) {
+    return config.port;
+  }
+  return std::nullopt;
+}
 
-std::string CLIParser::getConfigFilePath() const { return configFilePath; }
+std::optional<std::string> CLIParser::getParsedImei() const {
+  if (isOptSet(imeiOpt)) {
+    return config.imei;
+  }
+  return std::nullopt;
+}
 
-std::string CLIParser::getNodesFilePath() const { return nodesFilePath; }
+std::optional<std::string> CLIParser::getParsedImsi() const {
+  if (isOptSet(imsiOpt)) {
+    return config.imsi;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::array<double, Constants::LOCATION_COORDS_COUNT>>
+CLIParser::getParsedLoc() const {
+  if (isOptSet(locOpt)) {
+    return config.loc;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> CLIParser::getParsedConfigFilePath() const {
+  if (isOptSet(configFileOpt)) {
+    return configFilePath;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> CLIParser::getParsedNodesFilePath() const {
+  if (isOptSet(nodesFileOpt)) {
+    return nodesFilePath;
+  }
+  return std::nullopt;
+}

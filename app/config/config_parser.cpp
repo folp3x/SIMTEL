@@ -118,6 +118,12 @@ ConfigParser::parse(const std::string &filePath) {
     else
       return std::unexpected(ip.error());
 
+    // port
+    if (auto port = parsePort(json))
+      config.setPort(*port);
+    else
+      return std::unexpected(port.error());
+
     // imei
     if (auto imei = parseIMEI(json))
       config.setImei(*imei);

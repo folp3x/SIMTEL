@@ -9,12 +9,13 @@ private:
   static const int MAX_AVAILABLE_PORT = 65535;
   static const int IMEI_LENGTH = 15;
   static const int IMSI_LENGTH = 15;
-  
+
   static bool isCorrectJsonPath(const std::string &filePath);
 
 public:
   static std::string isCorrectIP(const std::string &ip);
   static std::string isCorrectPort(int port);
+  static std::string isCorrectPortStr(const std::string &portStr);
   static std::string isCorrectIMEI(const std::string &imei);
   static std::string isCorrectIMSI(const std::string &imsi);
   static std::string isCorrectConfigPath(const std::string &filePath);

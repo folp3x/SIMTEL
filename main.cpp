@@ -5,7 +5,6 @@
 
 int main(int argc, char *argv[]) {
   CLIParser cliParser{};
-  cliParser.setupOptions();
 
   std::string msg = "";
   bool helpCalled = false;
@@ -23,35 +22,37 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // должен быть указан либо --config либо любая другая опция
-  if (!cliParser.hasConfig() && !cliParser.hasAnyNonConfig()) {
-    std::cout << "Either --config or at least one other option is required"
-              << std::endl;
-    return 1;
-  }
-
-  // --config нельзя комбинировать с другими опциями
-  if (cliParser.hasConfig() && cliParser.hasAnyNonConfig()) {
-    std::cout << "Option --config cannot be combined with other options"
-              << std::endl;
-    return 1;
-  }
-
   Config config{};
-  if (cliParser.hasConfig()) {
-    // парсинг конфигурации из json
-    std::string configFilePath = cliParser.getConfigFilePath();
+  if (auto configFilePathParseResult = cliParser.getParsedConfigFilePath()) {
+    // парсинг данных из конфигурационного файла --config
+    std::string configFilePath = *configFilePathParseResult;
     ConfigParser configParser{};
     auto configParseResult = configParser.parse(configFilePath);
     if (!configParseResult) {
-      std::cout << "Error parsing file: " << msg << std::endl;
+      std::cout << "Error parsing file: " << configParseResult.error()
+                << std::endl;
       return 1;
     }
 
     config = *configParseResult;
-  } else {
-    config = cliParser.getConfig();
+  } else if (!cliParser.allConfigOptsSet()) {
+    // если --config не указан должны быть указаны все конфигурационные опции
+    std::cout << "If --config is not specified all config options are required"
+              << std::endl;
+    return 1;
   }
+
+  // переопределение опций из файла опциями командной строки
+  if (auto ip = cliParser.getParsedIP())
+    config.setIP(*ip);
+  if (auto port = cliParser.getParsedPort())
+    config.setPort(*port);
+  if (auto imei = cliParser.getParsedImei())
+    config.setImei(*imei);
+  if (auto imsi = cliParser.getParsedImsi())
+    config.setImsi(*imsi);
+  if (auto loc = cliParser.getParsedLoc())
+    config.setLoc(*loc);
 
   if (!config.isInitialized()) {
     std::cout << "Some config fields are not initialized" << std::endl;

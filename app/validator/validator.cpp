@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <cstring>
+#include <cmath>
 #include <filesystem>
 
 #include "utils/str.h"
@@ -27,6 +28,22 @@ std::string Validator::isCorrectPort(int port) {
            std::to_string(MAX_AVAILABLE_PORT);
   }
   return "";
+}
+
+std::string Validator::isCorrectPortStr(const std::string &portStr) {
+  try {
+    double port = std::stod(portStr);
+    if (port != std::floor(port)) {
+      return "Port must be integer";
+    }
+    return isCorrectPort(port);
+  } catch (const std::invalid_argument &) {
+    return "Port must be numeric";
+  } catch (const std::out_of_range &) {
+    return "Port value out of range";
+  } catch (const std::exception &) {
+    return "Port parse error";
+  }
 }
 
 std::string Validator::isCorrectIMEI(const std::string &imei) {

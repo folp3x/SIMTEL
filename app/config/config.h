@@ -7,6 +7,7 @@
 
 class Config {
 private:
+  // для парсинга значений напрямую в поля класса
   friend class CLIParser;
 
   bool locationSet = false;
@@ -28,8 +29,10 @@ public:
 
   std::string getImei() const;
   void setImei(const std::string &imei_);
+
   std::string getImsi() const;
   void setImsi(const std::string &imsi_);
+
   std::array<double, Constants::LOCATION_COORDS_COUNT> getLoc() const;
   void setLoc(const std::array<double, Constants::LOCATION_COORDS_COUNT> &loc_);
 };
