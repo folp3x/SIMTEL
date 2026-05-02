@@ -8,7 +8,7 @@
 #include "utils/str.h"
 
 // парсит агрументы команды 'exit' забирая их из потока
-Command CommandParser::parseExitArgs(std::istringstream &stream) {
+Command CommandParser::parseExitArgs(std::istringstream &stream) const {
   if (hasDataAfterPos(stream.str(), stream.tellg())) {
     // если есть лишние аргументы
     return InvalidCommand{"Error! Redundant argument"};
@@ -18,7 +18,7 @@ Command CommandParser::parseExitArgs(std::istringstream &stream) {
 }
 
 // парсит агрументы команды 'active' забирая их из потока
-Command CommandParser::parseActiveArgs(std::istringstream &stream) {
+Command CommandParser::parseActiveArgs(std::istringstream &stream) const {
   std::string isActiveStr;
   if (!(stream >> isActiveStr)) {
     return InvalidCommand{"Error! Missing argument"};
@@ -37,7 +37,7 @@ Command CommandParser::parseActiveArgs(std::istringstream &stream) {
 }
 
 // парсит агрументы команды 'move' забирая их из потока
-Command CommandParser::parseMoveArgs(std::istringstream &stream) {
+Command CommandParser::parseMoveArgs(std::istringstream &stream) const {
   std::string coordStr;
   std::vector<double> coords = {};
   while (coords.size() < Constants::LOCATION_COORDS_COUNT) {
@@ -48,8 +48,12 @@ Command CommandParser::parseMoveArgs(std::istringstream &stream) {
     try {
       double coord = stod(coordStr);
       coords.push_back(coord);
-    } catch (const std::exception &e) {
-      return InvalidCommand{"Error! Non-numeric argument"};
+    } catch (const std::invalid_argument &) {
+      return InvalidCommand{"Error! Not-numeric argument"};
+    } catch (const std::out_of_range &) {
+      return InvalidCommand{"Error! Argument value out of range"};
+    } catch (const std::exception &) {
+      return InvalidCommand{"Error! Argument parse error"};
     }
   }
 
@@ -66,7 +70,7 @@ Command CommandParser::parseMoveArgs(std::istringstream &stream) {
 }
 
 // парсит агрументы команды 'protocol' забирая их из потока
-Command CommandParser::parseProtocolArgs(std::istringstream &stream) {
+Command CommandParser::parseProtocolArgs(std::istringstream &stream) const {
   std::string value;
   if (!(stream >> value)) {
     return InvalidCommand{"Error! Missing argument"};
@@ -83,7 +87,7 @@ Command CommandParser::parseProtocolArgs(std::istringstream &stream) {
 }
 
 // парсит команду и ее аргументы
-Command CommandParser::parseCommand(const std::string &str) {
+Command CommandParser::parseCommand(const std::string &str) const {
   std::istringstream stream(lowercase(str));
   std::string commandName;
 

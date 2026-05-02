@@ -5,11 +5,11 @@
 
 class CommandParser {
 private:
-  Command parseExitArgs(std::istringstream &stream);
-  Command parseActiveArgs(std::istringstream &stream);
-  Command parseMoveArgs(std::istringstream &stream);
-  Command parseProtocolArgs(std::istringstream &stream);
+  Command parseExitArgs(std::istringstream &stream) const;
+  Command parseActiveArgs(std::istringstream &stream) const;
+  Command parseMoveArgs(std::istringstream &stream) const;
+  Command parseProtocolArgs(std::istringstream &stream) const;
 
 public:
-  Command parseCommand(const std::string &str);
+  Command parseCommand(const std::string &str) const;
 };
