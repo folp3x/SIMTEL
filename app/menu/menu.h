@@ -10,12 +10,12 @@
 class Menu {
 private:
   static constexpr int HEADER_LENGTH = 60;
-  CommandParser parser;
+  CommandParser parser{};
 
 public:
-  Command getCommand();
+  std::unique_ptr<MenuItem> getCommand();
   void showStatus(AppState state, const std::string &imsi,
-                 const Location &location, Protocol protocol) const;
+                  const Location &location, Protocol protocol) const;
   void showMessage(const std::string &message) const;
   void showCommandsInfo() const;
 };

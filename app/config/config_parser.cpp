@@ -5,7 +5,7 @@
 #include "app/validator/validator.h"
 
 std::expected<std::string, std::string>
-ConfigParser::parseIP(const nlohmann::json &json) {
+ConfigParser::parseIP(const nlohmann::json &json) const {
   if (!json.contains("ip"))
     return std::unexpected("'ip' required");
 
@@ -14,7 +14,7 @@ ConfigParser::parseIP(const nlohmann::json &json) {
 
   std::string ip = json["ip"];
 
-  std::string error = Validator::isCorrectIP(ip);
+  std::string error = Validator::isCorrectIpStr(ip);
   if (!error.empty())
     return std::unexpected(error);
 
@@ -22,7 +22,7 @@ ConfigParser::parseIP(const nlohmann::json &json) {
 }
 
 std::expected<int, std::string>
-ConfigParser::parsePort(const nlohmann::json &json) {
+ConfigParser::parsePort(const nlohmann::json &json) const {
   if (!json.contains("port"))
     return std::unexpected("'port' required");
 
@@ -39,7 +39,7 @@ ConfigParser::parsePort(const nlohmann::json &json) {
 }
 
 std::expected<std::string, std::string>
-ConfigParser::parseIMEI(const nlohmann::json &json) {
+ConfigParser::parseIMEI(const nlohmann::json &json) const {
   if (!json.contains("imei"))
     return std::unexpected("'imei' required");
 
@@ -56,7 +56,7 @@ ConfigParser::parseIMEI(const nlohmann::json &json) {
 }
 
 std::expected<std::string, std::string>
-ConfigParser::parseIMSI(const nlohmann::json &json) {
+ConfigParser::parseIMSI(const nlohmann::json &json) const {
   if (!json.contains("imsi"))
     return std::unexpected("'imsi required");
 
@@ -73,7 +73,7 @@ ConfigParser::parseIMSI(const nlohmann::json &json) {
 }
 
 std::expected<std::array<double, Constants::LOCATION_COORDS_COUNT>, std::string>
-ConfigParser::parseLoc(const nlohmann::json &json) {
+ConfigParser::parseLoc(const nlohmann::json &json) const {
   if (!json.contains("loc"))
     return std::unexpected("'loc' required");
 
@@ -97,7 +97,7 @@ ConfigParser::parseLoc(const nlohmann::json &json) {
 }
 
 std::expected<Config, std::string>
-ConfigParser::parse(const std::string &filePath) {
+ConfigParser::parse(const std::string &filePath) const {
   std::ifstream file(filePath);
   if (!file.is_open())
     return std::unexpected("Cant open file '" + filePath + "'");

@@ -5,7 +5,7 @@
 // задает аргументы командной строки и правила их проверки
 void CLIParser::initOptions() {
   ipOpt = cliApp.add_option("-a, --ip", config.ip, "Set IP address");
-  ipOpt->check(Validator::isCorrectIP);
+  ipOpt->check(Validator::isCorrectIpStr);
   ipOpt->type_name("IPv4");
   configOpts.push_back(ipOpt);
 

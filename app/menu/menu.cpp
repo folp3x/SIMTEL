@@ -5,7 +5,7 @@
 #include "utils/print.h"
 
 // поулчает команду от пользоватеоя
-Command Menu::getCommand() {
+std::unique_ptr<MenuItem> Menu::getCommand() {
   std::string input;
   std::cout << "> ";
   std::getline(std::cin, input, '\n');
@@ -15,7 +15,7 @@ Command Menu::getCommand() {
 
 // выводит текущий статус
 void Menu::showStatus(AppState state, const std::string &imsi,
-                     const Location &location, Protocol protocol) const {
+                      const Location &location, Protocol protocol) const {
   std::cout << std::string(HEADER_LENGTH, '-') << std::endl;
 
   std::cout << "IMSI: " << imsi << std::endl;
@@ -46,7 +46,7 @@ void Menu::showMessage(const std::string &message) const {
 // выводит информацию о доутспных командах
 void Menu::showCommandsInfo() const {
   const auto &commands = getCommandsInfo();
-  for (const auto& [_, info] : commands) {
+  for (const auto &[_, info] : commands) {
     std::cout << "- " << info.usage << " - " << info.description << std::endl;
   }
 }

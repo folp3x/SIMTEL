@@ -8,36 +8,39 @@
 #include "utils/str.h"
 
 // парсит агрументы команды 'exit' забирая их из потока
-Command CommandParser::parseExitArgs(std::istringstream &stream) const {
+std::unique_ptr<MenuItem>
+CommandParser::parseExitArgs(std::istringstream &stream) const {
   if (hasDataAfterPos(stream.str(), stream.tellg())) {
     // если есть лишние аргументы
-    return InvalidCommand{"Error! Redundant argument"};
+    return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
   }
 
-  return ExitCommand{};
+  return std::make_unique<MenuItemExit>();
 }
 
 // парсит агрументы команды 'active' забирая их из потока
-Command CommandParser::parseActiveArgs(std::istringstream &stream) const {
+std::unique_ptr<MenuItem>
+CommandParser::parseActiveArgs(std::istringstream &stream) const {
   std::string isActiveStr;
   if (!(stream >> isActiveStr)) {
-    return InvalidCommand{"Error! Missing argument"};
+    return std::make_unique<MenuItemInvalid>("Error! Missing argument");
   }
 
   auto parseResult = parseBool(isActiveStr);
   if (parseResult) {
     if (hasDataAfterPos(stream.str(), stream.tellg())) {
       // если есть лишние аргументы
-      return InvalidCommand{"Error! Redundant argument"};
+      return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
     }
     bool isActive = *parseResult;
-    return ActiveCommand{isActive};
+    return std::make_unique<MenuItemActive>(isActive);
   }
-  return InvalidCommand{"Error! Invalid argument"};
+  return std::make_unique<MenuItemInvalid>("Error! Invalid argument");
 }
 
 // парсит агрументы команды 'move' забирая их из потока
-Command CommandParser::parseMoveArgs(std::istringstream &stream) const {
+std::unique_ptr<MenuItem>
+CommandParser::parseMoveArgs(std::istringstream &stream) const {
   std::string coordStr;
   std::vector<double> coords = {};
   while (coords.size() < Constants::LOCATION_COORDS_COUNT) {
@@ -49,62 +52,65 @@ Command CommandParser::parseMoveArgs(std::istringstream &stream) const {
       double coord = stod(coordStr);
       coords.push_back(coord);
     } catch (const std::invalid_argument &) {
-      return InvalidCommand{"Error! Not-numeric argument"};
+      return std::make_unique<MenuItemInvalid>("Error! Not-numeric argument");
     } catch (const std::out_of_range &) {
-      return InvalidCommand{"Error! Argument value out of range"};
+      return std::make_unique<MenuItemInvalid>(
+          "Error! Argument value out of range");
     } catch (const std::exception &) {
-      return InvalidCommand{"Error! Argument parse error"};
+      return std::make_unique<MenuItemInvalid>("Error! Argument parse error");
     }
   }
 
   if (coords.size() == 0) {
-    return InvalidCommand{"Error! Missing argument"};
+    return std::make_unique<MenuItemInvalid>("Error! Missing argument");
   }
 
   if (hasDataAfterPos(stream.str(), stream.tellg())) {
     // если есть лишние аргументы
-    return InvalidCommand{"Error! Redundant argument"};
+    return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
   }
 
-  return MoveCommand{coords};
+  return std::make_unique<MenuItemMove>(coords);
 }
 
 // парсит агрументы команды 'protocol' забирая их из потока
-Command CommandParser::parseProtocolArgs(std::istringstream &stream) const {
+std::unique_ptr<MenuItem>
+CommandParser::parseProtocolArgs(std::istringstream &stream) const {
   std::string value;
   if (!(stream >> value)) {
-    return InvalidCommand{"Error! Missing argument"};
+    return std::make_unique<MenuItemInvalid>("Error! Missing argument");
   }
 
   if (isCorrectProtocolStr(value)) {
     if (hasDataAfterPos(stream.str(), stream.tellg())) {
       // если есть лишние аргументы
-      return InvalidCommand{"Error! Redundant argument"};
+      return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
     }
-    return ProtocolCommand{value};
+    return std::make_unique<MenuItemProtocol>(value);
   }
-  return ProtocolCommand{"Error! Invalid argument"};
+  return std::make_unique<MenuItemInvalid>("Error! Invalid argument");
 }
 
 // парсит команду и ее аргументы
-Command CommandParser::parseCommand(const std::string &str) const {
+std::unique_ptr<MenuItem>
+CommandParser::parseCommand(const std::string &str) const {
   std::istringstream stream(lowercase(str));
   std::string commandName;
 
   if (!(stream >> commandName)) {
     // если название команды не передано
-    return UnknownCommand{};
+    return std::make_unique<MenuItemUnknown>();
   }
 
   const auto &commands = getCommandsInfo();
   auto findResult = commands.find(commandName);
   if (findResult == commands.end()) {
     // если команды нет с списке команд
-    return UnknownCommand{};
+    return std::make_unique<MenuItemUnknown>();
   }
   CommandInfo info = findResult->second;
 
-  Command cmd = UnknownCommand{};
+  std::unique_ptr<MenuItem> cmd = std::make_unique<MenuItemUnknown>();
   // парсинг аргументов в зависимости от типа команды
   if (commandName == "exit") {
     cmd = parseExitArgs(stream);

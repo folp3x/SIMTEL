@@ -1,10 +1,9 @@
 #include "validator.h"
 
-#include <arpa/inet.h>
 #include <cstring>
-#include <cmath>
 #include <filesystem>
 
+#include "utils/network.h"
 #include "utils/str.h"
 
 // проверяет что путь является путем к файлу JSON
@@ -14,16 +13,25 @@ bool Validator::isCorrectJsonPath(const std::string &filePath) {
          filePath.substr(filePath.size() - jsonExtLen) == ".json";
 }
 
-std::string Validator::isCorrectIP(const std::string &ip) {
-  sockaddr_in stubSa;
-  if (inet_pton(AF_INET, ip.c_str(), &(stubSa.sin_addr)) != 1) {
-    return "Incorrect IP address";
+std::string Validator::isCorrectIP(uint32_t ip) {
+  uint8_t lowByte = ip | 0xFF;
+  if (lowByte < MIN_IP_LOW_BYTE || lowByte > MIN_IP_LOW_BYTE) {
+    return "IP low byte must be from " + std::to_string(MIN_IP_LOW_BYTE) +
+           " to " + std::to_string(MAX_IP_LOW_BYTE);
   }
   return "";
 }
 
+std::string Validator::isCorrectIpStr(const std::string &ipStr) {
+  auto parseResult = parseIP(ipStr);
+  if (parseResult) {
+    return "";
+  }
+  return parseResult.error();
+}
+
 std::string Validator::isCorrectPort(int port) {
-  if (port < MIN_AVAILABLE_PORT && port > MAX_AVAILABLE_PORT) {
+  if (port < MIN_AVAILABLE_PORT || port > MAX_AVAILABLE_PORT) {
     return "Port must be from " + std::to_string(MIN_AVAILABLE_PORT) + " to " +
            std::to_string(MAX_AVAILABLE_PORT);
   }
@@ -31,19 +39,11 @@ std::string Validator::isCorrectPort(int port) {
 }
 
 std::string Validator::isCorrectPortStr(const std::string &portStr) {
-  try {
-    double port = std::stod(portStr);
-    if (port != std::floor(port)) {
-      return "Port must be integer";
-    }
-    return isCorrectPort(port);
-  } catch (const std::invalid_argument &) {
-    return "Port must be numeric";
-  } catch (const std::out_of_range &) {
-    return "Port value out of range";
-  } catch (const std::exception &) {
-    return "Port parse error";
+  auto parseResult = parsePort(portStr);
+  if (parseResult) {
+    return "";
   }
+  return parseResult.error();
 }
 
 std::string Validator::isCorrectIMEI(const std::string &imei) {

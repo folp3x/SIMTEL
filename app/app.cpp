@@ -7,8 +7,8 @@
 #include "menu/menu.h"
 
 // выполняет команду 'active', возвращает сообщение
-std::string App::handleActiveCommand(const ActiveCommand &cmd) {
-  AppState newState = cmd.isActive ? AppState::ACTIVE : AppState::INACTIVE;
+std::string App::handleActiveCommand(const MenuItemActive &cmd) {
+  AppState newState = cmd.getActive() ? AppState::ACTIVE : AppState::INACTIVE;
 
   std::string stateStr = appStateToStr(newState);
   if (newState != state) {
@@ -19,17 +19,17 @@ std::string App::handleActiveCommand(const ActiveCommand &cmd) {
 }
 
 // выполняет команду 'move', возвращает сообщение
-std::string App::handleMoveCommand(const MoveCommand &cmd) {
-  if (!location.coordsEqual(cmd.coords)) {
-    location.move(cmd.coords);
+std::string App::handleMoveCommand(const MenuItemMove &cmd) {
+  if (!location.coordsEqual(cmd.getCoords())) {
+    location.move(cmd.getCoords());
     return "Position changed to " + location.toStr();
   }
   return "Position already set to " + location.toStr();
 }
 
 // выполняет команду 'protocol', возвращает сообщение
-std::string App::handleProtocolCommand(const ProtocolCommand &cmd) {
-  auto protocolParseResult = protocolFromStr(cmd.value);
+std::string App::handleProtocolCommand(const MenuItemProtocol &cmd) {
+  auto protocolParseResult = protocolFromStr(cmd.getProtocol());
   if (protocolParseResult) {
     Protocol newProtocol = *protocolParseResult;
     std::string protocolStr = protocolToStr(newProtocol);
@@ -60,20 +60,21 @@ void App::run() {
     menu.showStatus(state, imsi, location, protocol);
     menu.showCommandsInfo();
 
-    Command cmd = menu.getCommand();
+    std::unique_ptr<MenuItem> cmd = menu.getCommand();
     // выполнение команды в засимости от ее типа
-    if (std::get_if<UnknownCommand>(&cmd)) {
+    if (dynamic_cast<MenuItemUnknown *>(cmd.get())) {
       message = "Unknown command";
-    } else if (auto *invalidCmd = std::get_if<InvalidCommand>(&cmd)) {
-      message = invalidCmd->error;
-    } else if (auto *exit = std::get_if<ExitCommand>(&cmd)) {
+    } else if (auto *invalidCmd = dynamic_cast<MenuItemInvalid *>(cmd.get())) {
+      message = invalidCmd->getError();
+    } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
       message = "Exiting app...";
       isRunning = false;
-    } else if (auto *activeCmd = std::get_if<ActiveCommand>(&cmd)) {
+    } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
       message = handleActiveCommand(*activeCmd);
-    } else if (auto *moveCmd = std::get_if<MoveCommand>(&cmd)) {
+    } else if (auto *moveCmd = dynamic_cast<MenuItemMove *>(cmd.get())) {
       message = handleMoveCommand(*moveCmd);
-    } else if (auto *protocolCmd = std::get_if<ProtocolCommand>(&cmd)) {
+    } else if (auto *protocolCmd =
+                   dynamic_cast<MenuItemProtocol *>(cmd.get())) {
       message = handleProtocolCommand(*protocolCmd);
     } else {
       message = "";

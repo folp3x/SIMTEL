@@ -4,7 +4,7 @@
 #include "config/config.h"
 #include "core/location.h"
 #include "core/protocol.h"
-#include "menu/command.h"
+#include "menu/menu_item.h"
 
 class App {
 private:
@@ -17,9 +17,9 @@ private:
   int port = 0;
   std::string imei = "";
 
-  std::string handleActiveCommand(const ActiveCommand &cmd);
-  std::string handleMoveCommand(const MoveCommand &cmd);
-  std::string handleProtocolCommand(const ProtocolCommand &cmd);
+  std::string handleActiveCommand(const MenuItemActive &cmd);
+  std::string handleMoveCommand(const MenuItemMove &cmd);
+  std::string handleProtocolCommand(const MenuItemProtocol &cmd);
 
 public:
   App(const Config &config);

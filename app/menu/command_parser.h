@@ -1,15 +1,17 @@
 #pragma once
 
-#include "command.h"
+#include <memory>
+
 #include "command_info.h"
+#include "menu_item.h"
 
 class CommandParser {
 private:
-  Command parseExitArgs(std::istringstream &stream) const;
-  Command parseActiveArgs(std::istringstream &stream) const;
-  Command parseMoveArgs(std::istringstream &stream) const;
-  Command parseProtocolArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseExitArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseActiveArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseMoveArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseProtocolArgs(std::istringstream &stream) const;
 
 public:
-  Command parseCommand(const std::string &str) const;
+  std::unique_ptr<MenuItem> parseCommand(const std::string &str) const;
 };
