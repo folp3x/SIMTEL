@@ -25,7 +25,14 @@ FetchContent_Declare(
 	URL https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.6.2.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(cli11) 
+FetchContent_MakeAvailable(cli11)
+
+FetchContent_Declare(
+	spdlog
+	URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
+	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(spdlog) 
 
 set(SOURCES_LIST
 	"utils/str.cpp"
@@ -41,7 +48,11 @@ set(SOURCES_LIST
 	"app/validator/validator.cpp"
 	"app/cli/cli_parser.cpp"
 	"app/config/config_parser.cpp"
-	"app/config/config.cpp")
+	"app/config/config.cpp"
+	"logging/logger.cpp"
+	"app/menu/menu_item.cpp"
+	"utils/network.cpp"
+	"core/network_address.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES_LIST})
 
@@ -51,7 +62,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 set(LIBRARIES_LIST
 	rang
 	nlohmann_json
-	CLI11::CLI11)
+	CLI11::CLI11
+	spdlog)
 
 target_link_libraries(${PROJECT_NAME} ${LIBRARIES_LIST})
 
