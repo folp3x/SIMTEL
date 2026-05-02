@@ -40,7 +40,8 @@ set(SOURCES_LIST
 	"utils/print.cpp"
 	"app/validator/validator.cpp"
 	"app/cli/cli_parser.cpp"
-	"app/config/config_parser.cpp")
+	"app/config/config_parser.cpp"
+	"app/config/config.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES_LIST})
 

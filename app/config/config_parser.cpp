@@ -114,25 +114,25 @@ ConfigParser::parse(const std::string &filePath) {
 
     // ip
     if (auto ip = parseIP(json))
-      config.ip = ip.value();
+      config.setIP(*ip);
     else
       return std::unexpected(ip.error());
 
     // imei
     if (auto imei = parseIMEI(json))
-      config.imei = *imei;
+      config.setImei(*imei);
     else
       return std::unexpected(imei.error());
 
     // imsi
     if (auto imsi = parseIMSI(json))
-      config.imsi = *imsi;
+      config.setImsi(*imsi);
     else
       return std::unexpected(imsi.error());
 
     // loc
     if (auto loc = parseLoc(json))
-      config.loc = *loc;
+      config.setLoc(*loc);
     else
       return std::unexpected(loc.error());
 

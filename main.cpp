@@ -53,6 +53,11 @@ int main(int argc, char *argv[]) {
     config = cliParser.getConfig();
   }
 
+  if (!config.isInitialized()) {
+    std::cout << "Some config fields are not initialized" << std::endl;
+    return 1;
+  }
+
   // запуск главного цикла приложения
   App app(config);
   app.run();

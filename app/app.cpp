@@ -43,8 +43,9 @@ std::string App::handleProtocolCommand(const ProtocolCommand &cmd) {
 }
 
 App::App(const Config &config)
-    : ip(config.ip), port(config.port), imei(config.imei), imsi(config.imsi) {
-  location.move(config.loc);
+    : ip(config.getIP()), port(config.getPort()), imei(config.getImei()),
+      imsi(config.getImsi()) {
+  location.move(config.getLoc());
 }
 
 // получает команды от пользователя через меню и выполняет их
