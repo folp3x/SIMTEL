@@ -42,11 +42,8 @@ std::string App::handleProtocolCommand(const ProtocolCommand &cmd) {
   return "Ivalid protocol";
 }
 
-App::App(const Config &config) {
-  ip = config.ip;
-  port = config.port;
-  imei = config.imei;
-  imsi = config.imsi;
+App::App(const Config &config)
+    : ip(config.ip), port(config.port), imei(config.imei), imsi(config.imsi) {
   location.move(config.loc);
 }
 
