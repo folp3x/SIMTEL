@@ -4,7 +4,7 @@
 #include "app/config/config_parser.h"
 
 int main(int argc, char *argv[]) {
-  CLIParser cliParser;
+  CLIParser cliParser{};
   cliParser.setupOptions();
 
   std::string msg = "";
@@ -37,16 +37,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  Config config;
+  Config config{};
   if (cliParser.hasConfig()) {
     // парсинг конфигурации из json
     std::string configFilePath = cliParser.getConfigFilePath();
-    ConfigParser configParser;
-    bool parsed = configParser.parse(configFilePath, msg, config);
-    if (!parsed) {
+    ConfigParser configParser{};
+    auto configParseResult = configParser.parse(configFilePath);
+    if (!configParseResult) {
       std::cout << "Error parsing file: " << msg << std::endl;
       return 1;
     }
+
+    config = *configParseResult;
   } else {
     config = cliParser.getConfig();
   }
