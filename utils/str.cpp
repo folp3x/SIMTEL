@@ -13,6 +13,16 @@ std::string lowercase(const std::string &str) {
   return strCopy;
 }
 
+// возвращает строку в верхнем регистре
+std::string uppercase(const std::string &str) {
+  std::string strCopy = str;
+  for (auto &ch : strCopy) {
+    ch = std::toupper(ch);
+  }
+
+  return strCopy;
+}
+
 // преобразует строку с булевым значением в bool
 std::optional<bool> parseBool(const std::string &str) {
   std::string strLower = lowercase(str);
