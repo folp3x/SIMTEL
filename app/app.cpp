@@ -43,10 +43,12 @@ std::string App::handleProtocolCommand(const MenuItemProtocol &cmd) {
 }
 
 App::App(const Config &config)
-    : ip(config.getIP()), port(config.getPort()), imei(config.getImei()),
-      imsi(config.getImsi()) {
-  location.move(config.getLoc());
-}
+    : addr(config.getIP(), config.getPort()), imei(config.getImei()),
+      imsi(config.getImsi()), location(config.getLoc()) {}
+
+App::App(const std::string &imsi_, const Location &location_,
+         const NetworkAddress &addr_, const std::string imei_)
+    : imsi(imsi_), location(location_), addr(addr_), imei(imei_) {}
 
 // получает команды от пользователя через меню и выполняет их
 void App::run() {

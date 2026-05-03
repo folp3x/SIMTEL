@@ -4,6 +4,11 @@
 #include <sstream>
 #include <stdexcept>
 
+Location::Location(
+    const std::array<double, Constants::LOCATION_COORDS_COUNT> &coords) {
+  move(coords);
+}
+
 // сдвигает текущие координаты в позицию newCoords
 // если newCoords содержит не все координаты изменяется только часть координат
 void Location::move(const std::vector<double> &newCoords) {

@@ -59,9 +59,16 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // запуск главного цикла приложения
-  App app(config);
-  app.run();
+  Location location(config.getLoc());
+  try {
+    NetworkAddress addr{config.getIP(), config.getPort()};
+    // запуск главного цикла приложения
+    App app{config.getImsi(), location, addr, config.getImei()};
+    app.run();
+  } catch (std::invalid_argument &e) {
+    std::cout << e.what() << std::endl;
+    return 1;
+  }
 
   return 0;
 }
