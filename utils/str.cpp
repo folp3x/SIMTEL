@@ -4,7 +4,7 @@
 #include <sstream>
 
 // возвращает строку в нижнем регистре
-std::string lowercase(const std::string &str) {
+std::string lowercased(const std::string &str) {
   std::string strCopy = str;
   for (auto &ch : strCopy) {
     ch = std::tolower(ch);
@@ -14,7 +14,7 @@ std::string lowercase(const std::string &str) {
 }
 
 // возвращает строку в верхнем регистре
-std::string uppercase(const std::string &str) {
+std::string uppercased(const std::string &str) {
   std::string strCopy = str;
   for (auto &ch : strCopy) {
     ch = std::toupper(ch);
@@ -25,7 +25,7 @@ std::string uppercase(const std::string &str) {
 
 // преобразует строку с булевым значением в bool
 std::optional<bool> parseBool(const std::string &str) {
-  std::string strLower = lowercase(str);
+  std::string strLower = lowercased(str);
   if (strLower == "true" || strLower == "1") {
     return true;
   } else if (strLower == "false" || strLower == "0") {

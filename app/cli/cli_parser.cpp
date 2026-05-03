@@ -40,9 +40,7 @@ void CLIParser::initOptions() {
 }
 
 // проверяет указана ли опция
-bool CLIParser::isOptSet(CLI::Option *opt) {
-  return opt && opt->count() > 0;
-}
+bool CLIParser::isOptSet(CLI::Option *opt) { return opt && opt->count() > 0; }
 
 CLIParser::CLIParser() { initOptions(); }
 
@@ -67,42 +65,6 @@ bool CLIParser::allConfigOptsSet() const {
   return std::all_of(configOpts.begin(), configOpts.end(), isOptSet);
 }
 
-std::optional<std::string> CLIParser::getParsedIP() const {
-  if (isOptSet(ipOpt)) {
-    return config.ip;
-  }
-  return std::nullopt;
-}
-
-std::optional<int> CLIParser::getParsedPort() const {
-  if (isOptSet(portOpt)) {
-    return config.port;
-  }
-  return std::nullopt;
-}
-
-std::optional<std::string> CLIParser::getParsedImei() const {
-  if (isOptSet(imeiOpt)) {
-    return config.imei;
-  }
-  return std::nullopt;
-}
-
-std::optional<std::string> CLIParser::getParsedImsi() const {
-  if (isOptSet(imsiOpt)) {
-    return config.imsi;
-  }
-  return std::nullopt;
-}
-
-std::optional<std::array<double, Constants::LOCATION_COORDS_COUNT>>
-CLIParser::getParsedLoc() const {
-  if (isOptSet(locOpt)) {
-    return config.loc;
-  }
-  return std::nullopt;
-}
-
 std::optional<std::string> CLIParser::getParsedConfigFilePath() const {
   if (isOptSet(configFileOpt)) {
     return configFilePath;
@@ -115,4 +77,21 @@ std::optional<std::string> CLIParser::getParsedNodesFilePath() const {
     return nodesFilePath;
   }
   return std::nullopt;
+}
+
+Config CLIParser::redefineConfig(const Config &definedConfig) {
+  Config redefinedConfig = definedConfig;
+
+  if (isOptSet(ipOpt))
+    redefinedConfig.setIP(config.ip);
+  if (isOptSet(portOpt))
+    redefinedConfig.setPort(config.port);
+  if (isOptSet(imeiOpt))
+    redefinedConfig.setImei(config.imei);
+  if (isOptSet(imsiOpt))
+    redefinedConfig.setImsi(config.imsi);
+  if (isOptSet(locOpt))
+    redefinedConfig.setLoc(config.loc);
+
+  return redefinedConfig;
 }

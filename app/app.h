@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "app_state.h"
 #include "config/config.h"
 #include "core/location.h"
@@ -20,6 +22,8 @@ private:
   std::string handleActiveCommand(const MenuItemActive &cmd);
   std::string handleMoveCommand(const MenuItemMove &cmd);
   std::string handleProtocolCommand(const MenuItemProtocol &cmd);
+
+  std::string handleCommand(const std::unique_ptr<MenuItem> &cmd, bool &exit);
 
 public:
   explicit App(const Config &config);

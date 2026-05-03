@@ -12,7 +12,7 @@ std::unique_ptr<MenuItem>
 CommandParser::parseExitArgs(std::istringstream &stream) const {
   if (hasDataAfterPos(stream.str(), stream.tellg())) {
     // если есть лишние аргументы
-    return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
+    return std::make_unique<MenuItemInvalid>("Redundant argument");
   }
 
   return std::make_unique<MenuItemExit>();
@@ -23,19 +23,19 @@ std::unique_ptr<MenuItem>
 CommandParser::parseActiveArgs(std::istringstream &stream) const {
   std::string isActiveStr;
   if (!(stream >> isActiveStr)) {
-    return std::make_unique<MenuItemInvalid>("Error! Missing argument");
+    return std::make_unique<MenuItemInvalid>("Missing argument");
   }
 
   auto parseResult = parseBool(isActiveStr);
   if (parseResult) {
     if (hasDataAfterPos(stream.str(), stream.tellg())) {
       // если есть лишние аргументы
-      return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
+      return std::make_unique<MenuItemInvalid>("Redundant argument");
     }
     bool isActive = *parseResult;
     return std::make_unique<MenuItemActive>(isActive);
   }
-  return std::make_unique<MenuItemInvalid>("Error! Invalid argument");
+  return std::make_unique<MenuItemInvalid>("Invalid argument");
 }
 
 // парсит агрументы команды 'move' забирая их из потока
@@ -52,22 +52,22 @@ CommandParser::parseMoveArgs(std::istringstream &stream) const {
       double coord = stod(coordStr);
       coords.push_back(coord);
     } catch (const std::invalid_argument &) {
-      return std::make_unique<MenuItemInvalid>("Error! Not-numeric argument");
+      return std::make_unique<MenuItemInvalid>("Not-numeric argument");
     } catch (const std::out_of_range &) {
       return std::make_unique<MenuItemInvalid>(
-          "Error! Argument value out of range");
+          "Argument value out of range");
     } catch (const std::exception &) {
-      return std::make_unique<MenuItemInvalid>("Error! Argument parse error");
+      return std::make_unique<MenuItemInvalid>("Argument parse error");
     }
   }
 
   if (coords.size() == 0) {
-    return std::make_unique<MenuItemInvalid>("Error! Missing argument");
+    return std::make_unique<MenuItemInvalid>("Missing argument");
   }
 
   if (hasDataAfterPos(stream.str(), stream.tellg())) {
     // если есть лишние аргументы
-    return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
+    return std::make_unique<MenuItemInvalid>("Redundant argument");
   }
 
   return std::make_unique<MenuItemMove>(coords);
@@ -78,23 +78,23 @@ std::unique_ptr<MenuItem>
 CommandParser::parseProtocolArgs(std::istringstream &stream) const {
   std::string value;
   if (!(stream >> value)) {
-    return std::make_unique<MenuItemInvalid>("Error! Missing argument");
+    return std::make_unique<MenuItemInvalid>("Missing argument");
   }
 
   if (isCorrectProtocolStr(value)) {
     if (hasDataAfterPos(stream.str(), stream.tellg())) {
       // если есть лишние аргументы
-      return std::make_unique<MenuItemInvalid>("Error! Redundant argument");
+      return std::make_unique<MenuItemInvalid>("Redundant argument");
     }
     return std::make_unique<MenuItemProtocol>(value);
   }
-  return std::make_unique<MenuItemInvalid>("Error! Invalid argument");
+  return std::make_unique<MenuItemInvalid>("Invalid argument");
 }
 
 // парсит команду и ее аргументы
 std::unique_ptr<MenuItem>
 CommandParser::parseCommand(const std::string &str) const {
-  std::istringstream stream(lowercase(str));
+  std::istringstream stream(lowercased(str));
   std::string commandName;
 
   if (!(stream >> commandName)) {

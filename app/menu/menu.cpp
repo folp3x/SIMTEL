@@ -1,14 +1,17 @@
 #include "menu.h"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "utils/print.h"
 
-// поулчает команду от пользоватеоя
+// получает команду от пользоватеоя
 std::unique_ptr<MenuItem> Menu::getCommand() {
   std::string input;
   std::cout << "> ";
   std::getline(std::cin, input, '\n');
+
+  SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received input: {}", input);
 
   return parser.parseCommand(input);
 }

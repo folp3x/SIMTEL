@@ -1,9 +1,21 @@
 #include "app/app.h"
 
+#include <filesystem>
+
 #include "app/cli/cli_parser.h"
 #include "app/config/config_parser.h"
+#include "logging/logger.h"
 
 int main(int argc, char *argv[]) {
+  // настройка логирования
+  std::filesystem::create_directories("logs");
+  try {
+    Logger::initLogging();
+  } catch (const spdlog::spdlog_ex &e) {
+    std::cerr << "Logger initialization error" << e.what() << std::endl;
+  }
+
+  // парсинг аргументов командной строки
   CLIParser cliParser{};
 
   std::string msg = "";
@@ -13,12 +25,15 @@ int main(int argc, char *argv[]) {
   if (helpCalled) {
     // вызов --help
     std::cout << msg << std::endl;
+    SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(), "Help showed");
     return 0;
   }
 
   if (!parsed) {
     // ошибка парсинга
     std::cout << msg << std::endl;
+    SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(), "Cli arg parse error: {}",
+                           msg);
     return 1;
   }
 
@@ -29,8 +44,11 @@ int main(int argc, char *argv[]) {
     ConfigParser configParser{};
     auto configParseResult = configParser.parse(configFilePath);
     if (!configParseResult) {
-      std::cout << "Error parsing file: " << configParseResult.error()
+      std::cout << "Error parsing config file: " << configParseResult.error()
                 << std::endl;
+      SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
+                             "Config file parse error: {}",
+                             configParseResult.error());
       return 1;
     }
 
@@ -39,23 +57,18 @@ int main(int argc, char *argv[]) {
     // если --config не указан должны быть указаны все конфигурационные опции
     std::cout << "If --config is not specified all config options are required"
               << std::endl;
+    SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
+                           "--config or all config options not set");
     return 1;
   }
 
   // переопределение опций из файла опциями командной строки
-  if (auto ip = cliParser.getParsedIP())
-    config.setIP(*ip);
-  if (auto port = cliParser.getParsedPort())
-    config.setPort(*port);
-  if (auto imei = cliParser.getParsedImei())
-    config.setImei(*imei);
-  if (auto imsi = cliParser.getParsedImsi())
-    config.setImsi(*imsi);
-  if (auto loc = cliParser.getParsedLoc())
-    config.setLoc(*loc);
+  config = cliParser.redefineConfig(config);
 
   if (!config.isInitialized()) {
     std::cout << "Some config fields are not initialized" << std::endl;
+    SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
+                           "--config or all config options not set");
     return 1;
   }
 
@@ -67,6 +80,8 @@ int main(int argc, char *argv[]) {
     app.run();
   } catch (std::invalid_argument &e) {
     std::cout << e.what() << std::endl;
+    SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(), "App run error: {}",
+                           e.what());
     return 1;
   }
 

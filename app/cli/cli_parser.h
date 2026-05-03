@@ -43,14 +43,10 @@ public:
 
   bool allConfigOptsSet() const;
 
-  std::optional<std::string> getParsedIP() const;
-  std::optional<int> getParsedPort() const;
-  std::optional<std::string> getParsedImei() const;
-  std::optional<std::string> getParsedImsi() const;
-  std::optional<std::array<double, Constants::LOCATION_COORDS_COUNT>>
-  getParsedLoc() const;
   std::optional<std::string> getParsedConfigFilePath() const;
   std::optional<std::string> getParsedNodesFilePath() const;
+
+  Config redefineConfig(const Config &definedConfig);
 };
 
 #endif // CLI_PARSER_H

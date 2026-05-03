@@ -52,7 +52,8 @@ set(SOURCES_LIST
 	"logging/logger.cpp"
 	"app/menu/menu_item.cpp"
 	"utils/network.cpp"
-	"core/network_address.cpp")
+	"core/network_address.cpp"
+	"utils/vec.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES_LIST})
 
