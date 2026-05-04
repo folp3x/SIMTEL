@@ -12,7 +12,6 @@ protected:
 };
 
 TEST_F(NetworkAddressTest, Constructor_int_int) {
-  std::cout << TEST_IP << std::endl;
   NetworkAddress addr(TEST_IP, TEST_PORT);
   EXPECT_EQ(addr.getIP(), TEST_IP);
   EXPECT_EQ(addr.getPort(), TEST_PORT);
