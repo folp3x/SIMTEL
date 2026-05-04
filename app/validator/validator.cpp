@@ -16,7 +16,7 @@ bool Validator::isCorrectJsonPath(const std::string &filePath) {
 // проверяет коррекность IPv4. ip должен иметь сетевой порядок байт
 std::string Validator::isCorrectIP(uint32_t ip) {
   uint8_t lowByte = (ip >> 3 * 8) & 0xFF;
-  if (lowByte < MIN_IP_LOW_BYTE || lowByte > MIN_IP_LOW_BYTE) {
+  if (lowByte < MIN_IP_LOW_BYTE || lowByte > MAX_IP_LOW_BYTE) {
     return "IP low byte must be from " + std::to_string(MIN_IP_LOW_BYTE) +
            " to " + std::to_string(MAX_IP_LOW_BYTE);
   }

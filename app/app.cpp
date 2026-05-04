@@ -30,11 +30,15 @@ std::string App::handleMoveCommand(const MenuItemMove &cmd) {
                      "Processing command {} with args: coords={}",
                      uppercased(cmd.getName()), toStr(cmd.getCoords()));
 
-  if (!location.coordsEqual(cmd.getCoords())) {
-    location.move(cmd.getCoords());
-    return "Position changed to " + location.toStr();
+  try {
+    if (!location.coordsEqual(cmd.getCoords())) {
+      location.move(cmd.getCoords());
+      return "Position changed to " + location.toStr();
+    }
+    return "Position already set to " + location.toStr();
+  } catch (const std::invalid_argument &e) {
+    return "Position coords count is invalid";
   }
-  return "Position already set to " + location.toStr();
 }
 
 // выполняет команду 'protocol', возвращает сообщение

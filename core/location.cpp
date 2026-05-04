@@ -5,9 +5,8 @@
 #include <stdexcept>
 
 Location::Location(
-    const std::array<double, Constants::LOCATION_COORDS_COUNT> &coords) {
-  move(coords);
-}
+    const std::array<double, Constants::LOCATION_COORDS_COUNT> &coords_)
+    : coords(coords_) {};
 
 // сдвигает текущие координаты в позицию newCoords
 // если newCoords содержит не все координаты изменяется только часть координат
@@ -15,6 +14,12 @@ void Location::move(const std::vector<double> &newCoords) {
   if (newCoords.size() > Constants::LOCATION_COORDS_COUNT) {
     throw std::invalid_argument(
         "newCoords size cant be bigger than COORDS_COUNT=" +
+        std::to_string(Constants::LOCATION_COORDS_COUNT));
+  }
+
+  if (newCoords.empty()) {
+    throw std::invalid_argument(
+        "newCoords cant be empty" +
         std::to_string(Constants::LOCATION_COORDS_COUNT));
   }
 
@@ -48,5 +53,16 @@ bool Location::coordsEqual(const std::vector<double> &otherCoords) const {
         std::to_string(Constants::LOCATION_COORDS_COUNT));
   }
 
+  if (otherCoords.empty()) {
+    throw std::invalid_argument(
+        "newCoords cant be empty" +
+        std::to_string(Constants::LOCATION_COORDS_COUNT));
+  }
+
   return std::equal(otherCoords.begin(), otherCoords.end(), coords.begin());
+}
+
+std::array<double, Constants::LOCATION_COORDS_COUNT>
+Location::getCoords() const {
+  return coords;
 }

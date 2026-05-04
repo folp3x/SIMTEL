@@ -21,6 +21,14 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "linux-release-tests",
+      "displayName": "Linux Release with Tests",
+      "inherits": "linux-release",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON"
+      }
     }
   ]
 }

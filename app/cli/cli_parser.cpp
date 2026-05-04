@@ -53,6 +53,7 @@ bool CLIParser::parse(int argc, char *argv[], std::string &msg,
   } catch (const CLI::ParseError &e) {
     if (e.get_name() == "CallForHelp") {
       msg = cliApp.help();
+      helpCalled = true;
     } else {
       msg = e.what();
     }

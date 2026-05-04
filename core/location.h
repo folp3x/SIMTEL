@@ -19,4 +19,6 @@ public:
   move(const std::array<double, Constants::LOCATION_COORDS_COUNT> &newCoords);
   std::string toStr() const;
   bool coordsEqual(const std::vector<double> &otherCoords) const;
+
+  std::array<double, Constants::LOCATION_COORDS_COUNT> getCoords() const;
 };

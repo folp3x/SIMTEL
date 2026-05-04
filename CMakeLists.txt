@@ -32,14 +32,13 @@ FetchContent_Declare(
 	URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(spdlog) 
+FetchContent_MakeAvailable(spdlog)
 
 set(SOURCES_LIST
 	"utils/str.cpp"
 	"app/app.cpp"
 	"app/menu/menu.cpp"
 	"app/menu/command_info.cpp"
-	"main.cpp"
 	"app/app_state.cpp"
 	"core/location.cpp"
 	"core/protocol.cpp"
@@ -55,10 +54,13 @@ set(SOURCES_LIST
 	"core/network_address.cpp"
 	"utils/vec.cpp")
 
-add_executable(${PROJECT_NAME} ${SOURCES_LIST})
+# создание библиотеки
+set(APP_LIB_NAME "app_lib")
+
+add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
 
 # поиск заголовочных файлов в поддиректориях
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${APP_LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR})
 
 set(LIBRARIES_LIST
 	rang
@@ -66,7 +68,11 @@ set(LIBRARIES_LIST
 	CLI11::CLI11
 	spdlog)
 
-target_link_libraries(${PROJECT_NAME} ${LIBRARIES_LIST})
+target_link_libraries(${APP_LIB_NAME} PUBLIC ${LIBRARIES_LIST})
+
+# создание исполняемого файла
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${APP_LIB_NAME})
 
 # копирование директории data
 add_custom_command(TARGET app POST_BUILD
@@ -81,3 +87,11 @@ add_custom_command(TARGET app POST_BUILD
         "${CMAKE_CURRENT_SOURCE_DIR}/data/incorrect_configs" 
         "$<TARGET_FILE_DIR:app>/data/incorrect_configs"
 )
+
+# флаг для сборки с тестами
+option(BUILD_TESTS "Build unit tests" OFF)
+
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
