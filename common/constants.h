@@ -2,7 +2,8 @@
 
 #include <string>
 
-namespace Constants {
+namespace common {
+namespace constants {
 constexpr int LOCATION_COORDS_COUNT = 3;
-constexpr const char *APP_TITLE = "Console application";
 }
+} // namespace common

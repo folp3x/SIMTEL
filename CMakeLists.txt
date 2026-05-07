@@ -34,59 +34,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
-set(SOURCES_LIST
-	"utils/str.cpp"
-	"app/app.cpp"
-	"app/menu/menu.cpp"
-	"app/menu/command_info.cpp"
-	"app/app_state.cpp"
-	"core/location.cpp"
-	"core/protocol.cpp"
-	"app/menu/command_parser.cpp"
-	"utils/print.cpp"
-	"app/validator/validator.cpp"
-	"app/cli/cli_parser.cpp"
-	"app/config/config_parser.cpp"
-	"app/config/config.cpp"
-	"logging/logger.cpp"
-	"app/menu/menu_item.cpp"
-	"utils/network.cpp"
-	"core/network_address.cpp"
-	"utils/vec.cpp")
-
-# создание библиотеки
-set(APP_LIB_NAME "app_lib")
-
-add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
-
-# поиск заголовочных файлов в поддиректориях
-target_include_directories(${APP_LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR})
-
 set(LIBRARIES_LIST
 	rang
 	nlohmann_json
 	CLI11::CLI11
-	spdlog)
-
-target_link_libraries(${APP_LIB_NAME} PUBLIC ${LIBRARIES_LIST})
-
-# создание исполняемого файла
-add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${APP_LIB_NAME})
-
-# копирование директории data
-add_custom_command(TARGET app POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory 
-        "${CMAKE_CURRENT_SOURCE_DIR}/data" 
-        "$<TARGET_FILE_DIR:app>/data"
+	spdlog
 )
 
-# копирование директории data/incorrect_configs
-add_custom_command(TARGET app POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory 
-        "${CMAKE_CURRENT_SOURCE_DIR}/data/incorrect_configs" 
-        "$<TARGET_FILE_DIR:app>/data/incorrect_configs"
-)
+add_subdirectory(common)
+
+option(BUILD_CLIENT "Build client" OFF)
+if(BUILD_CLIENT)
+    add_subdirectory(client)
+endif()
 
 # флаг для сборки с тестами
 option(BUILD_TESTS "Build unit tests" OFF)
