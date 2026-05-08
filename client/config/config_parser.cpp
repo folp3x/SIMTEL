@@ -7,13 +7,13 @@
 namespace client {
 void ConfigParser::initImeiField() {
   addParsedField<std::string>("imei", &config.imei,
-                              nlohmann::detail::value_t::string,
+                              nlohmann::json::value_t::string,
                               common::Validator::isCorrectIMEI);
 }
 
 void ConfigParser::initImsiField() {
   addParsedField<std::string>("imsi", &config.imsi,
-                              nlohmann::detail::value_t::string,
+                              nlohmann::json::value_t::string,
                               common::Validator::isCorrectIMSI);
 }
 

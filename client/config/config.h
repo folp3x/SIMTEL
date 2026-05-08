@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/app/config/config.h"
+#include "common/types.h"
 
 namespace client {
 class Config : public common::Config {
@@ -8,16 +9,16 @@ private:
   friend class CLIParser;
   friend class ConfigParser;
 
-  std::string imei = "";
-  std::string imsi = "";
+  common::imei_t imei = "";
+  common::imsi_t imsi = "";
 
 public:
   virtual bool isInitialized() const override;
 
   std::string getImei() const;
-  void setImei(const std::string &imei_);
+  void setImei(const common::imei_t &imei_);
 
   std::string getImsi() const;
-  void setImsi(const std::string &imsi_);
+  void setImsi(const common::imsi_t &imsi_);
 };
 } // namespace client

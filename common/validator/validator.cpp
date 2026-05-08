@@ -48,7 +48,7 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
   return parseResult.error();
 }
 
-std::string Validator::isCorrectIMEI(const std::string &imei) {
+std::string Validator::isCorrectIMEI(const common::imei_t &imei) {
   if (imei.size() != IMEI_LENGTH) {
     return "IMEI must have " + std::to_string(IMEI_LENGTH) + " digits ";
   } else if (!allDigits(imei)) {
@@ -58,7 +58,7 @@ std::string Validator::isCorrectIMEI(const std::string &imei) {
   return "";
 }
 
-std::string Validator::isCorrectIMSI(const std::string &imsi) {
+std::string Validator::isCorrectIMSI(const common::imsi_t &imsi) {
   if (imsi.size() != IMSI_LENGTH) {
     return "IMSI must have " + std::to_string(IMSI_LENGTH) + " digits ";
   } else if (!allDigits(imsi)) {

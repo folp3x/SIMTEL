@@ -2,68 +2,60 @@
 
 #include <functional>
 #include <nlohmann/json.hpp>
+#include <optional>
 
 #include "config_field_base.h"
 
 namespace common {
 // класс с информацией для парсинга простого JSON-поля
-template <typename F> class ConfigFieldInfo : public ConfigFieldBase {
+template <typename T> class ConfigFieldInfo : public ConfigFieldBase {
 private:
-  nlohmann::detail::value_t type;
-  std::function<std::string(const F &)> checkFn;
+  nlohmann::json::value_t type;
+  std::function<std::string(const T &)> checkFn;
 
 protected:
   std::string name = "";
-  F *field;
+  T *field;
 
   // проверка соответствия типа поля указанному типу
-  bool numberTypeEqual(const nlohmann::json &field,
-                       nlohmann::detail::value_t t) {
-    switch (t) {
-    case nlohmann::detail::value_t::number_float:
+  bool hasType(const nlohmann::json &field, nlohmann::json::value_t type) {
+    switch (type) {
+    case nlohmann::json::value_t::number_float:
+      // любое число
       return field.is_number();
-    case nlohmann::detail::value_t::number_integer:
+    case nlohmann::json::value_t::number_integer:
+      // любое целое число
       return field.is_number_integer();
-    case nlohmann::detail::value_t::number_unsigned:
+    case nlohmann::json::value_t::number_unsigned:
       return field.is_number_unsigned();
     }
-    return false;
+    return field.type() == type;
   }
 
 public:
   ConfigFieldInfo(
-      const std::string &name_, F *field_, nlohmann::detail::value_t type_,
-      const std::function<std::string(const F &)> &checkFn_ = nullptr)
+      const std::string &name_, T *field_, nlohmann::json::value_t type_,
+      const std::function<std::string(const T &)> &checkFn_ = nullptr)
       : name(name_), field(field_), type(type_), checkFn(checkFn_) {}
 
   virtual ~ConfigFieldInfo() = default;
 
-  virtual bool parse(const nlohmann::json &json, std::string &msg) {
+  virtual std::optional<std::string> parse(const nlohmann::json &json) {
     std::string nameQuoted = getName(true);
 
-    bool isCorrectType = true;
-    if (json[name].is_number()) {
-      isCorrectType = numberTypeEqual(json[name], type);
-    } else {
-      isCorrectType = json[name].type() == type;
-    }
+    auto fieldJson = json[name];
+    if (!hasType(fieldJson, type))
+      return nameQuoted + " must have a type";
 
-    if (!isCorrectType) {
-      msg = nameQuoted + " must have a type";
-      return false;
-    }
-
-    *field = json[name].get<F>();
+    *field = fieldJson.get<T>();
 
     if (checkFn) {
       std::string checkResult = checkFn(*field);
-      if (!checkResult.empty()) {
-        msg = checkResult;
-        return false;
-      }
+      if (!checkResult.empty())
+        return checkResult;
     }
 
-    return true;
+    return std::nullopt;
   }
 
   virtual std::string getName(bool quoted = false) const override {

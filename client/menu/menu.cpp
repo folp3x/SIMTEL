@@ -3,11 +3,12 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
+#include "common/types.h"
 #include "common/utils/print.h"
 
 namespace client {
 // выводит текущий статус
-void Menu::showStatus(AppState state, const std::string &imsi,
+void Menu::showStatus(AppState state, const common::imsi_t &imsi,
                       const common::Location &location,
                       common::Protocol protocol) const {
   showHeaderLine();

@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <common/types.h>
+
 namespace common {
 class Validator {
 private:
@@ -23,8 +25,8 @@ public:
   static std::string isCorrectIpStr(const std::string &ipStr);
   static std::string isCorrectPort(int port);
   static std::string isCorrectPortStr(const std::string &portStr);
-  static std::string isCorrectIMEI(const std::string &imei);
-  static std::string isCorrectIMSI(const std::string &imsi);
+  static std::string isCorrectIMEI(const common::imei_t &imei);
+  static std::string isCorrectIMSI(const common::imsi_t &imsi);
   static std::string isCorrectConfigPath(const std::string &filePath);
   static std::string isCorrectNodesPath(const std::string &filePath);
 };

@@ -108,7 +108,7 @@ public:
     return std::nullopt;
   }
 
-  virtual T redefineConfig(const T &definedConfig) {
+  virtual T redefineConfig(const T &definedConfig) const {
     T redefinedConfig = definedConfig;
 
     if (isOptSet(ipOpt))

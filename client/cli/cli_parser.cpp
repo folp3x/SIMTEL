@@ -47,7 +47,7 @@ std::unique_ptr<CLIParser> CLIParser::create() {
   return parser;
 }
 
-Config CLIParser::redefineConfig(const Config &definedConfig) {
+Config CLIParser::redefineConfig(const Config &definedConfig) const {
   Config redefinedConfig =
       common::CLIParser<Config>::redefineConfig(definedConfig);
 

@@ -99,8 +99,8 @@ std::string App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   return message;
 }
 
-App::App(const std::string &imsi_, const common::Location &location_,
-         const common::NetworkAddress &addr_, const std::string imei_)
+App::App(const common::imsi_t &imsi_, const common::Location &location_,
+         const common::NetworkAddress &addr_, const common::imei_t imei_)
     : imsi(imsi_), imei(imei_) {
   location = location_;
   addr = addr_;

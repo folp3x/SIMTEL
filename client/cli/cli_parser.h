@@ -28,6 +28,6 @@ public:
 
   std::optional<std::string> getParsedNodesFilePath() const;
 
-  virtual Config redefineConfig(const Config &definedConfig) override;
+  virtual Config redefineConfig(const Config &definedConfig) const override;
 };
 } // namespace client
