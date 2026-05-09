@@ -12,12 +12,14 @@ private:
   nlohmann::json::value_t elemType;
 
 public:
-  ConfigArrayInfo(const std::string &name, std::array<T, S> *field,
-                  nlohmann::json::value_t elemType_,
-                  const std::function<std::string(const std::array<T, S> &)>
-                      &checkFn = nullptr)
+  ConfigArrayInfo(
+      const std::string &name,
+      const std::function<void(const std::array<T, S> &)> successCallback,
+      nlohmann::json::value_t elemType_,
+      const std::function<std::string(const std::array<T, S> &)> &checkFn =
+          nullptr)
       : ConfigFieldInfo<std::array<T, S>>(
-            name, field, nlohmann::json::value_t::array, checkFn),
+            name, successCallback, nlohmann::json::value_t::array, checkFn),
         elemType(elemType_) {}
 
   virtual ~ConfigArrayInfo() = default;
@@ -34,14 +36,17 @@ public:
       return nameQuoted + " must have exactly " + std::to_string(S) +
              " elements";
 
+    std::array<T, S> field{};
+
     for (size_t i = 0; i < S; ++i) {
       auto elemJson = json[this->name][i];
       if (!(this->hasType(elemJson, elemType))) {
         return nameQuoted + " elements must have a type";
       }
-      (*(this->field))[i] = elemJson.template get<T>();
+      field[i] = elemJson.template get<T>();
     }
 
+    this->successCallback(field);
     return std::nullopt;
   }
 };

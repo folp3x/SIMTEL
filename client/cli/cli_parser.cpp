@@ -7,22 +7,28 @@ CLIParser::CLIParser(const std::string &cliAppName)
     : common::CLIParser<Config>(cliAppName) {}
 
 void CLIParser::initImeiOpt() {
-  imeiOpt = cliApp.add_option("-e, --imei", config.imei, "Set IMEI");
+  imeiOpt = cliApp.add_option_function<common::imei_t>(
+      "-e, --imei",
+      [this](const common::imei_t &imei) { config.setImei(imei); }, "Set IMEI");
   imeiOpt->check(common::Validator::isCorrectIMEI);
   imeiOpt->type_name("char[15]");
   configOpts.push_back(imeiOpt);
 }
 
 void CLIParser::initImsiOpt() {
-  imsiOpt = cliApp.add_option("-i, --imsi", config.imsi, "Set IMSI");
+  imsiOpt = cliApp.add_option_function<common::imsi_t>(
+      "-i, --imsi",
+      [this](const common::imsi_t &imsi) { config.setImsi(imsi); }, "Set IMSI");
   imsiOpt->check(common::Validator::isCorrectIMSI);
   imsiOpt->type_name("char[15]");
   configOpts.push_back(imsiOpt);
 }
 
 void CLIParser::initNodesFileOpt() {
-  nodesFileOpt = cliApp.add_option("-n, --nodes", nodesFilePath,
-                                   "Load nodes from specified JSON file");
+  nodesFileOpt = cliApp.add_option_function<std::string>(
+      "-n, --nodes",
+      [this](const std::string &filePath) { nodesFilePath = filePath; },
+      "Load nodes from specified JSON file");
   nodesFileOpt->check(common::Validator::isCorrectNodesPath);
   nodesFileOpt->type_name("string");
 }
@@ -52,9 +58,9 @@ Config CLIParser::redefineConfig(const Config &definedConfig) const {
       common::CLIParser<Config>::redefineConfig(definedConfig);
 
   if (isOptSet(imeiOpt))
-    redefinedConfig.setImei(config.imei);
+    redefinedConfig.setImei(config.getImei());
   if (isOptSet(imsiOpt))
-    redefinedConfig.setImsi(config.imsi);
+    redefinedConfig.setImsi(config.getImsi());
 
   return redefinedConfig;
 }

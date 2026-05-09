@@ -6,9 +6,6 @@
 namespace client {
 class Config : public common::Config {
 private:
-  friend class CLIParser;
-  friend class ConfigParser;
-
   common::imei_t imei = "";
   common::imsi_t imsi = "";
 

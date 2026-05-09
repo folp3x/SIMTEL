@@ -16,6 +16,7 @@ private:
 protected:
   std::string name = "";
   T *field;
+  std::function<void(const T &)> successCallback;
 
   // проверка соответствия типа поля указанному типу
   bool hasType(const nlohmann::json &field, nlohmann::json::value_t type) {
@@ -34,9 +35,12 @@ protected:
 
 public:
   ConfigFieldInfo(
-      const std::string &name_, T *field_, nlohmann::json::value_t type_,
+      const std::string &name_,
+      const std::function<void(const T &)> successCallback_,
+      nlohmann::json::value_t type_,
       const std::function<std::string(const T &)> &checkFn_ = nullptr)
-      : name(name_), field(field_), type(type_), checkFn(checkFn_) {}
+      : name(name_), successCallback(successCallback_), type(type_),
+        checkFn(checkFn_) {}
 
   virtual ~ConfigFieldInfo() = default;
 
@@ -47,14 +51,15 @@ public:
     if (!hasType(fieldJson, type))
       return nameQuoted + " must have a type";
 
-    *field = fieldJson.get<T>();
+    T field = fieldJson.get<T>();
 
     if (checkFn) {
-      std::string checkResult = checkFn(*field);
+      std::string checkResult = checkFn(field);
       if (!checkResult.empty())
         return checkResult;
     }
 
+    successCallback(field);
     return std::nullopt;
   }
 

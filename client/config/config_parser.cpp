@@ -6,15 +6,15 @@
 
 namespace client {
 void ConfigParser::initImeiField() {
-  addParsedField<std::string>("imei", &config.imei,
-                              nlohmann::json::value_t::string,
-                              common::Validator::isCorrectIMEI);
+  addParsedField<common::imei_t>(
+      "imei", [this](const common::imei_t &imei) { config.setImei(imei); },
+      nlohmann::json::value_t::string, common::Validator::isCorrectIMEI);
 }
 
 void ConfigParser::initImsiField() {
-  addParsedField<std::string>("imsi", &config.imsi,
-                              nlohmann::json::value_t::string,
-                              common::Validator::isCorrectIMSI);
+  addParsedField<common::imsi_t>(
+      "imsi", [this](const common::imei_t &imsi) { config.setImsi(imsi); },
+      nlohmann::json::value_t::string, common::Validator::isCorrectIMSI);
 }
 
 void ConfigParser::initFields() {

@@ -40,39 +40,47 @@ protected:
   // добавление в список полей простого JSON-поля
   template <typename F>
   void addParsedField(
-      const std::string &name, F *field, nlohmann::json::value_t type,
+      const std::string &name,
+      const std::function<void(const F &)> successCallback,
+      nlohmann::json::value_t type,
       const std::function<std::string(const F &)> &checkFn = nullptr) {
-    auto info =
-        std::make_unique<ConfigFieldInfo<F>>(name, field, type, checkFn);
+    auto info = std::make_unique<ConfigFieldInfo<F>>(name, successCallback,
+                                                     type, checkFn);
     fieldsInfo.push_back(std::move(info));
   }
 
   // добавление в список полей JSON-поля с типом массив
   template <typename E, size_t S>
-  void addParsedArray(const std::string &name, std::array<E, S> *field,
-                      nlohmann::json::value_t elemType,
-                      const std::function<std::string(const std::array<E, S> &)>
-                          &checkFn = nullptr) {
-    auto info =
-        std::make_unique<ConfigArrayInfo<E, S>>(name, field, elemType, checkFn);
+  void addParsedArray(
+      const std::string &name,
+      const std::function<void(const std::array<E, S> &)> successCallback,
+      nlohmann::json::value_t elemType,
+      const std::function<std::string(const std::array<E, S> &)> &checkFn =
+          nullptr) {
+    auto info = std::make_unique<ConfigArrayInfo<E, S>>(name, successCallback,
+                                                        elemType, checkFn);
     fieldsInfo.push_back(std::move(info));
   }
 
-  virtual void initIpField() {
-    addParsedField<std::string>("ip", &config.ip,
-                                nlohmann::json::value_t::string,
-                                Validator::isCorrectIpStr);
+  void initIpField() {
+    addParsedField<std::string>(
+        "ip", [this](const std::string &ip) { config.setIP(ip); },
+        nlohmann::json::value_t::string, Validator::isCorrectIpStr);
   }
 
-  virtual void initPortField() {
-    addParsedField<int>("port", &config.port,
-                        nlohmann::json::value_t::number_unsigned,
-                        Validator::isCorrectPort);
+  void initPortField() {
+    addParsedField<int>(
+        "port", [this](int port) { config.setPort(port); },
+        nlohmann::json::value_t::number_unsigned, Validator::isCorrectPort);
   }
 
-  virtual void initLocField() {
+  void initLocField() {
     addParsedArray<double, constants::LOCATION_COORDS_COUNT>(
-        "loc", &tempLoc, nlohmann::json::value_t::number_float);
+        "loc",
+        [this](
+            const std::array<double, common::constants::LOCATION_COORDS_COUNT>
+                &loc) { config.setLoc(loc); },
+        nlohmann::json::value_t::number_float);
   }
 
   virtual void initFields() {
@@ -109,19 +117,13 @@ public:
       auto error = parseFields(json);
       if (error)
         return std::unexpected(*error);
-
-      T configCopy = config;
-      configCopy.setLoc(tempLoc);
-      return configCopy;
+      ;
+      return config;
     } catch (const nlohmann::json::parse_error &e) {
       return std::unexpected("JSON parse error: " + std::string(e.what()));
-    } catch (const nlohmann::json::type_error &e) {
-      return std::unexpected("JSON type error: " + std::string(e.what()));
     } catch (const nlohmann::json::out_of_range &e) {
       return std::unexpected("JSON out of range error: " +
                              std::string(e.what()));
-    } catch (const std::exception &e) {
-      return std::unexpected("JSON error: " + std::string(e.what()));
     }
   }
 };

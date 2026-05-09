@@ -34,29 +34,40 @@ protected:
 
   explicit CLIParser(const std::string &appTitle) : cliApp(appTitle) {}
 
-  virtual void initIpOption() {
-    ipOpt = cliApp.add_option("-a, --ip", config.ip, "Set IP address");
+  void initIpOption() {
+    ipOpt = cliApp.add_option_function<std::string>(
+        "-a, --ip", [this](const std::string &ip) { config.setIP(ip); },
+        "Set IP address");
     ipOpt->check(Validator::isCorrectIpStr);
     ipOpt->type_name("IPv4");
     configOpts.push_back(ipOpt);
   }
 
-  virtual void initPortOption() {
-    portOpt = cliApp.add_option("-p, --port", config.port, "Set port");
+  void initPortOption() {
+    portOpt = cliApp.add_option_function<int>(
+        "-p, --port", [this](int port) { config.setPort(port); }, "Set port");
     portOpt->check(Validator::isCorrectPortStr);
     portOpt->type_name("integer");
     configOpts.push_back(portOpt);
   }
 
-  virtual void initLocOption() {
-    locOpt = cliApp.add_option("-l, --loc", config.loc, "Set position vector");
+  void initLocOption() {
+    locOpt = cliApp.add_option_function<
+        std::array<double, common::constants::LOCATION_COORDS_COUNT>>(
+        "-l, --loc",
+        [this](
+            const std::array<double, common::constants::LOCATION_COORDS_COUNT>
+                &loc) { config.setLoc(loc); },
+        "Set position vector");
     locOpt->type_name("x y z (real)");
     configOpts.push_back(locOpt);
   }
 
-  virtual void initConfigFileOption() {
-    configFileOpt = cliApp.add_option("-k, --config", configFilePath,
-                                      "Load config from specified JSON file");
+  void initConfigFileOption() {
+    configFileOpt = cliApp.add_option_function<std::string>(
+        "-k, --config",
+        [this](const std::string &filePath) { configFilePath = filePath; },
+        "Load config from specified JSON file");
     configFileOpt->check(Validator::isCorrectConfigPath);
     configFileOpt->type_name("string");
   }
@@ -112,11 +123,11 @@ public:
     T redefinedConfig = definedConfig;
 
     if (isOptSet(ipOpt))
-      redefinedConfig.setIP(config.ip);
+      redefinedConfig.setIP(config.getIP());
     if (isOptSet(portOpt))
-      redefinedConfig.setPort(config.port);
+      redefinedConfig.setPort(config.getPort());
     if (isOptSet(locOpt))
-      redefinedConfig.setLoc(config.loc);
+      redefinedConfig.setLoc(config.getLoc());
 
     return redefinedConfig;
   }

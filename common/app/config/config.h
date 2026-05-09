@@ -9,10 +9,6 @@ namespace common {
 // базовый класс для хранения конфигурации
 class Config {
 private:
-  // для парсинга значений напрямую в поля класса
-  template <std::derived_from<Config> T> friend class CLIParser;
-  template <std::derived_from<Config> T> friend class ConfigParser;
-
   bool locationSet = false;
 
   std::string ip = "";
