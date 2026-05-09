@@ -43,21 +43,19 @@ CommandParser::parseActiveArgs(std::istringstream &stream) const {
 std::unique_ptr<common::MenuItem>
 CommandParser::parseMoveArgs(std::istringstream &stream) const {
   std::string coordStr;
-  std::vector<double> coords = {};
+  std::vector<float> coords = {};
   while (coords.size() < common::constants::LOCATION_COORDS_COUNT) {
     if (!(stream >> coordStr)) {
       // если в потоке закончились аргументы
       break;
     }
     try {
-      double coord = stod(coordStr);
+      float coord = stod(coordStr);
       coords.push_back(coord);
     } catch (const std::invalid_argument &) {
       return std::make_unique<MenuItemInvalid>("Not-numeric argument");
     } catch (const std::out_of_range &) {
       return std::make_unique<MenuItemInvalid>("Argument value out of range");
-    } catch (const std::exception &) {
-      return std::make_unique<MenuItemInvalid>("Argument parse error");
     }
   }
 

@@ -128,9 +128,7 @@ TEST_F(CLIParserTest, RedefineConfig_AllRedefined) {
 
   Config redefined = parser.redefineConfig(config);
 
-  bool locRedefined =
-      redefined.getLoc() ==
-      std::array<double, Constants::LOCATION_COORDS_COUNT>{1.1, 2, 3};
+  bool locRedefined = redefined.getLoc() == common::coords_t<float>{1.1, 2, 3};
 
   EXPECT_TRUE(isParsed);
   EXPECT_TRUE(msg.empty());

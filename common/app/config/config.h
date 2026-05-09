@@ -4,6 +4,7 @@
 #include <string>
 
 #include "common/constants.h"
+#include "common/types.h"
 
 namespace common {
 // базовый класс для хранения конфигурации
@@ -13,7 +14,7 @@ private:
 
   std::string ip = "";
   int port = -1;
-  std::array<double, constants::LOCATION_COORDS_COUNT> loc = {0, 0, 0};
+  common::coords_t<float> loc = {0, 0, 0};
 
 public:
   virtual ~Config() = default;
@@ -26,7 +27,7 @@ public:
   int getPort() const;
   void setPort(int port_);
 
-  std::array<double, constants::LOCATION_COORDS_COUNT> getLoc() const;
-  void setLoc(const std::array<double, constants::LOCATION_COORDS_COUNT> &loc_);
+  common::coords_t<float> getLoc() const;
+  void setLoc(const common::coords_t<float> &loc_);
 };
 } // namespace common

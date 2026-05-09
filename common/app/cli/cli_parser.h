@@ -52,12 +52,9 @@ protected:
   }
 
   void initLocOption() {
-    locOpt = cliApp.add_option_function<
-        std::array<double, common::constants::LOCATION_COORDS_COUNT>>(
+    locOpt = cliApp.add_option_function<common::coords_t<float>>(
         "-l, --loc",
-        [this](
-            const std::array<double, common::constants::LOCATION_COORDS_COUNT>
-                &loc) { config.setLoc(loc); },
+        [this](const common::coords_t<float> &loc) { config.setLoc(loc); },
         "Set position vector");
     locOpt->type_name("x y z (real)");
     configOpts.push_back(locOpt);

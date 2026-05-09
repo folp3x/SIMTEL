@@ -4,32 +4,30 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "common/types.h"
+
 namespace common {
-Location::Location(
-    const std::array<double, constants::LOCATION_COORDS_COUNT> &coords_)
-    : coords(coords_) {};
+Location::Location(const common::coords_t<float> &coords_) : coords(coords_) {};
 
 // сдвигает текущие координаты в позицию newCoords
 // если newCoords содержит не все координаты изменяется только часть координат
-void Location::move(const std::vector<double> &newCoords) {
-  if (newCoords.size() > constants::LOCATION_COORDS_COUNT) {
+void Location::move(const std::vector<float> &newCoords) {
+  if (newCoords.size() > coords.size()) {
     throw std::invalid_argument(
         "newCoords size cant be bigger than COORDS_COUNT=" +
-        std::to_string(constants::LOCATION_COORDS_COUNT));
+        std::to_string(coords.size()));
   }
 
   if (newCoords.empty()) {
-    throw std::invalid_argument(
-        "newCoords cant be empty" +
-        std::to_string(constants::LOCATION_COORDS_COUNT));
+    throw std::invalid_argument("newCoords cant be empty" +
+                                std::to_string(coords.size()));
   }
 
   std::copy(newCoords.begin(), newCoords.end(), coords.begin());
 }
 
 // сдвигает текущие координаты в позицию newCoords
-void Location::move(
-    const std::array<double, constants::LOCATION_COORDS_COUNT> &newCoords) {
+void Location::move(const common::coords_t<float> &newCoords) {
   std::copy(newCoords.begin(), newCoords.end(), coords.begin());
 }
 
@@ -47,24 +45,20 @@ std::string Location::toStr() const {
 }
 
 // сравнивает текущие координаты с позицией otherCoords
-bool Location::coordsEqual(const std::vector<double> &otherCoords) const {
-  if (otherCoords.size() > constants::LOCATION_COORDS_COUNT) {
+bool Location::coordsEqual(const std::vector<float> &otherCoords) const {
+  if (otherCoords.size() > coords.size()) {
     throw std::invalid_argument(
         "otherCoords size cant be bigger than COORDS_COUNT=" +
-        std::to_string(constants::LOCATION_COORDS_COUNT));
+        std::to_string(coords.size()));
   }
 
   if (otherCoords.empty()) {
-    throw std::invalid_argument(
-        "newCoords cant be empty" +
-        std::to_string(constants::LOCATION_COORDS_COUNT));
+    throw std::invalid_argument("newCoords cant be empty" +
+                                std::to_string(coords.size()));
   }
 
   return std::equal(otherCoords.begin(), otherCoords.end(), coords.begin());
 }
 
-std::array<double, constants::LOCATION_COORDS_COUNT>
-Location::getCoords() const {
-  return coords;
-}
+common::coords_t<float> Location::getCoords() const { return coords; }
 } // namespace common

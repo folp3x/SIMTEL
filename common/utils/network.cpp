@@ -37,8 +37,6 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
     return std::unexpected("Port must be numeric");
   } catch (const std::out_of_range &) {
     return std::unexpected("Port value out of range");
-  } catch (const std::exception &) {
-    return std::unexpected("Port parse error");
   }
 }
 } // namespace common

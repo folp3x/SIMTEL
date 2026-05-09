@@ -13,12 +13,9 @@ int Config::getPort() const { return port; }
 
 void Config::setPort(int port_) { port = port_; }
 
-std::array<double, constants::LOCATION_COORDS_COUNT> Config::getLoc() const {
-  return loc;
-}
+common::coords_t<float> Config::getLoc() const { return loc; }
 
-void Config::setLoc(
-    const std::array<double, constants::LOCATION_COORDS_COUNT> &loc_) {
+void Config::setLoc(const common::coords_t<float> &loc_) {
   loc = loc_;
   locationSet = true;
 }

@@ -22,12 +22,12 @@ std::string MenuItemActive::getName() const { return "active"; }
 bool MenuItemActive::getActive() const { return active; }
 
 // MenuItemMove
-MenuItemMove::MenuItemMove(const std::vector<double> &coords_)
+MenuItemMove::MenuItemMove(const std::vector<float> &coords_)
     : coords(coords_) {}
 
 std::string MenuItemMove::getName() const { return "move"; }
 
-std::vector<double> MenuItemMove::getCoords() const { return coords; }
+std::vector<float> MenuItemMove::getCoords() const { return coords; }
 
 // MenuItemProtocol
 MenuItemProtocol::MenuItemProtocol(const std::string &protocol_)

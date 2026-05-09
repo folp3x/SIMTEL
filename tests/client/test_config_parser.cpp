@@ -70,8 +70,7 @@ TEST_F(ConfigParserTest, Parse_CorrectJson) {
 
   Config config = *result;
   bool locParsed =
-      config.getLoc() ==
-      std::array<double, Constants::LOCATION_COORDS_COUNT>{1.1, 2, 3};
+      config.getLoc() == common::coords_t<float>{1.1, 2, 3};
 
   EXPECT_TRUE(config.getIP() == "127.0.0.1");
   EXPECT_EQ(config.getPort(), 49152);

@@ -4,5 +4,5 @@
 #include <vector>
 
 namespace common {
-std::string toStr(const std::vector<double> &vec);
+std::string toStr(const std::vector<float> &vec);
 }

@@ -38,12 +38,12 @@ public:
 
 class MenuItemMove : public common::MenuItem {
 private:
-  std::vector<double> coords = {};
+  std::vector<float> coords = {};
 
 public:
-  explicit MenuItemMove(const std::vector<double> &coords_);
+  explicit MenuItemMove(const std::vector<float> &coords_);
   std::string getName() const override;
-  std::vector<double> getCoords() const;
+  std::vector<float> getCoords() const;
 };
 
 class MenuItemProtocol : public common::MenuItem {

@@ -16,8 +16,7 @@ TEST_F(LocationTest, Move_VectorWithOneCoord) {
   std::vector<double> newLoc = {7};
   loc.move(newLoc);
 
-  auto expectedCoords =
-      std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 0, 0};
+  auto expectedCoords = common::coords_t<float>{7, 0, 0};
 
   EXPECT_TRUE(loc.getCoords() == expectedCoords);
 }
@@ -26,8 +25,7 @@ TEST_F(LocationTest, Move_VectorWithTwoCoords) {
   std::vector<double> newLoc = {7, 8};
   loc.move(newLoc);
 
-  auto expectedCoords =
-      std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 8, 0};
+  auto expectedCoords = common::coords_t<float>{7, 8, 0};
 
   EXPECT_TRUE(loc.getCoords() == expectedCoords);
 }
@@ -36,8 +34,7 @@ TEST_F(LocationTest, Move_VectorWithThreeCoords) {
   std::vector<double> newLoc = {7, 8, 9};
   loc.move(newLoc);
 
-  auto expectedCoords =
-      std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 8, 9};
+  auto expectedCoords = common::coords_t<float>{7, 8, 9};
 
   EXPECT_TRUE(loc.getCoords() == expectedCoords);
 }
@@ -48,7 +45,7 @@ TEST_F(LocationTest, Move_VectorWithFourCoords) {
 }
 
 TEST_F(LocationTest, Move_Array) {
-  auto newLoc = std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 8, 9};
+  auto newLoc = common::coords_t<float>{7, 8, 9};
   loc.move(newLoc);
   EXPECT_TRUE(loc.getCoords() == newLoc);
 }

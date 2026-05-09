@@ -33,7 +33,6 @@ private:
 
 protected:
   T config{};
-  std::array<double, constants::LOCATION_COORDS_COUNT> tempLoc = {};
 
   ConfigParser() = default;
 
@@ -75,11 +74,9 @@ protected:
   }
 
   void initLocField() {
-    addParsedArray<double, constants::LOCATION_COORDS_COUNT>(
+    addParsedArray<float, constants::LOCATION_COORDS_COUNT>(
         "loc",
-        [this](
-            const std::array<double, common::constants::LOCATION_COORDS_COUNT>
-                &loc) { config.setLoc(loc); },
+        [this](const common::coords_t<float> &loc) { config.setLoc(loc); },
         nlohmann::json::value_t::number_float);
   }
 

@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     client::App app{config.getImsi(), location, addr, config.getImei()};
     app.run();
   } catch (std::invalid_argument &e) {
-    std::cout << e.what() << std::endl;
+    std::cout << "Incorrect IP in config file" << std::endl;
     SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(), "App run error: {}",
                            e.what());
     return 1;

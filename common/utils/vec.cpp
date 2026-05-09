@@ -2,7 +2,7 @@
 
 namespace common {
 // формирует строку содержащую элементы вектора
-std::string toStr(const std::vector<double> &vec) {
+std::string toStr(const std::vector<float> &vec) {
   std::string str = "[";
   for (int i = 0; i < vec.size() - 1; ++i) {
     str += std::to_string(vec[i]) + ", ";

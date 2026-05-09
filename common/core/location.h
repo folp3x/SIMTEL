@@ -5,22 +5,21 @@
 #include <vector>
 
 #include "common/constants.h"
+#include "common/types.h"
 
 namespace common {
 class Location {
 private:
-  std::array<double, constants::LOCATION_COORDS_COUNT> coords = {0, 0, 0};
+  common::coords_t<float> coords = {0, 0, 0};
 
 public:
-  explicit Location(
-      const std::array<double, constants::LOCATION_COORDS_COUNT> &coords);
+  explicit Location(const common::coords_t<float> &coords);
 
-  void move(const std::vector<double> &newCoords);
-  void
-  move(const std::array<double, constants::LOCATION_COORDS_COUNT> &newCoords);
+  void move(const std::vector<float> &newCoords);
+  void move(const common::coords_t<float> &newCoords);
   std::string toStr() const;
-  bool coordsEqual(const std::vector<double> &otherCoords) const;
+  bool coordsEqual(const std::vector<float> &otherCoords) const;
 
-  std::array<double, constants::LOCATION_COORDS_COUNT> getCoords() const;
+  common::coords_t<float> getCoords() const;
 };
 } // namespace common
