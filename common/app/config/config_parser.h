@@ -1,5 +1,8 @@
 #pragma once
 
+// вывод пути к месту где произошла ошибка при разборе json
+#define JSON_DIAGNOSTICS 1
+
 #include <concepts>
 #include <expected>
 #include <fstream>
@@ -7,17 +10,17 @@
 #include <nlohmann/json.hpp>
 
 #include "common/constants.h"
+#include "common/json/json_array_info.h"
+#include "common/json/json_base_info.h"
+#include "common/json/json_field_info.h"
 #include "common/validator/validator.h"
 #include "config.h"
-#include "config_array_info.h"
-#include "config_field_base.h"
-#include "config_field_info.h"
 
 namespace common {
 // абстрактный класс для парсинга конфигурации из JSON
 template <std::derived_from<Config> T> class ConfigParser {
 private:
-  std::vector<std::unique_ptr<ConfigFieldBase>> fieldsInfo = {};
+  std::vector<std::unique_ptr<JsonBaseInfo>> fieldsInfo = {};
 
   std::optional<std::string> parseFields(const nlohmann::json &json) {
     for (const auto &info : fieldsInfo) {
@@ -43,8 +46,8 @@ protected:
       const std::function<void(const F &)> successCallback,
       nlohmann::json::value_t type,
       const std::function<std::string(const F &)> &checkFn = nullptr) {
-    auto info = std::make_unique<ConfigFieldInfo<F>>(name, successCallback,
-                                                     type, checkFn);
+    auto info = std::make_unique<JsonFieldInfo<F>>(name, successCallback, type,
+                                                   checkFn);
     fieldsInfo.push_back(std::move(info));
   }
 
@@ -56,8 +59,8 @@ protected:
       nlohmann::json::value_t elemType,
       const std::function<std::string(const std::array<E, S> &)> &checkFn =
           nullptr) {
-    auto info = std::make_unique<ConfigArrayInfo<E, S>>(name, successCallback,
-                                                        elemType, checkFn);
+    auto info = std::make_unique<JsonArrayInfo<E, S>>(name, successCallback,
+                                                      elemType, checkFn);
     fieldsInfo.push_back(std::move(info));
   }
 

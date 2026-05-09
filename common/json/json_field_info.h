@@ -4,11 +4,12 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
-#include "config_field_base.h"
+#include "json_base_info.h"
+#include "json_type.h"
 
 namespace common {
 // класс с информацией для парсинга простого JSON-поля
-template <typename T> class ConfigFieldInfo : public ConfigFieldBase {
+template <typename T> class JsonFieldInfo : public JsonBaseInfo {
 private:
   nlohmann::json::value_t type;
   std::function<std::string(const T &)> checkFn;
@@ -34,22 +35,21 @@ protected:
   }
 
 public:
-  ConfigFieldInfo(
-      const std::string &name_,
-      const std::function<void(const T &)> successCallback_,
-      nlohmann::json::value_t type_,
-      const std::function<std::string(const T &)> &checkFn_ = nullptr)
+  JsonFieldInfo(const std::string &name_,
+                const std::function<void(const T &)> successCallback_,
+                nlohmann::json::value_t type_,
+                const std::function<std::string(const T &)> &checkFn_ = nullptr)
       : name(name_), successCallback(successCallback_), type(type_),
         checkFn(checkFn_) {}
 
-  virtual ~ConfigFieldInfo() = default;
+  virtual ~JsonFieldInfo() = default;
 
   virtual std::optional<std::string> parse(const nlohmann::json &json) {
     std::string nameQuoted = getName(true);
 
     auto fieldJson = json[name];
     if (!hasType(fieldJson, type))
-      return nameQuoted + " must have a type";
+      return nameQuoted + " must have a type '" + jsonTypeToStr(type) + "'";
 
     T field = fieldJson.get<T>();
 

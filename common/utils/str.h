@@ -21,7 +21,6 @@ template <class Iterator,
   requires std::is_arithmetic_v<U>
 std::string toStr(Iterator begin, Iterator end, int precision = 4,
                   char leftBorder = '[', char rightBorder = ']') {
-
   if (begin == end)
     return std::to_string(leftBorder) + std::to_string(rightBorder);
 
@@ -34,8 +33,10 @@ std::string toStr(Iterator begin, Iterator end, int precision = 4,
     } else {
       str += std::to_string(*it);
     }
-    str += (it == last) ? std::string(1, rightBorder) : ", ";
+    if (it != last)
+      str += ", ";
   }
+  str += std::string(1, rightBorder);
   return str;
 }
 } // namespace common
