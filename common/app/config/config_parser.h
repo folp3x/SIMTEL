@@ -114,7 +114,6 @@ public:
       auto error = parseFields(json);
       if (error)
         return std::unexpected(*error);
-      ;
       return config;
     } catch (const nlohmann::json::parse_error &e) {
       return std::unexpected("JSON parse error: " + std::string(e.what()));

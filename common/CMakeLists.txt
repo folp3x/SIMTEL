@@ -10,7 +10,6 @@ set(SOURCES_LIST
 	"logging/logger.cpp"
 	"utils/network.cpp"
 	"core/network_address.cpp"
-	"utils/vec.cpp"
 	"app/config/config.cpp"
 )
 

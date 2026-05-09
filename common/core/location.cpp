@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "common/types.h"
+#include "common/utils/str.h"
 
 namespace common {
 Location::Location(const common::coords_t<float> &coords_) : coords(coords_) {};
@@ -33,15 +34,8 @@ void Location::move(const common::coords_t<float> &newCoords) {
 
 // возвращает текущие координаты в виде строки
 std::string Location::toStr() const {
-  std::ostringstream stream;
-  stream << "(";
-  for (int i = 0; i < coords.size() - 1; ++i) {
-    // координаты округляются до 4 знаков
-    stream << std::setprecision(4) << coords[i] << ", ";
-  }
-  stream << coords[coords.size() - 1] << ")";
-
-  return stream.str();
+  constexpr int precision = 4;
+  return common::toStr(coords.begin(), coords.end(), precision, '(', ')');
 }
 
 // сравнивает текущие координаты с позицией otherCoords

@@ -6,7 +6,6 @@
 #include <variant>
 
 #include "common/utils/str.h"
-#include "common/utils/vec.h"
 #include "menu/menu.h"
 
 namespace client {
@@ -27,13 +26,15 @@ std::string App::handleActiveCommand(const MenuItemActive &cmd) {
 
 // выполняет команду 'move', возвращает сообщение
 std::string App::handleMoveCommand(const MenuItemMove &cmd) {
-  SPDLOG_LOGGER_INFO(
-      spdlog::default_logger(), "Processing command {} with args: coords={}",
-      common::uppercased(cmd.getName()), common::toStr(cmd.getCoords()));
+  std::vector<float> coords = cmd.getCoords();
+  SPDLOG_LOGGER_INFO(spdlog::default_logger(),
+                     "Processing command {} with args: coords={}",
+                     common::uppercased(cmd.getName()),
+                     common::toStr(coords.begin(), coords.end()));
 
   try {
-    if (!location.coordsEqual(cmd.getCoords())) {
-      location.move(cmd.getCoords());
+    if (!location.coordsEqual(coords)) {
+      location.move(coords);
       return "Position changed to " + location.toStr();
     }
     return "Position already set to " + location.toStr();
@@ -44,11 +45,12 @@ std::string App::handleMoveCommand(const MenuItemMove &cmd) {
 
 // выполняет команду 'protocol', возвращает сообщение
 std::string App::handleProtocolCommand(const MenuItemProtocol &cmd) {
+  std::string protocolStr = cmd.getProtocol();
   SPDLOG_LOGGER_INFO(spdlog::default_logger(),
                      "Processing command {} with args: protocol={}",
-                     common::uppercased(cmd.getName()), cmd.getProtocol());
+                     common::uppercased(cmd.getName()), protocolStr);
 
-  auto protocolParseResult = common::protocolFromStr(cmd.getProtocol());
+  auto protocolParseResult = common::protocolFromStr(protocolStr);
   if (protocolParseResult) {
     common::Protocol newProtocol = *protocolParseResult;
     std::string protocolStr = protocolToStr(newProtocol);
