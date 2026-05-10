@@ -56,6 +56,11 @@ if(BUILD_CLIENT)
     add_subdirectory(client)
 endif()
 
+option(BUILD_SERVER "Build server" OFF)
+if(BUILD_SERVER)
+    add_subdirectory(server)
+endif()
+
 # флаг для сборки с тестами
 option(BUILD_TESTS "Build unit tests" OFF)
 

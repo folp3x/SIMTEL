@@ -14,6 +14,16 @@ bool Validator::isCorrectJsonPath(std::string_view filePath) {
          filePath.substr(filePath.size() - jsonExtLen) == ".json";
 }
 
+std::string Validator::jsonFilePathExists(const std::string &filePath,
+                                          const std::string &name) {
+  if (!isCorrectJsonPath(filePath)) {
+    return name + " path must be a path to .json file";
+  } else if (!std::filesystem::exists(filePath)) {
+    return name + " file not found";
+  }
+  return "";
+}
+
 // проверяет коррекность IPv4. ip должен иметь сетевой порядок байт
 std::string Validator::isCorrectIP(uint32_t ip) {
   uint8_t lowByte = (ip >> 3 * 8) & 0xFF;
@@ -71,20 +81,10 @@ std::string Validator::isCorrectIMSI(const common::imsi_t &imsi) {
 }
 
 std::string Validator::isCorrectConfigPath(const std::string &filePath) {
-  if (!isCorrectJsonPath(filePath)) {
-    return "Config path must be a path to .json file";
-  } else if (!std::filesystem::exists(filePath)) {
-    return "Config file not found";
-  }
-  return "";
+  return jsonFilePathExists(filePath, "Config");
 }
 
 std::string Validator::isCorrectNodesPath(const std::string &filePath) {
-  if (!isCorrectJsonPath(filePath)) {
-    return "Nodes path must be a path to .json file";
-  } else if (!std::filesystem::exists(filePath)) {
-    return "Nodes file not found";
-  }
-  return "";
+  return jsonFilePathExists(filePath, "Nodes");
 }
 } // namespace common

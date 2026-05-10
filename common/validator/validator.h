@@ -22,6 +22,8 @@ private:
   static constexpr int MAX_IMSI_LENGTH = 15;
 
   static bool isCorrectJsonPath(std::string_view filePath);
+  static std::string jsonFilePathExists(const std::string &filePath,
+                                        const std::string &name);
 
 public:
   static std::string isCorrectIP(uint32_t ip);
