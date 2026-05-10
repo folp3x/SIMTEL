@@ -3,15 +3,13 @@ set(APP_TARGET_NAME client)
 set(APP_LIB_NAME client_lib)
 
 set(SOURCES_LIST
-	"app.cpp"
-	"menu/menu.cpp"
-	"menu/command_info.cpp"
-	"app_state.cpp"
-	"menu/command_parser.cpp"
-	"cli/cli_parser.cpp"
-	"config/config_parser.cpp"
-	"config/config.cpp"
-	"menu/menu_item.cpp"
+	"app/app.cpp"
+	"menu/menu/menu.cpp"
+	"menu/command_parser/command_parser.cpp"
+	"cli/cli_parser/cli_parser.cpp"
+	"config/config_parser/config_parser.cpp"
+	"config/config/config.cpp"
+	"menu/menu_item/menu_item.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

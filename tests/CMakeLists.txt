@@ -13,8 +13,8 @@ FetchContent_MakeAvailable(gtest)
 set(TESTS_SOURCES_LIST
 	"main_test.cpp"
 	"client/test_cli_parser.cpp"
-	"utils/temp_file.cpp"
-	"utils/args_splitter.cpp"
+	"utils/temp_file/temp_file.cpp"
+	"utils/args_splitter/args_splitter.cpp"
 	"client/test_config_parser.cpp"
 	"client/test_command_parser.cpp"
 	"common/test_validator.cpp"

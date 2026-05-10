@@ -2,15 +2,14 @@
 set(APP_LIB_NAME common_lib)
 
 set(SOURCES_LIST
-	"utils/str.cpp"
-	"core/location.cpp"
-	"core/protocol.cpp"
-	"utils/print.cpp"
+	"utils/str/str.cpp"
+	"core/location/location.cpp"
+	"network/protocol/protocol.cpp"
 	"validator/validator.cpp"
-	"logging/logger.cpp"
-	"utils/network.cpp"
-	"core/network_address.cpp"
-	"app/config/config.cpp"
+	"logging/logger/logger.cpp"
+	"utils/network/network.cpp"
+	"network/network_address/network_address.cpp"
+	"app/config/config/config.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

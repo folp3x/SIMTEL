@@ -35,6 +35,8 @@ cd protei
 # генерация файлов сборки и компиляция
 cmake -S . -B build
 cmake --build build --target app
+# для ускорения сборки можно использовать флаг --parallel (-j)
+cmake --build build --target app -j
 
 # при необходимости указать путь к компилятору
 cmake -S . -B build -DCMAKE_C_COMPILER=/usr/bin/gcc-12 -DCMAKE_CXX_COMPILER=/usr/bin/g++-12

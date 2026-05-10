@@ -3,12 +3,12 @@
 #include <cstring>
 #include <filesystem>
 
-#include "common/utils/network.h"
-#include "common/utils/str.h"
+#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 // проверяет что путь является путем к файлу JSON
-bool Validator::isCorrectJsonPath(const std::string &filePath) {
+bool Validator::isCorrectJsonPath(std::string_view filePath) {
   int jsonExtLen = std::strlen(".json");
   return (filePath.size() < jsonExtLen) ||
          filePath.substr(filePath.size() - jsonExtLen) == ".json";
@@ -49,8 +49,9 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
 }
 
 std::string Validator::isCorrectIMEI(const common::imei_t &imei) {
-  if (imei.size() != IMEI_LENGTH) {
-    return "IMEI must have " + std::to_string(IMEI_LENGTH) + " digits ";
+  if (imei.size() > MAX_IMEI_LENGTH) {
+    return "IMEI must have no more than " + std::to_string(MAX_IMEI_LENGTH) +
+           " digits";
   } else if (!allDigits(imei)) {
     return "IMEI must contain only digits";
   }
@@ -59,8 +60,9 @@ std::string Validator::isCorrectIMEI(const common::imei_t &imei) {
 }
 
 std::string Validator::isCorrectIMSI(const common::imsi_t &imsi) {
-  if (imsi.size() != IMSI_LENGTH) {
-    return "IMSI must have " + std::to_string(IMSI_LENGTH) + " digits ";
+  if (imsi.size() < MIN_IMSI_LENGTH) {
+    return "IMSI must have from " + std::to_string(MIN_IMSI_LENGTH) + " to " +
+           std::to_string(MIN_IMSI_LENGTH) + " digits";
   } else if (!allDigits(imsi)) {
     return "IMSI must contain only digits";
   }

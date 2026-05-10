@@ -34,11 +34,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
+FetchContent_Declare(
+	frozen
+	URL https://github.com/serge-sans-paille/frozen/archive/refs/tags/1.2.0.tar.gz
+	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(frozen)
+
 set(LIBRARIES_LIST
 	rang
 	nlohmann_json
 	CLI11::CLI11
 	spdlog
+	frozen
 )
 
 add_subdirectory(common)
