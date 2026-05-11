@@ -1,16 +1,22 @@
 #pragma once
 
 #include <concepts>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
 namespace common {
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, int precision = -1) {
-  if (precision == -1) {
+std::string toStr(T num, std::optional<int> precision_ = std::nullopt) {
+  if (!precision_) {
     return std::to_string(num);
-  } else if (precision >= 0) {
+  } else {
+    int precision = *precision_;
+
+    if (precision < 0)
+      throw std::invalid_argument("precision_ must be > 0");
+
     size_t size =
         snprintf(nullptr, 0, ("%." + std::to_string(precision) + "f").c_str(),
                  num) +
@@ -33,7 +39,5 @@ std::string toStr(T num, int precision = -1) {
 
     return buf;
   }
-  throw std::invalid_argument(
-      "precision must be > 0 or -1 for default precision");
 }
 } // namespace common

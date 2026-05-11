@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <filesystem>
+#include <optional>
 
 #include "common/utils/network/network.h"
 #include "common/utils/str/str.h"
@@ -21,6 +22,45 @@ std::string Validator::jsonFilePathExists(const std::string &filePath,
   } else if (!std::filesystem::exists(filePath)) {
     return name + " file not found";
   }
+  return "";
+}
+
+std::string Validator::isCorrectDigitStr(std::string_view str,
+                                         std::optional<int> minLength_,
+                                         std::optional<int> maxLength_,
+                                         const std::string &name) {
+  int minLength, maxLength;
+  std::string minLengthStr, maxLengthStr;
+  bool lessDigits, moreDigits;
+  if (minLength_) {
+    minLength = *minLength_;
+    if (minLength < 0)
+      throw std::invalid_argument("minLength_ must be > 0");
+
+    minLengthStr = std::to_string(minLength);
+    lessDigits = str.size() < minLength;
+  }
+
+  if (maxLength_) {
+    maxLength = *minLength_;
+    if (maxLength < 0)
+      throw std::invalid_argument("maxLength_ must be > 0");
+
+    minLengthStr = std::to_string(maxLength);
+    moreDigits = str.size() < minLength;
+  }
+
+  if (minLength && maxLength && (lessDigits || moreDigits)) {
+    return name + " must have from " + minLengthStr + " to " + maxLengthStr +
+           " digits";
+  }
+  if (minLength && lessDigits)
+    return name + " must have more than " + minLengthStr + " digits";
+  if (maxLength && moreDigits)
+    return name + " must have less than " + minLengthStr + " digits";
+  if (!allDigits(str))
+    return name + " must contain only digits";
+
   return "";
 }
 
@@ -59,25 +99,11 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
 }
 
 std::string Validator::isCorrectIMEI(const common::imei_t &imei) {
-  if (imei.size() > MAX_IMEI_LENGTH) {
-    return "IMEI must have no more than " + std::to_string(MAX_IMEI_LENGTH) +
-           " digits";
-  } else if (!allDigits(imei)) {
-    return "IMEI must contain only digits";
-  }
-
-  return "";
+  return isCorrectDigitStr(imei, MIN_IMEI_LENGTH, MAX_IMEI_LENGTH, "IMEI");
 }
 
 std::string Validator::isCorrectIMSI(const common::imsi_t &imsi) {
-  if (imsi.size() < MIN_IMSI_LENGTH) {
-    return "IMSI must have from " + std::to_string(MIN_IMSI_LENGTH) + " to " +
-           std::to_string(MIN_IMSI_LENGTH) + " digits";
-  } else if (!allDigits(imsi)) {
-    return "IMSI must contain only digits";
-  }
-
-  return "";
+  return isCorrectDigitStr(imsi, MIN_IMSI_LENGTH, MAX_IMSI_LENGTH, "IMSI");
 }
 
 std::string Validator::isCorrectConfigPath(const std::string &filePath) {

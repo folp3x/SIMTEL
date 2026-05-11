@@ -15,6 +15,7 @@ private:
   static constexpr int MIN_IP_LOW_BYTE = 1;
   static constexpr int MAX_IP_LOW_BYTE = 253;
 
+  static constexpr int MIN_IMEI_LENGTH = 1;
   // 3 цифры MCC, минимум 2 цифры MNC и минимум 1 цифра MSIN
   static constexpr int MIN_IMSI_LENGTH = 6;
 
@@ -24,6 +25,11 @@ private:
   static bool isCorrectJsonPath(std::string_view filePath);
   static std::string jsonFilePathExists(const std::string &filePath,
                                         const std::string &name);
+
+  static std::string isCorrectDigitStr(std::string_view str,
+                                       std::optional<int> minLength_,
+                                       std::optional<int> maxLength_,
+                                       const std::string &name);
 
 public:
   static std::string isCorrectIP(uint32_t ip);
