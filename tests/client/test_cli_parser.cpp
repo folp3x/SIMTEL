@@ -1,54 +1,54 @@
-#include "client/cli/cli_parser.h"
+#include "client/app/cli/cli_parser/cli_parser.h"
 
 #include <array>
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <sstream>
 
-#include "tests/utils/args_splitter.h"
-#include "tests/utils/temp_file.h"
+#include "tests/utils/args_splitter/args_splitter.h"
+#include "tests/utils/temp_file/temp_file.h"
 
-class CLIParserTest : public ::testing::Test {
+class ClientCLIParserTest : public ::testing::Test {
 protected:
-  CLIParser parser{};
+  std::unique_ptr<client::CLIParser> parser = client::CLIParser::create();
 
   std::string msg = "";
   bool helpCalled = false;
 };
 
-TEST_F(CLIParserTest, Parse_Help) {
+TEST_F(ClientCLIParserTest, Parse_Help) {
   ArgsSplitter splitter{"./app --help"};
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
   EXPECT_FALSE(isParsed);
   EXPECT_TRUE(msg.size() > 0);
   EXPECT_TRUE(helpCalled);
 }
 
-TEST_F(CLIParserTest, Parse_ConfigNoArg) {
+TEST_F(ClientCLIParserTest, Parse_ConfigNoArg) {
   ArgsSplitter splitter{"./app --config"};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
   EXPECT_FALSE(isParsed);
   EXPECT_FALSE(msg.empty());
   EXPECT_FALSE(helpCalled);
 }
 
-TEST_F(CLIParserTest, Parse_ConfigRedundantArg) {
+TEST_F(ClientCLIParserTest, Parse_ConfigRedundantArg) {
   ArgsSplitter splitter{"./app --config path path"};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
   EXPECT_FALSE(isParsed);
   EXPECT_FALSE(msg.empty());
   EXPECT_FALSE(helpCalled);
 }
 
-TEST_F(CLIParserTest, Parse_ConfigCorrectArg) {
+TEST_F(ClientCLIParserTest, Parse_ConfigCorrectArg) {
   TempFile file{"./test.json", "[]"};
 
   if (!std::filesystem::exists(file.getPath()))
@@ -57,9 +57,9 @@ TEST_F(CLIParserTest, Parse_ConfigCorrectArg) {
   ArgsSplitter splitter{"./app --config " + file.getPath()};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
-  auto result = parser.getParsedConfigFilePath();
+  auto result = parser->getParsedConfigFilePath();
 
   EXPECT_TRUE(isParsed);
   EXPECT_TRUE(msg.empty());
@@ -68,27 +68,27 @@ TEST_F(CLIParserTest, Parse_ConfigCorrectArg) {
   EXPECT_EQ(*result, file.getPath());
 }
 
-TEST_F(CLIParserTest, Parse_ConfigInvalidArg) {
+TEST_F(ClientCLIParserTest, Parse_ConfigInvalidArg) {
   ArgsSplitter splitter{"./app --config 123"};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
-  auto result = parser.getParsedConfigFilePath();
+  auto result = parser->getParsedConfigFilePath();
 
   EXPECT_FALSE(isParsed);
   EXPECT_FALSE(msg.empty());
   EXPECT_FALSE(helpCalled);
 }
 
-TEST_F(CLIParserTest, AllConfigOptsSet_AllSet) {
+TEST_F(ClientCLIParserTest, AllConfigOptsSet_AllSet) {
   ArgsSplitter splitter{"./app -a 127.0.0.1 -p 49152 -e 123456789012345 -i "
                         "543210987654321 -l 1.1 2 3"};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
-  bool configOptsSet = parser.allConfigOptsSet();
+  bool configOptsSet = parser->allConfigOptsSet();
 
   EXPECT_TRUE(isParsed);
   EXPECT_TRUE(msg.empty());
@@ -96,7 +96,7 @@ TEST_F(CLIParserTest, AllConfigOptsSet_AllSet) {
   EXPECT_TRUE(configOptsSet);
 }
 
-TEST_F(CLIParserTest, AllConfigOptsSet_OneNotSetWithConfig) {
+TEST_F(ClientCLIParserTest, AllConfigOptsSet_OneNotSetWithConfig) {
   TempFile file{"./test.json", "[]"};
 
   if (!std::filesystem::exists(file.getPath()))
@@ -107,9 +107,9 @@ TEST_F(CLIParserTest, AllConfigOptsSet_OneNotSetWithConfig) {
                         file.getPath()};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
-  bool configOptsSet = parser.allConfigOptsSet();
+  bool configOptsSet = parser->allConfigOptsSet();
 
   EXPECT_TRUE(isParsed);
   EXPECT_TRUE(msg.empty());
@@ -117,16 +117,16 @@ TEST_F(CLIParserTest, AllConfigOptsSet_OneNotSetWithConfig) {
   EXPECT_FALSE(configOptsSet);
 }
 
-TEST_F(CLIParserTest, RedefineConfig_AllRedefined) {
+TEST_F(ClientCLIParserTest, RedefineConfig_AllRedefined) {
   ArgsSplitter splitter{"./app -a 127.0.0.1 -p 49152 -e 123456789012345 -i "
                         "543210987654321 -l 1.1 2 3"};
 
   bool isParsed =
-      parser.parse(splitter.argc(), splitter.argv(), msg, helpCalled);
+      parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
-  Config config{};
+  client::Config config{};
 
-  Config redefined = parser.redefineConfig(config);
+  client::Config redefined = parser->redefineConfig(config);
 
   bool locRedefined = redefined.getLoc() == common::coords_t<float>{1.1, 2, 3};
 

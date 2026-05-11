@@ -4,13 +4,21 @@
 
 // разделение аргументов командной строки на пробелу
 void ArgsSplitter::split(const std::string &argsStr) {
-  std::istringstream stream(argsStr);
-  std::string arg;
-
-  int argIndex = 0;
-  while (stream >> arg) {
-    argsValues.push_back(arg);
+  std::string curArg = "";
+  for (auto ch : argsStr) {
+    if (isspace(ch)) {
+      if (!curArg.empty()) {
+        argsValues.push_back(curArg);
+        curArg.clear();
+      }
+    } else {
+      curArg += ch;
+    }
   }
+
+  // добавление последнего аргумента
+  if (!curArg.empty())
+    argsValues.push_back(curArg);
 
   for (auto &val : argsValues) {
     args.push_back(const_cast<char *>(val.c_str()));

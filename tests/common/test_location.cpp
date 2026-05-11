@@ -1,10 +1,10 @@
-#include "common/core/location.h"
+#include "common/core/location/location.h"
 
 #include <gtest/gtest.h>
 
 class LocationTest : public ::testing::Test {
 protected:
-  Location loc{{0, 0, 0}};
+  common::Location loc{{0, 0, 0}};
 };
 
 TEST_F(LocationTest, Move_VectorWithNoCoords) {
@@ -51,7 +51,7 @@ TEST_F(LocationTest, Move_Array) {
 }
 
 TEST_F(LocationTest, ToStr) {
-  loc = Location{{1, 2, 3}};
+  loc = common::Location{{1, 2, 3}};
   EXPECT_TRUE(loc.toStr() == "(1, 2, 3)");
 }
 
@@ -61,30 +61,30 @@ TEST_F(LocationTest, CoordsEqual_NoCoords) {
 }
 
 TEST_F(LocationTest, CoordsEqual_OneCoordEqual) {
-  loc = Location{{7, 8, 9}};
-  auto comparedCoords = std::vector<double>{7};
+  loc = common::Location{{7, 8, 9}};
+  auto comparedCoords = std::vector<float>{7};
   EXPECT_TRUE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_TwoCoordsEqual) {
-  loc = Location{{7, 8, 9}};
-  auto comparedCoords = std::vector<double>{7, 8};
+  loc = common::Location{{7, 8, 9}};
+  auto comparedCoords = std::vector<float>{7, 8};
   EXPECT_TRUE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_TwoCoordsNotEqual) {
-  loc = Location{{7, 0, 0}};
-  auto comparedCoords = std::vector<double>{7, 8};
+  loc = common::Location{{7, 0, 0}};
+  auto comparedCoords = std::vector<float>{7, 8};
   EXPECT_FALSE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_ThreeCoordsEqual) {
-  loc = Location{{7, 8, 9}};
-  auto comparedCoords = std::vector<double>{7, 8, 9};
+  loc = common::Location{{7, 8, 9}};
+  auto comparedCoords = std::vector<float>{7, 8, 9};
   EXPECT_TRUE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_FourCoordsEqual) {
-  auto comparedCoords = std::vector<double>{1, 2, 3, 4};
+  auto comparedCoords = std::vector<float>{1, 2, 3, 4};
   EXPECT_THROW(loc.coordsEqual(comparedCoords), std::invalid_argument);
 }
