@@ -23,7 +23,8 @@ public:
 
 class MenuItemExit : public common::MenuItem {
 public:
-  std::string_view getName() const override;
+  virtual std::string_view getName() const override;
+  static int getArgsCount();
 };
 
 class MenuItemActive : public common::MenuItem {
@@ -32,8 +33,9 @@ private:
 
 public:
   explicit MenuItemActive(bool active_);
-  std::string_view getName() const override;
+  virtual std::string_view getName() const override;
   bool getActive() const;
+  static int getArgsCount();
 };
 
 class MenuItemMove : public common::MenuItem {
@@ -42,8 +44,9 @@ private:
 
 public:
   explicit MenuItemMove(const std::vector<float> &coords_);
-  std::string_view getName() const override;
+  virtual std::string_view getName() const override;
   std::vector<float> getCoords() const;
+  static int getArgsCount();
 };
 
 class MenuItemProtocol : public common::MenuItem {
@@ -52,8 +55,9 @@ private:
 
 public:
   explicit MenuItemProtocol(const std::string &protocol_);
-  std::string_view getName() const override;
+  virtual std::string_view getName() const override;
   std::string getProtocol() const;
+  static int getArgsCount();
 };
 
 } // namespace client

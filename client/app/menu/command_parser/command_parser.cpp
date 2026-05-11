@@ -1,6 +1,5 @@
 #include "command_parser.h"
 
-#include <sstream>
 #include <variant>
 
 #include "common/constants/constants.h"
@@ -9,9 +8,9 @@
 
 namespace client {
 std::unique_ptr<common::MenuItem>
-CommandParser::parseExitArgs(std::istringstream &stream,
-                             std::string &extraMsg) const {
-  if (common::hasDataAfterPos(stream.str(), stream.tellg())) {
+CommandParser::parseExitArgs(const std::vector<std::string> &args,
+                             std::string &extraMsg) {
+  if (!args.empty()) {
     // если есть лишние аргументы
     extraMsg = "Redundant arguments ignored";
   }
@@ -20,18 +19,19 @@ CommandParser::parseExitArgs(std::istringstream &stream,
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseActiveArgs(std::istringstream &stream,
-                               std::string &extraMsg) const {
-  std::string isActiveStr;
-  if (!(stream >> isActiveStr))
+CommandParser::parseActiveArgs(const std::vector<std::string> &args,
+                               std::string &extraMsg) {
+
+  if (args.empty())
     return std::make_unique<MenuItemInvalid>("Missing argument");
+
+  std::string isActiveStr = args[0];
 
   auto parseResult = common::parseBool(isActiveStr);
   if (parseResult) {
-    if (common::hasDataAfterPos(stream.str(), stream.tellg())) {
-      // если есть лишние аргументы
+    if (args.size() > MenuItemExit::getArgsCount())
       extraMsg = "Redundant arguments ignored";
-    }
+
     bool isActive = *parseResult;
     return std::make_unique<MenuItemActive>(isActive);
   }
@@ -39,18 +39,20 @@ CommandParser::parseActiveArgs(std::istringstream &stream,
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseMoveArgs(std::istringstream &stream,
-                             std::string &extraMsg) const {
-  std::string coordStr;
+CommandParser::parseMoveArgs(const std::vector<std::string> &args,
+                             std::string &extraMsg) {
+  if (args.empty())
+    return std::make_unique<MenuItemInvalid>("Missing argument");
+
   std::vector<float> coords;
-  coords.reserve(common::constants::LOCATION_COORDS_COUNT);
-  while (coords.size() < common::constants::LOCATION_COORDS_COUNT) {
-    if (!(stream >> coordStr)) {
-      // если в потоке закончились аргументы
+  coords.reserve(args.size());
+
+  for (int i = 0; i < args.size(); ++i) {
+    if (i > common::constants::LOCATION_COORDS_COUNT - 1)
       break;
-    }
+
     try {
-      float coord = stod(coordStr);
+      float coord = stod(args[i]);
       coords.push_back(coord);
     } catch (const std::invalid_argument &) {
       return std::make_unique<MenuItemInvalid>("Not-numeric argument");
@@ -59,26 +61,22 @@ CommandParser::parseMoveArgs(std::istringstream &stream,
     }
   }
 
-  if (coords.size() == 0)
-    return std::make_unique<MenuItemInvalid>("Missing argument");
-
-  if (common::hasDataAfterPos(stream.str(), stream.tellg())) {
-    // если есть лишние аргументы
+  if (args.size() > MenuItemMove::getArgsCount())
     extraMsg = "Redundant arguments ignored";
-  }
 
   return std::make_unique<MenuItemMove>(coords);
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseProtocolArgs(std::istringstream &stream,
-                                 std::string &extraMsg) const {
-  std::string value;
-  if (!(stream >> value))
+CommandParser::parseProtocolArgs(const std::vector<std::string> &args,
+                                 std::string &extraMsg) {
+  if (args.empty())
     return std::make_unique<MenuItemInvalid>("Missing argument");
 
+  std::string value = args[0];
+
   if (common::isCorrectProtocolStr(value)) {
-    if (common::hasDataAfterPos(stream.str(), stream.tellg())) {
+    if (args.size() > MenuItemProtocol::getArgsCount()) {
       // если есть лишние аргументы
       extraMsg = "Redundant arguments ignored";
     }
@@ -91,11 +89,13 @@ CommandParser::parseProtocolArgs(std::istringstream &stream,
 std::unique_ptr<common::MenuItem>
 CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
-  std::istringstream stream(common::lowercased(common::ltrimmed(str)));
-  std::string commandName;
+  std::vector<std::string> tokens =
+      common::split(common::lowercased(common::ltrimmed(str)));
 
-  if (!(stream >> commandName))
+  if (tokens.empty())
     return std::make_unique<MenuItemUnknown>();
+
+  std::string commandName = tokens[0];
 
   const auto &commands = getCommandsInfo();
   auto infoIt = commands.find(commandName);
@@ -111,7 +111,9 @@ CommandParser::parseCommand(const std::string &str,
     return std::make_unique<MenuItemUnknown>();
   }
 
-  auto cmd = parserIt->second(stream, extraMsg);
+  tokens.erase(tokens.begin());
+
+  auto cmd = parserIt->second(tokens, extraMsg);
   return cmd;
 }
 } // namespace client

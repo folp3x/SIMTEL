@@ -17,10 +17,10 @@ private:
   static constexpr int MAX_IP_LOW_BYTE = 253;
 
   static constexpr int MIN_IMEI_LENGTH = 1;
+  static constexpr int MAX_IMEI_LENGTH = 15;
+
   // 3 цифры MCC, минимум 2 цифры MNC и минимум 1 цифра MSIN
   static constexpr int MIN_IMSI_LENGTH = 6;
-
-  static constexpr int MAX_IMEI_LENGTH = 15;
   static constexpr int MAX_IMSI_LENGTH = 15;
 
   static bool isCorrectJsonPath(std::string_view filePath);

@@ -1,7 +1,6 @@
 #include "location.h"
 
 #include <iomanip>
-#include <sstream>
 
 #include "common/types/types.h"
 #include "common/utils/str/str.h"

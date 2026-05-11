@@ -41,12 +41,12 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
   }
 
   if (maxLength_) {
-    maxLength = *minLength_;
+    maxLength = *maxLength_;
     if (maxLength < 0)
       throw std::invalid_argument("maxLength_ must be > 0");
 
-    minLengthStr = std::to_string(maxLength);
-    moreDigits = str.size() < minLength;
+    maxLengthStr = std::to_string(maxLength);
+    moreDigits = str.size() > maxLength;
   }
 
   if (minLength && maxLength && (lessDigits || moreDigits)) {

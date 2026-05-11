@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "common/utils/num/num.h"
 
@@ -9,9 +10,9 @@ namespace common {
 std::string lowercased(std::string_view str);
 std::string uppercased(std::string_view str);
 std::optional<bool> parseBool(std::string_view str);
-bool hasDataAfterPos(const std::string &str, const std::streampos &pos);
 bool allDigits(std::string_view str);
 std::string ltrimmed(std::string_view str);
+std::vector<std::string> split(const std::string &str);
 
 // итератор указывающий на число
 // решение найдено здесь

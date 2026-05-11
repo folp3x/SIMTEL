@@ -1,7 +1,6 @@
 #include "str.h"
 
 #include <algorithm>
-#include <sstream>
 
 namespace common {
 // возвращает строку в нижнем регистре
@@ -34,16 +33,6 @@ std::optional<bool> parseBool(std::string_view str) {
   }
 }
 
-// проверяет есть ли данные в потоке после позиции pos
-bool hasDataAfterPos(const std::string &str, const std::streampos &pos) {
-  std::istringstream streamCopy(str);
-  streamCopy.seekg(pos);
-  streamCopy >> std::ws;
-
-  return streamCopy.peek() != EOF;
-}
-
-// проверяет что все символы строки - цифры
 bool allDigits(std::string_view str) {
   return std::all_of(str.begin(), str.end(), ::isdigit);
 }
@@ -53,5 +42,26 @@ std::string ltrimmed(std::string_view str) {
   auto it = std::find_if(str.begin(), str.end(), isprint);
 
   return std::string(it, str.end());
+}
+
+std::vector<std::string> split(const std::string &str) {
+  std::vector<std::string> tokens = {};
+  std::string curToken = "";
+  for (auto ch : str) {
+    if (isspace(ch)) {
+      if (!curToken.empty()) {
+        tokens.push_back(curToken);
+        curToken.clear();
+      }
+    } else {
+      curToken += ch;
+    }
+  }
+
+  // добавление последнего токена
+  if (!curToken.empty())
+    tokens.push_back(curToken);
+
+  return tokens;
 }
 } // namespace common

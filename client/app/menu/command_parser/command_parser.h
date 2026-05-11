@@ -14,28 +14,23 @@ class CommandParser : public common::CommandParser {
   using ArgsParserMap =
       std::unordered_map<std::string,
                          std::function<std::unique_ptr<common::MenuItem>(
-                             std::istringstream &, std::string &)>>;
+                             const std::vector<std::string> &, std::string &)>>;
 
 private:
-  const ArgsParserMap argsParsers = {
-      {"exit", [this](std::istringstream &s,
-                      std::string &m) { return parseExitArgs(s, m); }},
-      {"active", [this](std::istringstream &s,
-                        std::string &m) { return parseActiveArgs(s, m); }},
-      {"move", [this](std::istringstream &s,
-                      std::string &m) { return parseMoveArgs(s, m); }},
-      {"protocol", [this](std::istringstream &s, std::string &m) {
-         return parseProtocolArgs(s, m);
-       }}};
+  const ArgsParserMap argsParsers = {{"exit", parseExitArgs},
+                                     {"active", parseActiveArgs},
+                                     {"move", parseMoveArgs},
+                                     {"protocol", parseProtocolArgs}};
 
-  std::unique_ptr<common::MenuItem> parseExitArgs(std::istringstream &stream,
-                                                  std::string &extraMsg) const;
-  std::unique_ptr<common::MenuItem>
-  parseActiveArgs(std::istringstream &stream, std::string &extraMsg) const;
-  std::unique_ptr<common::MenuItem> parseMoveArgs(std::istringstream &stream,
-                                                  std::string &extraMsg) const;
-  std::unique_ptr<common::MenuItem>
-  parseProtocolArgs(std::istringstream &stream, std::string &extraMsg) const;
+  static std::unique_ptr<common::MenuItem>
+  parseExitArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  static std::unique_ptr<common::MenuItem>
+  parseActiveArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  static std::unique_ptr<common::MenuItem>
+  parseMoveArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  static std::unique_ptr<common::MenuItem>
+  parseProtocolArgs(const std::vector<std::string> &args,
+                    std::string &extraMsg);
 
 public:
   virtual std::unique_ptr<common::MenuItem>
