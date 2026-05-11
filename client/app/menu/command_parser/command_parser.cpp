@@ -10,10 +10,8 @@ namespace client {
 std::unique_ptr<common::MenuItem>
 CommandParser::parseExitArgs(const std::vector<std::string> &args,
                              std::string &extraMsg) {
-  if (!args.empty()) {
-    // если есть лишние аргументы
-    extraMsg = "Redundant arguments ignored";
-  }
+  if (args.size() > MenuItemExit::getArgsCount())
+    extraMsg = "Extra arguments ignored";
 
   return std::make_unique<MenuItemExit>();
 }
@@ -30,7 +28,7 @@ CommandParser::parseActiveArgs(const std::vector<std::string> &args,
   auto parseResult = common::parseBool(isActiveStr);
   if (parseResult) {
     if (args.size() > MenuItemExit::getArgsCount())
-      extraMsg = "Redundant arguments ignored";
+      extraMsg = "Extra arguments ignored";
 
     bool isActive = *parseResult;
     return std::make_unique<MenuItemActive>(isActive);
@@ -51,18 +49,16 @@ CommandParser::parseMoveArgs(const std::vector<std::string> &args,
     if (i > common::constants::LOCATION_COORDS_COUNT - 1)
       break;
 
-    try {
-      float coord = stod(args[i]);
-      coords.push_back(coord);
-    } catch (const std::invalid_argument &) {
-      return std::make_unique<MenuItemInvalid>("Not-numeric argument");
-    } catch (const std::out_of_range &) {
-      return std::make_unique<MenuItemInvalid>("Argument value out of range");
-    }
+    auto coordsParseResult = common::fromString<float>(args[i]);
+    if (coordsParseResult)
+      coords.push_back(*coordsParseResult);
+    else
+      return std::make_unique<MenuItemInvalid>("Argument parse error: " +
+                                               coordsParseResult.error());
   }
 
   if (args.size() > MenuItemMove::getArgsCount())
-    extraMsg = "Redundant arguments ignored";
+    extraMsg = "Extra arguments ignored";
 
   return std::make_unique<MenuItemMove>(coords);
 }
@@ -77,8 +73,7 @@ CommandParser::parseProtocolArgs(const std::vector<std::string> &args,
 
   if (common::isCorrectProtocolStr(value)) {
     if (args.size() > MenuItemProtocol::getArgsCount()) {
-      // если есть лишние аргументы
-      extraMsg = "Redundant arguments ignored";
+      extraMsg = "Extra arguments ignored";
     }
     return std::make_unique<MenuItemProtocol>(value);
   }

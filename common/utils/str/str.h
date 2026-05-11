@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <optional>
 #include <string>
 #include <vector>
@@ -40,5 +41,22 @@ std::string toStr(Iterator begin, Iterator end, int precision = 4,
 
   str += std::string(1, rightBorder);
   return str;
+}
+
+template <typename T>
+  requires std::is_arithmetic_v<T>
+std::expected<T, std::string> fromString(const std::string &str) {
+  try {
+    if constexpr (std::is_unsigned_v<T>)
+      return std::stoull(str);
+    else if constexpr (std::is_integral_v<T>)
+      return std::stoll(str);
+    else
+      return stold(str);
+  } catch (std::invalid_argument &e) {
+    return std::unexpected("not a valid number");
+  } catch (std::out_of_range &e) {
+    return std::unexpected("value out of range");
+  }
 }
 } // namespace common
