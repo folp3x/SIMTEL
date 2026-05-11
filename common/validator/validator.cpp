@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <filesystem>
-#include <optional>
 
 #include "common/utils/network/network.h"
 #include "common/utils/str/str.h"
@@ -108,9 +107,5 @@ std::string Validator::isCorrectIMSI(const common::imsi_t &imsi) {
 
 std::string Validator::isCorrectConfigPath(const std::string &filePath) {
   return jsonFilePathExists(filePath, "Config");
-}
-
-std::string Validator::isCorrectNodesPath(const std::string &filePath) {
-  return jsonFilePathExists(filePath, "Nodes");
 }
 } // namespace common

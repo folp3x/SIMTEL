@@ -6,8 +6,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "client/menu/command_info/command_info.h"
-#include "client/menu/menu_item/menu_item.h"
+#include "client/app/menu/command_info/command_info.h"
+#include "client/app/menu/menu_item/menu_item.h"
 
 namespace client {
 class CommandParser : public common::CommandParser {

@@ -2,7 +2,7 @@
 
 #include "common/app/cli/cli_parser/cli_parser.h"
 
-#include "client/config/config/config.h"
+#include "client/app/config/config/config.h"
 
 namespace client {
 class CLIParser : public common::CLIParser<Config> {

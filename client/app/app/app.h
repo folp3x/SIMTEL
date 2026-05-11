@@ -5,9 +5,9 @@
 #include <functional>
 #include <memory>
 
-#include "client/app_state/app_state.h"
-#include "client/config/config/config.h"
-#include "client/menu/menu_item/menu_item.h"
+#include "client/app/app_state/app_state.h"
+#include "client/app/config/config/config.h"
+#include "client/app/menu/menu_item/menu_item.h"
 
 namespace client {
 class App : common::App<Config> {

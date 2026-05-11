@@ -1,6 +1,6 @@
 #include "cli_parser.h"
 
-#include "common/validator/validator.h"
+#include "server/validator/validator.h"
 
 namespace server {
 CLIParser::CLIParser(const std::string &cliAppName)
@@ -11,7 +11,7 @@ void CLIParser::initNodesFileOpt() {
       "-n, --nodes",
       [this](const std::string &filePath) { nodesFilePath = filePath; },
       "Load nodes from specified JSON file");
-  nodesFileOpt->check(common::Validator::isCorrectNodesPath);
+  nodesFileOpt->check(Validator::isCorrectNodesPath);
   nodesFileOpt->type_name("string");
 }
 

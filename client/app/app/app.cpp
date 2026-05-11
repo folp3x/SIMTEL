@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <variant>
 
-#include "client/menu/menu/menu.h"
+#include "client/app/menu/menu/menu.h"
 
 namespace client {
 std::string App::handleActiveCommand(const MenuItemActive &cmd) {

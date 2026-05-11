@@ -1,8 +1,9 @@
 #pragma once
 
+#include <optional>
 #include <string>
 
-#include <common/types/types.h>
+#include "common/types/types.h"
 
 namespace common {
 class Validator {
@@ -23,6 +24,8 @@ private:
   static constexpr int MAX_IMSI_LENGTH = 15;
 
   static bool isCorrectJsonPath(std::string_view filePath);
+
+protected:
   static std::string jsonFilePathExists(const std::string &filePath,
                                         const std::string &name);
 
@@ -39,6 +42,5 @@ public:
   static std::string isCorrectIMEI(const common::imei_t &imei);
   static std::string isCorrectIMSI(const common::imsi_t &imsi);
   static std::string isCorrectConfigPath(const std::string &filePath);
-  static std::string isCorrectNodesPath(const std::string &filePath);
 };
 } // namespace common

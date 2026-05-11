@@ -1,10 +1,10 @@
-#include "app/app.h"
+#include "app/app/app.h"
 
 #include <filesystem>
 
-#include "cli/cli_parser/cli_parser.h"
+#include "app/cli/cli_parser/cli_parser.h"
+#include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
-#include "config/config_parser/config_parser.h"
 
 int main(int argc, char *argv[]) {
   try {
