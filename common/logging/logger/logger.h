@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
 namespace common {
@@ -14,6 +13,7 @@ protected:
 
 public:
   static void initLogging(const std::string &loggerName,
-                          const std::string &logFilePath);
+                          const std::string &logDirPath,
+                          const std::string &appName);
 };
 } // namespace common

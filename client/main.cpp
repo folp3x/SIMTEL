@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     // настройка логирования
     std::filesystem::create_directories("logs");
     try {
-      common::Logger::initLogging("Client logger", "./logs/log.txt");
+      common::Logger::initLogging("Client logger", "./logs", "client");
     } catch (const spdlog::spdlog_ex &e) {
       std::cerr << "Logger initialization error" << e.what() << std::endl;
     }
