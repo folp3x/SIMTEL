@@ -2,11 +2,11 @@
 
 #include <iostream>
 #include <spdlog/fmt/fmt.h>
-#include <spdlog/spdlog.h>
 #include <stdexcept>
-#include <variant>
 
 #include "client/app/menu/menu/menu.h"
+#include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
+#include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 
 namespace client {
 std::string App::handleActiveCommand(const MenuItemActive &cmd) {
@@ -58,21 +58,15 @@ std::string App::handleProtocolCommand(const MenuItemProtocol &cmd) {
 std::string App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                                bool &exit) {
   std::string message = "";
-
   std::string cmdNameUpper = common::uppercased(cmd->getName());
-
   bool correctCommand = true;
   // выполнение команды в засимости от ее типа
-  if (dynamic_cast<MenuItemUnknown *>(cmd.get())) {
-    SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received unknown command");
-    message = "Unknown command";
-    correctCommand = false;
-  } else if (auto *invalidCmd = dynamic_cast<MenuItemInvalid *>(cmd.get())) {
+  if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
     SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received invalid command: {}",
                        invalidCmd->getError());
     message = "Error! " + invalidCmd->getError();
     correctCommand = false;
-  } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
+  } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
     logCommandProcess(cmdNameUpper);
     message = "Exiting app...";
     exit = true;
@@ -92,11 +86,35 @@ std::string App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   return message;
 }
 
-App::App(const common::Location &location_, const common::NetworkAddress &addr_,
-         const common::imsi_t &imsi_, const common::imei_t imei_)
+App::App(const common::Location<float> &location_,
+         const common::NetworkAddress &addr_, const common::imsi_t &imsi_,
+         const common::imei_t &imei_)
     : common::App<Config>(location_, addr_), imsi(imsi_), imei(imei_) {}
 
-// получает команды от пользователя через меню и выполняет их
+App::App(const App &other)
+    : common::App<Config>(other.location, other.addr), imsi(other.imsi),
+      imei(other.imei) {
+  logConstructor("COPY", location, addr, imsi, imei);
+}
+
+App::App(App &&other) noexcept
+    : common::App<Config>(std::move(other.location), std::move(other.addr)),
+      imsi(std::move(other.imsi)), imei(std::move(other.imei)) {
+  logConstructor("MOVE", location, addr, imsi, imei);
+}
+
+void App::logConstructor(const std::string constructorType,
+                         const common::Location<float> &location,
+                         const common::NetworkAddress &addr,
+                         const common::imsi_t &imsi,
+                         const common::imei_t &imei) const {
+  SPDLOG_LOGGER_DEBUG(spdlog::default_logger(),
+                      "client::App {} constructor called: location={}, "
+                      "addr={}, imsi={}, imei={}",
+                      constructorType, location.toStr(), addr.toStr(), imsi,
+                      imei);
+}
+
 void App::run() {
   Menu menu;
 
@@ -105,7 +123,7 @@ void App::run() {
   SPDLOG_LOGGER_INFO(spdlog::default_logger(), "App started");
   while (isRunning) {
     menu.showStatus(state, imsi, location, protocol);
-    menu.showCommandsInfo();
+    menu.showCommandsInfo(getCommandsInfo());
 
     std::string extraMsg = "";
     auto cmd = menu.getCommand(extraMsg);

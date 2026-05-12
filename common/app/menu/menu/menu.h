@@ -2,7 +2,6 @@
 
 #include <concepts>
 #include <iostream>
-#include <spdlog/spdlog.h>
 #include <string>
 
 #include "common/app/menu/command_parser/command_parser.h"
@@ -14,6 +13,9 @@ template <std::derived_from<CommandParser> T> class Menu {
 private:
   static constexpr int MENU_HEADER_LINE_LENGTH = 60;
   T parser{};
+
+protected:
+  virtual void logInput(const std::string &input) const {};
 
 public:
   virtual ~Menu() = default;
@@ -28,7 +30,7 @@ public:
     std::cout << "> ";
     std::getline(std::cin, input, '\n');
 
-    SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received input: {}", input);
+    logInput(input);
 
     return parser.parseCommand(input, extraMsg);
   }
@@ -36,6 +38,12 @@ public:
   // выводит сообщение
   void showMessage(std::string_view message) const {
     printColored(message, rang::fg::cyan);
+  }
+
+  // выводит информацию о доступных командах
+  void showCommandsInfo(const CommandInfoMap &commands) const {
+    for (const auto &[_, info] : commands)
+      std::cout << "- " << info.usage << " - " << info.description << std::endl;
   }
 };
 } // namespace common

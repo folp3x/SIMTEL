@@ -7,8 +7,12 @@
 #include "common/utils/print/print.h"
 
 namespace client {
+void Menu::logInput(const std::string &input) const {
+  SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received input: {}", input);
+}
+
 void Menu::showStatus(AppState state, const common::imsi_t &imsi,
-                      const common::Location &location,
+                      const common::Location<float> &location,
                       common::Protocol protocol) const {
   showHeaderLine();
 
@@ -30,13 +34,5 @@ void Menu::showStatus(AppState state, const common::imsi_t &imsi,
   std::cout << "Protocol: " << common::protocolToStr(protocol) << std::endl;
 
   showHeaderLine();
-}
-
-// выводит информацию о доступных командах
-void Menu::showCommandsInfo() const {
-  const auto &commands = getCommandsInfo();
-  for (const auto &[_, info] : commands) {
-    std::cout << "- " << info.usage << " - " << info.description << std::endl;
-  }
 }
 } // namespace client

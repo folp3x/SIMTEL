@@ -9,7 +9,9 @@ set(SOURCES_LIST
 	"app/cli/cli_parser/cli_parser.cpp"
 	"app/config/config_parser/config_parser.cpp"
 	"app/config/config/config.cpp"
-	"app/menu/menu_item/menu_item.cpp"
+	"app/menu/menu_item/menu_item_active/menu_item_active.cpp"
+	"app/menu/menu_item/menu_item_move/menu_item_move.cpp"
+	"app/menu/menu_item/menu_item_protocol/menu_item_protocol.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

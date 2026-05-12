@@ -2,10 +2,9 @@
 
 #include <expected>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
-
-#include "common/utils/num/num.h"
 
 namespace common {
 std::string lowercased(std::string_view str);
@@ -15,14 +14,50 @@ bool allDigits(std::string_view str);
 std::string ltrimmed(std::string_view str);
 std::vector<std::string> split(const std::string &str);
 
-// итератор указывающий на число
-// решение найдено здесь
+template <typename T>
+  requires std::is_floating_point_v<T>
+std::string toStr(T num, std::optional<int> precision_ = std::nullopt) {
+  if (!precision_) {
+    return std::to_string(num);
+  } else {
+    int precision = *precision_;
+
+    if (precision < 0)
+      throw std::invalid_argument("precision_ must be > 0");
+
+    size_t size =
+        snprintf(nullptr, 0, ("%." + std::to_string(precision) + "f").c_str(),
+                 num) +
+        1;
+    std::string buf(size, '\0');
+    snprintf(buf.data(), size, ("%." + std::to_string(precision) + "f").c_str(),
+             num);
+    // удаление лишнего \0
+    buf.pop_back();
+
+    // удаление нулей в конце дробной части
+    size_t lastNonZeroInd = buf.find_last_not_of('0');
+    if (lastNonZeroInd != std::string::npos && buf[lastNonZeroInd] == '.')
+      // в дробной части только нули
+      buf.erase(lastNonZeroInd);
+    else if (lastNonZeroInd != std::string::npos)
+      buf.erase(lastNonZeroInd + 1);
+    else
+      buf = "";
+
+    return buf;
+  }
+}
+
+// итератор указывающий на числовой элемент контейнера
+// решение найдено здесь:
 // https://softwareengineering.stackexchange.com/questions/291803/template-function-passing-iterators
 template <class Iterator,
           class U = typename std::iterator_traits<Iterator>::value_type>
   requires std::is_arithmetic_v<U>
-std::string toStr(Iterator begin, Iterator end, int precision = 4,
-                  char leftBorder = '[', char rightBorder = ']') {
+std::string toStr(Iterator begin, Iterator end,
+                  std::optional<int> precision = 4, char leftBorder = '[',
+                  char rightBorder = ']') {
   if (begin == end)
     return std::to_string(leftBorder) + std::to_string(rightBorder);
 

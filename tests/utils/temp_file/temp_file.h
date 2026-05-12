@@ -2,7 +2,6 @@
 
 #include <string>
 
-// временный файл с безопасным удалением в деструкторе
 class TempFile {
 private:
   std::string path = "";

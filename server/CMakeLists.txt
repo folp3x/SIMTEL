@@ -5,6 +5,11 @@ set(APP_LIB_NAME server_lib)
 set(SOURCES_LIST
 	"app/cli/cli_parser/cli_parser.cpp"
     "validator/validator.cpp"
+    "app/app/app.cpp"
+    "app/menu/command_parser/command_parser.cpp"
+    "app/menu/menu/menu.cpp"
+    "app/menu/menu_item/menu_item_dist/menu_item_dist.cpp"
+    "core/distance_calculator/distance_calculator.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

@@ -1,8 +1,11 @@
 #pragma once
 
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+
 #include <functional>
 #include <nlohmann/json.hpp>
 #include <optional>
+#include <spdlog/spdlog.h>
 
 #include "common/json/info/json_base_info/json_base_info.h"
 #include "common/json/json_type/json_type.h"
@@ -11,13 +14,13 @@ namespace common {
 // класс с информацией для парсинга простого JSON-поля
 template <typename T> class JsonFieldInfo : public JsonBaseInfo {
 private:
-  nlohmann::json::value_t type;
-  std::function<std::string(const T &)> checkFn;
+  const nlohmann::json::value_t type;
+  const std::function<std::string(const T &)> checkFn;
 
 protected:
-  std::string name = "";
+  const std::string name = "";
   T *field;
-  std::function<void(const T &)> successCallback;
+  const std::function<void(const T &)> successCallback;
 
   // проверка соответствия типа поля указанному типу
   bool hasType(const nlohmann::json &field, nlohmann::json::value_t type) {
@@ -34,6 +37,15 @@ protected:
     return field.type() == type;
   }
 
+  void logConstructor(const std::string &constructorType,
+                      const std::string &name,
+                      nlohmann::json::value_t type) const {
+    SPDLOG_LOGGER_DEBUG(
+        spdlog::default_logger(),
+        "common::JsonFieldInfo {} constructor called: name={}, type={}",
+        constructorType, name, jsonTypeToStr(type));
+  }
+
 public:
   JsonFieldInfo(const std::string &name_,
                 const std::function<void(const T &)> successCallback_,
@@ -41,6 +53,19 @@ public:
                 const std::function<std::string(const T &)> &checkFn_ = nullptr)
       : name(name_), successCallback(successCallback_), type(type_),
         checkFn(checkFn_) {}
+
+  JsonFieldInfo(const JsonFieldInfo &other)
+      : name(other.name), successCallback(other.successCallback),
+        type(other.type), checkFn(other.checkFn) {
+    logConstructor("COPY", name, type);
+  }
+
+  JsonFieldInfo(JsonFieldInfo &&other) noexcept
+      : name(std::move(other.name)),
+        successCallback(std::move(other.successCallback)), type(other.type),
+        checkFn(std::move(other.checkFn)) {
+    logConstructor("MOVE", name, type);
+  }
 
   virtual ~JsonFieldInfo() = default;
 

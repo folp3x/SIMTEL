@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
+#include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+
 class ClientCommandParserTest : public ::testing::Test {
 protected:
   client::CommandParser parser{};
@@ -10,7 +13,7 @@ protected:
 
 TEST_F(ClientCommandParserTest, Parse_MoveNoArg) {
   auto cmd = parser.parseCommand("move", extraMsg);
-  auto invalidCmd = dynamic_cast<client::MenuItemInvalid *>(cmd.get());
+  auto invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(invalidCmd == nullptr);
 }
@@ -28,7 +31,7 @@ TEST_F(ClientCommandParserTest, Parse_MoveRedundantArg) {
 
 TEST_F(ClientCommandParserTest, Parse_MoveInvalidArg) {
   auto cmd = parser.parseCommand("move str", extraMsg);
-  auto invalidCmd = dynamic_cast<client::MenuItemInvalid *>(cmd.get());
+  auto invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(invalidCmd == nullptr);
 }
@@ -80,20 +83,14 @@ TEST_F(ClientCommandParserTest, Parse_MoveThreeArgs) {
 TEST_F(ClientCommandParserTest, Parse_UnknownCommand) {
   std::string tempMsg = "";
   auto cmd = parser.parseCommand("123", tempMsg);
-  // проверка существовани команды
-  const auto &commands = client::getCommandsInfo();
-  for (const auto &[name, _] : commands) {
-    if (cmd->getName() == name)
-      GTEST_SKIP() << "Tested as unknown command exists, skipping test";
-  }
-  auto unknownCmd = dynamic_cast<client::MenuItemUnknown *>(cmd.get());
+  auto unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(unknownCmd == nullptr);
 }
 
 TEST_F(ClientCommandParserTest, Parse_EmptyCommand) {
   auto cmd = parser.parseCommand("", extraMsg);
-  auto unknownCmd = dynamic_cast<client::MenuItemUnknown *>(cmd.get());
+  auto unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(unknownCmd == nullptr);
 }

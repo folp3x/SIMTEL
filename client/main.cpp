@@ -1,7 +1,5 @@
 #include "app/app/app.h"
 
-#include <filesystem>
-
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
@@ -9,9 +7,9 @@
 int main(int argc, char *argv[]) {
   try {
     // настройка логирования
-    std::filesystem::create_directories("logs");
     try {
-      common::Logger::initLogging("Client logger", "./logs", "client");
+      common::Logger::initLogging("Client logger", "./logs", "client",
+                                  spdlog::level::debug);
     } catch (const spdlog::spdlog_ex &e) {
       std::cerr << "Logger initialization error" << e.what() << std::endl;
     }
@@ -73,18 +71,11 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    common::Location location(config.getLoc());
-    try {
-      common::NetworkAddress addr{config.getIP(), config.getPort()};
-      // запуск главного цикла приложения
-      client::App app{location, addr, config.getImsi(), config.getImei()};
-      app.run();
-    } catch (std::invalid_argument &e) {
-      std::cout << "Incorrect IP in config file" << std::endl;
-      SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(), "App run error: {}",
-                             e.what());
-      return 1;
-    }
+    common::Location<float> location(config.getLoc());
+    common::NetworkAddress addr{config.getIP(), config.getPort()};
+    // запуск главного цикла приложения
+    client::App app{location, addr, config.getImsi(), config.getImei()};
+    app.run();
 
     return 0;
   } catch (std::exception &e) {

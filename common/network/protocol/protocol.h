@@ -12,6 +12,7 @@ enum class Protocol : size_t {
 };
 
 static auto findProtocolByName(std::string_view name);
+std::optional<std::string_view> protocolNameFromAlias(std::string_view alias);
 
 std::string_view protocolToStr(Protocol protocol);
 std::optional<Protocol> protocolFromStr(std::string_view str);

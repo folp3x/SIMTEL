@@ -8,12 +8,10 @@ class Logger {
 private:
   static std::shared_ptr<spdlog::logger> spdLogger;
 
-protected:
-  static void setLoggerOptions();
-
 public:
   static void initLogging(const std::string &loggerName,
                           const std::string &logDirPath,
-                          const std::string &appName);
+                          const std::string &appName,
+                          spdlog::level::level_enum level);
 };
 } // namespace common

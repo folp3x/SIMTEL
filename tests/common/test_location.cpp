@@ -4,7 +4,7 @@
 
 class LocationTest : public ::testing::Test {
 protected:
-  common::Location loc{{0, 0, 0}};
+  common::Location<float> loc{{0, 0, 0}};
 };
 
 TEST_F(LocationTest, Move_VectorWithNoCoords) {
@@ -51,7 +51,7 @@ TEST_F(LocationTest, Move_Array) {
 }
 
 TEST_F(LocationTest, ToStr) {
-  loc = common::Location{{1, 2, 3}};
+  loc = common::Location<float>{{1, 2, 3}};
   EXPECT_TRUE(loc.toStr() == "(1, 2, 3)");
 }
 
@@ -61,25 +61,25 @@ TEST_F(LocationTest, CoordsEqual_NoCoords) {
 }
 
 TEST_F(LocationTest, CoordsEqual_OneCoordEqual) {
-  loc = common::Location{{7, 8, 9}};
+  loc = common::Location<float>{{7, 8, 9}};
   auto comparedCoords = std::vector<float>{7};
   EXPECT_TRUE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_TwoCoordsEqual) {
-  loc = common::Location{{7, 8, 9}};
+  loc = common::Location<float>{{7, 8, 9}};
   auto comparedCoords = std::vector<float>{7, 8};
   EXPECT_TRUE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_TwoCoordsNotEqual) {
-  loc = common::Location{{7, 0, 0}};
+  loc = common::Location<float>{{7, 0, 0}};
   auto comparedCoords = std::vector<float>{7, 8};
   EXPECT_FALSE(loc.coordsEqual(comparedCoords));
 }
 
 TEST_F(LocationTest, CoordsEqual_ThreeCoordsEqual) {
-  loc = common::Location{{7, 8, 9}};
+  loc = common::Location<float>{{7, 8, 9}};
   auto comparedCoords = std::vector<float>{7, 8, 9};
   EXPECT_TRUE(loc.coordsEqual(comparedCoords));
 }

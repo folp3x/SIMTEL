@@ -9,7 +9,16 @@ namespace common {
 template <typename T, size_t S>
 class JsonArrayInfo : public JsonFieldInfo<std::array<T, S>> {
 private:
-  nlohmann::json::value_t elemType;
+  const nlohmann::json::value_t elemType;
+
+  void logConstructor(const std::string &constructorType,
+                      const std::string &name,
+                      nlohmann::json::value_t elemType) const {
+    SPDLOG_LOGGER_DEBUG(
+        spdlog::default_logger(),
+        "common::JsonArrayInfo {} constructor called: name={}, type={}",
+        constructorType, name, jsonTypeToStr(elemType));
+  }
 
 public:
   JsonArrayInfo(
@@ -21,6 +30,21 @@ public:
       : JsonFieldInfo<std::array<T, S>>(
             name, successCallback, nlohmann::json::value_t::array, checkFn),
         elemType(elemType_) {}
+
+  JsonArrayInfo(const JsonArrayInfo &other)
+      : JsonFieldInfo<std::array<T, S>>(other.name, other.successCallback,
+                                        other.type, other.checkFn),
+        elemType(other.elemType) {
+    logConstructor("COPY", this->name, elemType);
+  }
+
+  JsonArrayInfo(JsonArrayInfo &&other) noexcept
+      : JsonFieldInfo<std::array<T, S>>(std::move(other.name),
+                                        std::move(other.successCallback),
+                                        other.type, std::move(other.checkFn)),
+        elemType(other.elemType) {
+    logConstructor("MOVE", this->name, elemType);
+  }
 
   virtual ~JsonArrayInfo() = default;
 

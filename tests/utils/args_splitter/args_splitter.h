@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-// разделитель агрементов командной строки
+// разделитель аргументов командной строки
 class ArgsSplitter {
 private:
   std::vector<std::string> argsValues = {};
@@ -15,5 +15,5 @@ public:
   explicit ArgsSplitter(const std::string &argsStr);
 
   int argc();
-  char** argv();
+  char **argv();
 };

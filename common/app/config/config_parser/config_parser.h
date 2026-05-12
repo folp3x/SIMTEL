@@ -46,7 +46,7 @@ public:
   virtual ~ConfigParser() = default;
 
   static std::unique_ptr<ConfigParser> create() {
-    auto parser = std::make_unique<ConfigParser>();
+    auto parser = std::unique_ptr<ConfigParser>(new ConfigParser());
     parser->initFields();
     return parser;
   }
