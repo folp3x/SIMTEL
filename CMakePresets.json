@@ -8,10 +8,12 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
         // если нужно указать путь к компилятору
         // "CMAKE_C_COMPILER": "/usr/bin/gcc-XX",
         // "CMAKE_CXX_COMPILER": "/usr/bin/g++-XX"
+        "BUILD_CLIENT": "ON",
+        "BUILD_SERVER": "ON"
       }
     },
     {
