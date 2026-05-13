@@ -1,18 +1,17 @@
-#ifndef COMMAND_PARSER_H
-#define COMMAND_PARSER_H
+#pragma once
 
-#include "command.h"
+#include <memory>
+
 #include "command_info.h"
+#include "menu_item.h"
 
 class CommandParser {
 private:
-  Command parseExitArgs(std::istringstream &stream);
-  Command parseActiveArgs(std::istringstream &stream);
-  Command parseMoveArgs(std::istringstream &stream);
-  Command parseProtocolArgs(std::istringstream &stream);
+  std::unique_ptr<MenuItem> parseExitArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseActiveArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseMoveArgs(std::istringstream &stream) const;
+  std::unique_ptr<MenuItem> parseProtocolArgs(std::istringstream &stream) const;
 
 public:
-  Command parseCommand(const std::string &str);
+  std::unique_ptr<MenuItem> parseCommand(const std::string &str) const;
 };
-
-#endif // COMMAND_PARSER_H

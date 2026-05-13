@@ -1,21 +1,24 @@
-#ifndef CONFIG_PARSER_H
-#define CONFIG_PARSER_H
+#pragma once
 
+#include <expected>
 #include <nlohmann/json.hpp>
 
+#include "common/constants.h"
 #include "config.h"
 
 class ConfigParser {
 private:
-  bool parseIP(const nlohmann::json &j, std::string &msg, std::string &ip);
-  bool parsePort(const nlohmann::json &j, std::string &msg, int &port);
-  bool parseIMEI(const nlohmann::json &j, std::string &msg, std::string &imei);
-  bool parseIMSI(const nlohmann::json &j, std::string &msg, std::string &imsi);
-  bool parseLoc(const nlohmann::json &j, std::string &msg,
-                std::array<double, 3> &loc);
+  std::expected<std::string, std::string>
+  parseIP(const nlohmann::json &json) const;
+  std::expected<int, std::string> parsePort(const nlohmann::json &json) const;
+  std::expected<std::string, std::string>
+  parseIMEI(const nlohmann::json &json) const;
+  std::expected<std::string, std::string>
+  parseIMSI(const nlohmann::json &json) const;
+  std::expected<std::array<double, Constants::LOCATION_COORDS_COUNT>,
+                std::string>
+  parseLoc(const nlohmann::json &json) const;
 
 public:
-  bool parse(const std::string &filePath, std::string &msg, Config &config);
+  std::expected<Config, std::string> parse(const std::string &filePath) const;
 };
-
-#endif // CONFIG_PARSER_H

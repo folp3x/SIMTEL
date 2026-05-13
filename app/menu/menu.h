@@ -1,5 +1,4 @@
-#ifndef MENU_H
-#define MENU_H
+#pragma once
 
 #include <string>
 
@@ -10,15 +9,13 @@
 
 class Menu {
 private:
-  const int HEADER_LENGTH = 60;
-  CommandParser parser;
+  static constexpr int HEADER_LENGTH = 60;
+  CommandParser parser{};
 
 public:
-  Command getCommand();
+  std::unique_ptr<MenuItem> getCommand();
   void showStatus(AppState state, const std::string &imsi,
-                 const Location &location, Protocol protocol) const;
+                  const Location &location, Protocol protocol) const;
   void showMessage(const std::string &message) const;
   void showCommandsInfo() const;
 };
-
-#endif // MENU_H

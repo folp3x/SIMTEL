@@ -42,6 +42,14 @@ cmake -S . -B build -DCMAKE_C_COMPILER=/usr/bin/gcc-12 -DCMAKE_CXX_COMPILER=/usr
 # запуск c примером конфигурации
 cd build
 ./app --config ./data/config.json
+
+# сборка тестов
+cmake -S . -B build -DBUILD_TESTS=ON
+cmake --build build --target app_tests
+
+# запуск тестов
+cd build
+./tests/app_tests
 ```
 
 ## Зависимости и версии

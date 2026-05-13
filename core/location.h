@@ -1,20 +1,24 @@
-#ifndef LOCATION_H
-#define LOCATION_H
+#pragma once
 
 #include <array>
 #include <string>
 #include <vector>
 
+#include "common/constants.h"
+
 class Location {
 private:
-  static const int COORDS_COUNT = 3;
-  std::array<double, COORDS_COUNT> coords = {0, 0, 0};
+  std::array<double, Constants::LOCATION_COORDS_COUNT> coords = {0, 0, 0};
 
 public:
+  explicit Location(
+      const std::array<double, Constants::LOCATION_COORDS_COUNT> &coords);
+
   void move(const std::vector<double> &newCoords);
-  void move(const std::array<double, COORDS_COUNT> &newCoords);
+  void
+  move(const std::array<double, Constants::LOCATION_COORDS_COUNT> &newCoords);
   std::string toStr() const;
   bool coordsEqual(const std::vector<double> &otherCoords) const;
-};
 
-#endif // LOCATION_H
+  std::array<double, Constants::LOCATION_COORDS_COUNT> getCoords() const;
+};

@@ -4,153 +4,152 @@
 
 #include "app/validator/validator.h"
 
-bool ConfigParser::parseIP(const nlohmann::json &j, std::string &msg,
-                           std::string &ip) {
-  if (!j.contains("ip")) {
-    msg = "'ip' required";
-    return false;
-  }
+std::expected<std::string, std::string>
+ConfigParser::parseIP(const nlohmann::json &json) const {
+  if (!json.contains("ip"))
+    return std::unexpected("'ip' required");
 
-  if (!j["ip"].is_string()) {
-    msg = "Error: 'ip' must be a string";
-    return false;
-  }
+  if (!json["ip"].is_string())
+    return std::unexpected("'ip' must be a string");
 
-  std::string value = j["ip"];
-  std::string error = Validator::isCorrectIP(value);
-  if (!error.empty()) {
-    msg = error;
-    return false;
-  }
+  std::string ip = json["ip"];
 
-  ip = value;
-  return true;
+  std::string error = Validator::isCorrectIpStr(ip);
+  if (!error.empty())
+    return std::unexpected(error);
+
+  return ip;
 }
 
-bool ConfigParser::parsePort(const nlohmann::json &j, std::string &msg,
-                             int &port) {
-  if (!j.contains("port")) {
-    msg = "'port' required";
-    return false;
-  }
+std::expected<int, std::string>
+ConfigParser::parsePort(const nlohmann::json &json) const {
+  if (!json.contains("port"))
+    return std::unexpected("'port' required");
 
-  if (!j["port"].is_number_integer()) {
-    msg = "'port' must be an integer";
-    return false;
-  }
+  if (!json["port"].is_number_integer())
+    return std::unexpected("'port' must be an integer");
 
-  int value = j["port"];
-  std::string error = Validator::isCorrectPort(value);
-  if (!error.empty()) {
-    msg = error;
-    return false;
-  }
+  int port = json["port"];
 
-  port = value;
-  return true;
+  std::string error = Validator::isCorrectPort(port);
+  if (!error.empty())
+    return std::unexpected(error);
+
+  return port;
 }
 
-bool ConfigParser::parseIMEI(const nlohmann::json &j, std::string &msg,
-                             std::string &imei) {
-  if (!j.contains("imei")) {
-    msg = "'imei' required";
-    return false;
-  }
+std::expected<std::string, std::string>
+ConfigParser::parseIMEI(const nlohmann::json &json) const {
+  if (!json.contains("imei"))
+    return std::unexpected("'imei' required");
 
-  if (!j["imei"].is_string()) {
-    msg = "'imei' must be a string";
-    return false;
-  }
+  if (!json["imei"].is_string())
+    return std::unexpected("'imei' must be a string");
 
-  std::string value = j["imei"];
-  std::string error = Validator::isCorrectIMEI(value);
-  if (!error.empty()) {
-    msg = error;
-    return false;
-  }
+  std::string imei = json["imei"];
 
-  imei = value;
-  return true;
+  std::string error = Validator::isCorrectIMEI(imei);
+  if (!error.empty())
+    return std::unexpected(error);
+
+  return imei;
 }
 
-bool ConfigParser::parseIMSI(const nlohmann::json &j, std::string &msg,
-                             std::string &imsi) {
-  if (!j.contains("imsi")) {
-    msg = "'imsi required";
-    return false;
-  }
+std::expected<std::string, std::string>
+ConfigParser::parseIMSI(const nlohmann::json &json) const {
+  if (!json.contains("imsi"))
+    return std::unexpected("'imsi required");
 
-  if (!j["imsi"].is_string()) {
-    msg = "'imsi' must be a string";
-    return false;
-  }
+  if (!json["imsi"].is_string())
+    return std::unexpected("'imsi' must be a string");
 
-  std::string value = j["imsi"];
-  std::string error = Validator::isCorrectIMSI(value);
-  if (!error.empty()) {
-    msg = error;
-    return false;
-  }
+  std::string imsi = json["imsi"];
 
-  imsi = value;
-  return true;
+  std::string error = Validator::isCorrectIMSI(imsi);
+  if (!error.empty())
+    return std::unexpected(error);
+
+  return imsi;
 }
 
-bool ConfigParser::parseLoc(const nlohmann::json &j, std::string &msg,
-                            std::array<double, 3> &loc) {
-  if (!j.contains("loc")) {
-    msg = "'loc' required";
-    return true;
+std::expected<std::array<double, Constants::LOCATION_COORDS_COUNT>, std::string>
+ConfigParser::parseLoc(const nlohmann::json &json) const {
+  if (!json.contains("loc"))
+    return std::unexpected("'loc' required");
+
+  if (!json["loc"].is_array())
+    return std::unexpected("'loc' must be an array");
+
+  if (json["loc"].size() != Constants::LOCATION_COORDS_COUNT)
+    return std::unexpected("'loc' must have exactly " +
+                           std::to_string(Constants::LOCATION_COORDS_COUNT) +
+                           " elements");
+
+  std::array<double, Constants::LOCATION_COORDS_COUNT> loc = {};
+  for (size_t i = 0; i < Constants::LOCATION_COORDS_COUNT; ++i) {
+    if (!json["loc"][i].is_number())
+      return std::unexpected("'loc' elements must be numbers");
+
+    loc[i] = json["loc"][i];
   }
 
-  if (!j["loc"].is_array()) {
-    msg = "'loc' must be an array";
-    return false;
-  }
-
-  if (j["loc"].size() != 3) {
-    msg = "'loc' must have exactly 3 elements";
-    return false;
-  }
-
-  for (size_t i = 0; i < 3; ++i) {
-    if (!j["loc"][i].is_number()) {
-      msg = "'loc' elements must be numbers";
-      return false;
-    }
-    loc[i] = j["loc"][i];
-  }
-
-  return true;
+  return loc;
 }
 
-bool ConfigParser::parse(const std::string &filePath, std::string &msg,
-                         Config &config) {
+std::expected<Config, std::string>
+ConfigParser::parse(const std::string &filePath) const {
+  std::ifstream file(filePath);
+  if (!file.is_open())
+    return std::unexpected("Cant open file '" + filePath + "'");
+
+  nlohmann::json json;
+
   try {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-      msg = "Cant open file '" + filePath + "'";
-      return false;
-    }
+    file >> json;
 
-    nlohmann::json j;
-    file >> j;
+    if (file.fail())
+      return std::unexpected("File error");
 
-    if (!parseIP(j, msg, config.ip))
-      return false;
-    if (!parsePort(j, msg, config.port))
-      return false;
-    if (!parseIMEI(j, msg, config.imei))
-      return false;
-    if (!parseIMSI(j, msg, config.imsi))
-      return false;
-    if (!parseLoc(j, msg, config.loc))
-      return false;
+    Config config{};
 
-    return true;
+    // ip
+    if (auto ip = parseIP(json))
+      config.setIP(*ip);
+    else
+      return std::unexpected(ip.error());
 
+    // port
+    if (auto port = parsePort(json))
+      config.setPort(*port);
+    else
+      return std::unexpected(port.error());
+
+    // imei
+    if (auto imei = parseIMEI(json))
+      config.setImei(*imei);
+    else
+      return std::unexpected(imei.error());
+
+    // imsi
+    if (auto imsi = parseIMSI(json))
+      config.setImsi(*imsi);
+    else
+      return std::unexpected(imsi.error());
+
+    // loc
+    if (auto loc = parseLoc(json))
+      config.setLoc(*loc);
+    else
+      return std::unexpected(loc.error());
+
+    return config;
+  } catch (const nlohmann::json::parse_error &e) {
+    return std::unexpected("JSON parse error: " + std::string(e.what()));
+  } catch (const nlohmann::json::type_error &e) {
+    return std::unexpected("JSON type error: " + std::string(e.what()));
+  } catch (const nlohmann::json::out_of_range &e) {
+    return std::unexpected("JSON out of range error: " + std::string(e.what()));
   } catch (const std::exception &e) {
-    msg = "Invalid json";
-    return false;
+    return std::unexpected("JSON error: " + std::string(e.what()));
   }
 }

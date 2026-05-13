@@ -1,5 +1,4 @@
-#ifndef COMMAND_INFO_H
-#define COMMAND_INFO_H
+#pragma once
 
 #include <string>
 #include <unordered_map>
@@ -10,5 +9,3 @@ struct CommandInfo {
 };
 
 const std::unordered_map<std::string, CommandInfo> &getCommandsInfo();
-
-#endif // COMMAND_INFO_H

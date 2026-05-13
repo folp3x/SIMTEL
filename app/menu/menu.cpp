@@ -1,21 +1,24 @@
 #include "menu.h"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "utils/print.h"
 
-// поулчает команду от пользоватеоя
-Command Menu::getCommand() {
+// получает команду от пользоватеоя
+std::unique_ptr<MenuItem> Menu::getCommand() {
   std::string input;
   std::cout << "> ";
   std::getline(std::cin, input, '\n');
+
+  SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received input: {}", input);
 
   return parser.parseCommand(input);
 }
 
 // выводит текущий статус
 void Menu::showStatus(AppState state, const std::string &imsi,
-                     const Location &location, Protocol protocol) const {
+                      const Location &location, Protocol protocol) const {
   std::cout << std::string(HEADER_LENGTH, '-') << std::endl;
 
   std::cout << "IMSI: " << imsi << std::endl;
@@ -46,9 +49,7 @@ void Menu::showMessage(const std::string &message) const {
 // выводит информацию о доутспных командах
 void Menu::showCommandsInfo() const {
   const auto &commands = getCommandsInfo();
-  for (const auto &cmd : commands) {
-    CommandInfo info = cmd.second;
-
+  for (const auto &[_, info] : commands) {
     std::cout << "- " << info.usage << " - " << info.description << std::endl;
   }
 }

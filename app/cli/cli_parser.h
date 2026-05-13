@@ -2,35 +2,51 @@
 #define CLI_PARSER_H
 
 #include <CLI/CLI.hpp>
+#include <optional>
+#include <vector>
 
 #include "app/config/config.h"
+#include "common/constants.h"
 
 class CLIParser {
 private:
-  CLI::App cliApp{"Console application"};
-  Config config;
+  CLI::App cliApp{Constants::APP_TITLE};
+
+  Config config{};
+
+  // опции для получения путей к файлам
   std::string configFilePath = "";
   std::string nodesFilePath = "";
 
-  // список опций
-  CLI::Option *config_opt = nullptr;
-  CLI::Option *ip_opt = nullptr;
-  CLI::Option *port_opt = nullptr;
-  CLI::Option *imei_opt = nullptr;
-  CLI::Option *imsi_opt = nullptr;
-  CLI::Option *loc_opt = nullptr;
-  CLI::Option *nodes_opt = nullptr;
+  // опции для получения параметров конфига
+  CLI::Option *configOpt = nullptr;
+  CLI::Option *ipOpt = nullptr;
+  CLI::Option *portOpt = nullptr;
+  CLI::Option *imeiOpt = nullptr;
+  CLI::Option *imsiOpt = nullptr;
+  CLI::Option *locOpt = nullptr;
+
+  std::vector<CLI::Option *> configOpts = {};
+
+  // опции для получения путей к файлам
+  CLI::Option *configFileOpt = nullptr;
+  CLI::Option *nodesFileOpt = nullptr;
+
+  void initOptions();
+
+  static bool isOptSet(CLI::Option *opt);
 
 public:
-  void setupOptions();
+  CLIParser();
+
   bool parse(int argc, char *argv[], std::string &msg, bool &helpCalled);
 
-  bool hasConfig() const;
-  bool hasAnyNonConfig() const;
+  bool allConfigOptsSet() const;
 
-  Config getConfig() const;
-  std::string getConfigFilePath() const;
-  std::string getNodesFilePath() const;
+  std::optional<std::string> getParsedConfigFilePath() const;
+  std::optional<std::string> getParsedNodesFilePath() const;
+
+  Config redefineConfig(const Config &definedConfig);
 };
 
 #endif // CLI_PARSER_H

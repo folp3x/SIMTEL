@@ -13,6 +13,22 @@
         // "CMAKE_C_COMPILER": "/usr/bin/gcc-XX",
         // "CMAKE_CXX_COMPILER": "/usr/bin/g++-XX"
       }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-release-tests",
+      "displayName": "Linux Release with Tests",
+      "inherits": "linux-release",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON"
+      }
     }
   ]
 }

@@ -1,9 +1,10 @@
 #include "str.h"
 
+#include <algorithm>
 #include <sstream>
 
 // возвращает строку в нижнем регистре
-std::string lowercase(const std::string &str) {
+std::string lowercased(const std::string &str) {
   std::string strCopy = str;
   for (auto &ch : strCopy) {
     ch = std::tolower(ch);
@@ -12,9 +13,19 @@ std::string lowercase(const std::string &str) {
   return strCopy;
 }
 
+// возвращает строку в верхнем регистре
+std::string uppercased(const std::string &str) {
+  std::string strCopy = str;
+  for (auto &ch : strCopy) {
+    ch = std::toupper(ch);
+  }
+
+  return strCopy;
+}
+
 // преобразует строку с булевым значением в bool
 std::optional<bool> parseBool(const std::string &str) {
-  std::string strLower = lowercase(str);
+  std::string strLower = lowercased(str);
   if (strLower == "true" || strLower == "1") {
     return true;
   } else if (strLower == "false" || strLower == "0") {
@@ -31,4 +42,9 @@ bool hasDataAfterPos(const std::string &str, const std::streampos &pos) {
   streamCopy >> std::ws;
 
   return streamCopy.peek() != EOF;
+}
+
+// проверяет что все символы строки - цифры
+bool allDigits(const std::string &str) {
+  return std::all_of(str.begin(), str.end(), ::isdigit);
 }

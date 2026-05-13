@@ -1,0 +1,93 @@
+#include "core/location.h"
+
+#include <gtest/gtest.h>
+
+class LocationTest : public ::testing::Test {
+protected:
+  Location loc{{0, 0, 0}};
+};
+
+TEST_F(LocationTest, Move_VectorWithNoCoords) {
+  std::vector<double> newLoc = {};
+  EXPECT_THROW(loc.move(newLoc), std::invalid_argument);
+}
+
+TEST_F(LocationTest, Move_VectorWithOneCoord) {
+  std::vector<double> newLoc = {7};
+  loc.move(newLoc);
+
+  auto expectedCoords =
+      std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 0, 0};
+
+  EXPECT_TRUE(loc.getCoords() == expectedCoords);
+}
+
+TEST_F(LocationTest, Move_VectorWithTwoCoords) {
+  std::vector<double> newLoc = {7, 8};
+  loc.move(newLoc);
+
+  auto expectedCoords =
+      std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 8, 0};
+
+  EXPECT_TRUE(loc.getCoords() == expectedCoords);
+}
+
+TEST_F(LocationTest, Move_VectorWithThreeCoords) {
+  std::vector<double> newLoc = {7, 8, 9};
+  loc.move(newLoc);
+
+  auto expectedCoords =
+      std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 8, 9};
+
+  EXPECT_TRUE(loc.getCoords() == expectedCoords);
+}
+
+TEST_F(LocationTest, Move_VectorWithFourCoords) {
+  std::vector<double> newLoc = {1, 2, 3, 4};
+  EXPECT_THROW(loc.move(newLoc), std::invalid_argument);
+}
+
+TEST_F(LocationTest, Move_Array) {
+  auto newLoc = std::array<double, Constants::LOCATION_COORDS_COUNT>{7, 8, 9};
+  loc.move(newLoc);
+  EXPECT_TRUE(loc.getCoords() == newLoc);
+}
+
+TEST_F(LocationTest, ToStr) {
+  loc = Location{{1, 2, 3}};
+  EXPECT_TRUE(loc.toStr() == "(1, 2, 3)");
+}
+
+TEST_F(LocationTest, CoordsEqual_NoCoords) {
+  std::vector<double> newLoc = {};
+  EXPECT_THROW(loc.move(newLoc), std::invalid_argument);
+}
+
+TEST_F(LocationTest, CoordsEqual_OneCoordEqual) {
+  loc = Location{{7, 8, 9}};
+  auto comparedCoords = std::vector<double>{7};
+  EXPECT_TRUE(loc.coordsEqual(comparedCoords));
+}
+
+TEST_F(LocationTest, CoordsEqual_TwoCoordsEqual) {
+  loc = Location{{7, 8, 9}};
+  auto comparedCoords = std::vector<double>{7, 8};
+  EXPECT_TRUE(loc.coordsEqual(comparedCoords));
+}
+
+TEST_F(LocationTest, CoordsEqual_TwoCoordsNotEqual) {
+  loc = Location{{7, 0, 0}};
+  auto comparedCoords = std::vector<double>{7, 8};
+  EXPECT_FALSE(loc.coordsEqual(comparedCoords));
+}
+
+TEST_F(LocationTest, CoordsEqual_ThreeCoordsEqual) {
+  loc = Location{{7, 8, 9}};
+  auto comparedCoords = std::vector<double>{7, 8, 9};
+  EXPECT_TRUE(loc.coordsEqual(comparedCoords));
+}
+
+TEST_F(LocationTest, CoordsEqual_FourCoordsEqual) {
+  auto comparedCoords = std::vector<double>{1, 2, 3, 4};
+  EXPECT_THROW(loc.coordsEqual(comparedCoords), std::invalid_argument);
+}

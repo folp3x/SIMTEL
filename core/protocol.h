@@ -1,12 +1,13 @@
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#pragma once
 
 #include <string>
+#include <optional>
 
 enum class Protocol { JSON, BINARY };
 
-std::string protocolToStr(Protocol protocol);
-Protocol protocolFromStr(const std::string &str);
-bool isCorrectProtocolStr(const std::string &str);
+static auto findProtocolByName(const std::string &name);
+static auto findProtocolByValue(Protocol value);
 
-#endif // PROTOCOL_H
+std::string protocolToStr(Protocol protocol);
+std::optional<Protocol> protocolFromStr(const std::string &str);
+bool isCorrectProtocolStr(const std::string &str);
