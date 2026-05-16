@@ -11,10 +11,17 @@ enum class Protocol : size_t {
   BINARY = getHash("binary"),
 };
 
-static auto findProtocolByName(std::string_view name);
-std::optional<std::string_view> protocolNameFromAlias(std::string_view alias);
+struct ProtocolInfo {
+  std::string name;
+  uint8_t networkId;
+};
 
-std::string_view protocolToStr(Protocol protocol);
+static auto findProtocolByName(std::string_view name);
+std::optional<std::string> protocolNameFromAlias(std::string_view alias);
+
+std::string protocolToStr(Protocol protocol);
 std::optional<Protocol> protocolFromStr(std::string_view str);
 bool isCorrectProtocolStr(std::string_view str);
+std::optional<uint8_t> protocolToNetworkId(Protocol protocol);
+std::optional<Protocol> protocolFromNetworkId(uint8_t networkId);
 } // namespace common

@@ -29,7 +29,8 @@
       "displayName": "Linux Release with Tests",
       "inherits": "linux-release",
       "cacheVariables": {
-        "BUILD_TESTS": "ON"
+        "BUILD_COMMON_TESTS": "ON",
+        "BUILD_CLIENT_TESTS": "ON"
       }
     }
   ]

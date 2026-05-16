@@ -19,6 +19,7 @@ public:
   MenuItemProtocol(MenuItemProtocol &&other) noexcept;
 
   virtual std::string_view getName() const override;
+
   std::string getProtocol() const;
   static int getArgsCount();
 };

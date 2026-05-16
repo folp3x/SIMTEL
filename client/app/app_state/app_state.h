@@ -5,7 +5,7 @@
 namespace client {
 enum class AppState { ACTIVE, INACTIVE };
 
-inline std::string_view appStateToStr(AppState state) {
+inline std::string appStateToStr(AppState state) {
   switch (state) {
   case AppState::ACTIVE:
     return "active";

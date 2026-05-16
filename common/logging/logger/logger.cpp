@@ -2,27 +2,48 @@
 
 #include <filesystem>
 #include <iostream>
-
 #include <spdlog/sinks/hourly_file_sink.h>
+#include <spdlog/sinks/null_sink.h>
 
 namespace common {
-std::shared_ptr<spdlog::logger> Logger::spdLogger = nullptr;
+std::unique_ptr<Logger> Logger::ptr = nullptr;
+std::once_flag Logger::initialized{};
 
-void Logger::initLogging(const std::string &loggerName,
-                         const std::string &logDirPath,
-                         const std::string &appName,
-                         spdlog::level::level_enum level) {
+Logger::Logger() { spdLogger = spdlog::null_logger_mt("null logger"); }
+
+Logger::Logger(const std::string &loggerName, const std::string &logDirPath,
+               const std::string &appName, spdlog::level::level_enum level) {
   std::filesystem::create_directories(logDirPath);
-
   std::string logFilePath = std::filesystem::path(logDirPath) / appName;
-  spdLogger = spdlog::hourly_logger_mt(loggerName, logFilePath);
 
+  spdLogger = spdlog::hourly_logger_mt(loggerName, logFilePath);
   spdLogger->set_level(level);
   spdLogger->set_pattern("[%Y-%m-%d %H:%M:%S] [%l] [%s:%!] %v");
   spdLogger->set_error_handler([](const std::string &msg) {
     std::cerr << "Logging error: " << msg << std::endl;
   });
-
-  spdlog::set_default_logger(spdLogger);
 }
+
+void Logger::init(const std::string &loggerName, const std::string &logDirPath,
+                  const std::string &appName, spdlog::level::level_enum level) {
+  std::call_once(initialized, [&]() {
+    ptr = std::unique_ptr<Logger>(
+        new Logger(loggerName, logDirPath, appName, level));
+  });
+}
+
+void Logger::disable() {
+  std::call_once(initialized,
+                 [&]() { ptr = std::unique_ptr<Logger>(new Logger()); });
+}
+
+const Logger &Logger::instance() {
+  if (!ptr) {
+    throw std::runtime_error("Logger not initialized");
+  }
+  return *ptr;
+}
+
+std::shared_ptr<spdlog::logger> Logger::getInner() const { return spdLogger; }
+
 } // namespace common

@@ -3,7 +3,6 @@
 #include <algorithm>
 
 namespace common {
-// возвращает строку в нижнем регистре
 std::string lowercased(std::string_view str) {
   std::string result{};
   result.resize(str.size());
@@ -12,7 +11,6 @@ std::string lowercased(std::string_view str) {
   return result;
 }
 
-// возвращает строку в верхнем регистре
 std::string uppercased(std::string_view str) {
   std::string result{};
   result.resize(str.size());
@@ -21,7 +19,6 @@ std::string uppercased(std::string_view str) {
   return result;
 }
 
-// преобразует строку с булевым значением в bool
 std::optional<bool> parseBool(std::string_view str) {
   std::string strLower = lowercased(str);
   if (strLower == "true" || strLower == "1") {
@@ -50,6 +47,7 @@ std::vector<std::string> split(const std::string &str) {
   for (auto ch : str) {
     if (isspace(ch)) {
       if (!curToken.empty()) {
+        // если найден очередной токен
         tokens.push_back(curToken);
         curToken.clear();
       }
@@ -59,8 +57,9 @@ std::vector<std::string> split(const std::string &str) {
   }
 
   // добавление последнего токена
-  if (!curToken.empty())
-    tokens.push_back(curToken);
+  if (!curToken.empty()) {
+    tokens.push_back(curToken);   
+  }
 
   return tokens;
 }

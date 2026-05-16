@@ -1,11 +1,10 @@
 #pragma once
 
 #include <concepts>
-#include <iostream>
 #include <string>
 
 #include "common/app/menu/command_parser/command_parser.h"
-#include "common/utils/print/print.h"
+#include "common/app/menu/menu_message/menu_message.h"
 
 namespace common {
 // базовый класс для вывода меню и получения команд
@@ -15,35 +14,20 @@ private:
   T parser{};
 
 protected:
-  virtual void logInput(const std::string &input) const {};
+  virtual void logInput(const std::string &input) const = 0;
 
 public:
   virtual ~Menu() = default;
 
-  inline void showHeaderLine() const {
-    std::cout << std::string(MENU_HEADER_LINE_LENGTH, '-') << std::endl;
-  }
+  inline void showMenuHeaderLine() const;
 
-  // получает команду от пользователя
-  std::unique_ptr<MenuItem> getCommand(std::string &extraMsg) const {
-    std::string input;
-    std::cout << "> ";
-    std::getline(std::cin, input, '\n');
+  std::unique_ptr<MenuItem> getCommand(std::string &extraMsg) const;
 
-    logInput(input);
+  inline void showMessage(const MenuMessage &msg) const;
+  void showMessages(std::vector<MenuMessage> &messages) const;
 
-    return parser.parseCommand(input, extraMsg);
-  }
-
-  // выводит сообщение
-  void showMessage(std::string_view message) const {
-    printColored(message, rang::fg::cyan);
-  }
-
-  // выводит информацию о доступных командах
-  void showCommandsInfo(const CommandInfoMap &commands) const {
-    for (const auto &[_, info] : commands)
-      std::cout << "- " << info.usage << " - " << info.description << std::endl;
-  }
+  void showCommandsInfo(const CommandInfoMap &commands) const;
 };
 } // namespace common
+
+#include "menu_impl.h"

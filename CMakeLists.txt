@@ -41,12 +41,25 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(frozen)
 
+FetchContent_Declare(
+    zpp_bits
+    URL https://github.com/eyalz800/zpp_bits/archive/refs/tags/v4.7.1.tar.gz
+	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(zpp_bits)
+
+if(NOT TARGET zpp_bits)
+    add_library(zpp_bits INTERFACE)
+    target_include_directories(zpp_bits INTERFACE ${zpp_bits_SOURCE_DIR})
+endif()
+
 set(LIBRARIES_LIST
 	rang
 	nlohmann_json
 	CLI11::CLI11
 	spdlog
 	frozen
+	zpp_bits
 )
 
 add_subdirectory(common)
@@ -61,10 +74,17 @@ if(BUILD_SERVER)
     add_subdirectory(server)
 endif()
 
-# флаг для сборки с тестами
-option(BUILD_TESTS "Build unit tests" OFF)
+option(BUILD_CLIENT_TESTS "Build client tests" OFF)
+option(BUILD_COMMON_TESTS "Build common tests" OFF)
 
-if(BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
+# создание библиотеки с утилитами для тестов
+if(BUILD_CLIENT_TESTS OR BUILD_COMMON_TESTS)
+	set(TEST_UTILS_SOURCES_LIST
+		"test_utils/args_splitter/args_splitter.cpp"
+		"test_utils/temp_file/temp_file.cpp"
+	)
+	add_library(test_utils STATIC ${TEST_UTILS_SOURCES_LIST})
 endif()
+
+option(COPY_CLIENT_DATA "Copy client data directory" ON)
+option(COPY_SERVER_DATA "Copy server data directory" ON)

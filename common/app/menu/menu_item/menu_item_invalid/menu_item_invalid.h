@@ -17,6 +17,7 @@ public:
   MenuItemInvalid(MenuItemInvalid &&other) noexcept;
 
   std::string_view getName() const override;
+
   std::string getError() const;
 };
 } // namespace common

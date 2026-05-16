@@ -1,8 +1,6 @@
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-
 #include "menu_item_invalid.h"
 
-#include <spdlog/spdlog.h>
+#include "common/logging/logger/logger.h"
 
 namespace common {
 MenuItemInvalid::MenuItemInvalid(const std::string &error_) : error(error_) {}
@@ -21,7 +19,7 @@ MenuItemInvalid::MenuItemInvalid(MenuItemInvalid &&other) noexcept
 
 void MenuItemInvalid::logConstructor(const std::string &constructorType,
                                      const std::string &error) const {
-  SPDLOG_LOGGER_DEBUG(spdlog::default_logger(),
+  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
                       "client::MenuItemInvalid {} constructor called: error={}",
                       constructorType, error);
 }

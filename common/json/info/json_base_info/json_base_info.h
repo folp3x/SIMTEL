@@ -4,7 +4,7 @@
 #include <optional>
 
 namespace common {
-// базовый класс с информацией для парсинга JSON-поля
+// абстрактный класс с информацией для парсинга JSON-поля
 class JsonBaseInfo {
 public:
   virtual ~JsonBaseInfo() = default;

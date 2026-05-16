@@ -1,28 +1,23 @@
 #pragma once
 
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-
 #include "common/app/app/app.h"
 
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
+#include "common/network/network_address/network_address.h"
 #include "server/app/config/config/config.h"
+#include "server/network/socket/socket.h"
 
 namespace server {
 class App : common::App<Config> {
 private:
-  void logConstructor(const std::string constructorType,
-                      const common::Location<float> &location,
-                      const common::NetworkAddress &addr) const;
+  std::unique_ptr<Socket> sock;
+  common::NetworkAddress addr;
 
-  virtual std::string
-  handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                bool &exit) override;
+  virtual Messages handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                                 bool &exit) override;
 
 public:
-  App(const common::Location<float> &location_, const common::NetworkAddress &addr_);
-
-  App(const App &other);
-  App(App &&other) noexcept;
+  App(const common::Location<> &location_, const common::NetworkAddress &addr_);
 
   virtual void run() override;
 };

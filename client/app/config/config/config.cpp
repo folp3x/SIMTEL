@@ -2,7 +2,7 @@
 
 namespace client {
 bool Config::isInitialized() const {
-  return common::Config::isInitialized() && imei != "" && imsi != "";
+  return common::Config::isInitialized() && !imei.empty() && !imsi.empty();
 }
 
 std::string Config::getImei() const { return imei; }

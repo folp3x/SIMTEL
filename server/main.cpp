@@ -1,13 +1,19 @@
 #include "app/app/app.h"
 
-#include <filesystem>
-
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
 
 int main(int argc, char *argv[]) {
   try {
+    // настройка логирования
+    try {
+      common::Logger::init("Server logger", "./logs", "server",
+                           spdlog::level::debug);
+    } catch (const spdlog::spdlog_ex &e) {
+      std::cerr << "Logger initialization error" << e.what() << std::endl;
+    }
+
     //  парсинг аргументов командной строки
     auto cliParser = server::CLIParser::create();
 
@@ -18,30 +24,24 @@ int main(int argc, char *argv[]) {
     if (helpCalled) {
       // вызов --help
       std::cout << msg << std::endl;
-      SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(), "Help showed");
       return 0;
     }
 
     if (!parsed) {
       // ошибка парсинга
       std::cout << msg << std::endl;
-      SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
-                             "Cli arg parse error: {}", msg);
       return 1;
     }
 
     server::Config config{};
     if (auto configFilePathParseResult = cliParser->getParsedConfigFilePath()) {
-      // парсинг данных из конфигурационного файла --config
+      // парсинг данных из конфигурационного файла
       std::string configFilePath = *configFilePathParseResult;
       auto configParser = server::ConfigParser::create();
       auto configParseResult = configParser->parse(configFilePath);
       if (!configParseResult) {
         std::cout << "Error parsing config file: " << configParseResult.error()
                   << std::endl;
-        SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
-                               "Config file parse error: {}",
-                               configParseResult.error());
         return 1;
       }
 
@@ -51,8 +51,6 @@ int main(int argc, char *argv[]) {
       std::cout
           << "If --config is not specified all config options are required"
           << std::endl;
-      SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
-                             "--config or all config options not set");
       return 1;
     }
 
@@ -60,12 +58,10 @@ int main(int argc, char *argv[]) {
     config = cliParser->redefineConfig(config);
     if (!config.isInitialized()) {
       std::cout << "Some config fields are not initialized" << std::endl;
-      SPDLOG_LOGGER_CRITICAL(spdlog::default_logger(),
-                             "--config or all config options not set");
       return 1;
     }
 
-    common::Location<float> location(config.getLoc());
+    common::Location<> location(config.getLoc());
     common::NetworkAddress addr{config.getIP(), config.getPort()};
     // запуск главного цикла приложения
     server::App app{location, addr};
@@ -73,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     return 0;
   } catch (std::exception &e) {
-    std::cout << "Error occured:" << e.what() << std::endl;
+    std::cout << e.what() << std::endl;
     return 1;
   }
 }

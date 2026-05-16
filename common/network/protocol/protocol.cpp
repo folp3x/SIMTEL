@@ -4,11 +4,11 @@
 #include <unordered_map>
 
 namespace common {
-using ProtocolInfoMap = std::unordered_map<Protocol, std::string_view>;
-using ProtocolAliasMap = std::unordered_map<std::string_view, std::string_view>;
+using ProtocolInfoMap = std::unordered_map<Protocol, ProtocolInfo>;
+using ProtocolAliasMap = std::unordered_map<std::string_view, std::string>;
 
-static const ProtocolInfoMap PROTOCOLS = {{Protocol::BINARY, "binary"},
-                                          {Protocol::JSON, "json"}};
+static const ProtocolInfoMap PROTOCOLS = {{Protocol::JSON, {"json", 1}},
+                                          {Protocol::BINARY, {"binary", 0}}};
 
 static const ProtocolAliasMap ALIASES = {{"b", "binary"}, {"j", "json"}};
 
@@ -18,8 +18,7 @@ auto findProtocolByName(std::string_view name) {
   return it;
 }
 
-std::optional<std::string_view>
-protocolNameFromAlias(std::string_view alias) {
+std::optional<std::string> protocolNameFromAlias(std::string_view alias) {
   auto it = ALIASES.find(alias);
   if (it != ALIASES.end()) {
     return it->second;
@@ -27,9 +26,9 @@ protocolNameFromAlias(std::string_view alias) {
   return std::nullopt;
 }
 
-std::string_view protocolToStr(Protocol p) {
+std::string protocolToStr(Protocol p) {
   auto it = PROTOCOLS.find(p);
-  return (it == PROTOCOLS.end()) ? "unknown" : it->second;
+  return (it == PROTOCOLS.end()) ? "unknown" : it->second.name;
 }
 
 std::optional<Protocol> protocolFromStr(std::string_view str) {
@@ -43,5 +42,23 @@ std::optional<Protocol> protocolFromStr(std::string_view str) {
 bool isCorrectProtocolStr(std::string_view str) {
   auto it = findProtocolByName(str);
   return it != PROTOCOLS.end();
+}
+
+std::optional<uint8_t> protocolToNetworkId(Protocol p) {
+  auto it = PROTOCOLS.find(p);
+  if (it == PROTOCOLS.end()) {
+    return std::nullopt;
+  }
+
+  return it->second.networkId;
+}
+
+std::optional<Protocol> protocolFromNetworkId(uint8_t networkId) {
+  for (const auto &[protocol, info] : PROTOCOLS) {
+    if (info.networkId == networkId) {
+      return protocol;
+    }
+  }
+  return std::nullopt;
 }
 } // namespace common

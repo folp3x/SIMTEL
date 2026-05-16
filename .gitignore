@@ -1,5 +1,6 @@
 # Build results
 /out/
+**/build/
 
 # VS
 .editorconfig
@@ -59,4 +60,4 @@ compile_commands.json
 *.swp
 
 # Logs
-/logs/
+**/logs/
