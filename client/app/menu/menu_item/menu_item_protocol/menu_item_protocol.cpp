@@ -1,8 +1,6 @@
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-
 #include "menu_item_protocol.h"
 
-#include <spdlog/spdlog.h>
+#include "common/logging/logger/logger.h"
 
 namespace client {
 MenuItemProtocol::MenuItemProtocol(const std::string &protocol_)
@@ -25,7 +23,7 @@ MenuItemProtocol::MenuItemProtocol(MenuItemProtocol &&other) noexcept
 void MenuItemProtocol::logConstructor(const std::string &constructorType,
                                       const std::string &protocol) const {
   SPDLOG_LOGGER_DEBUG(
-      spdlog::default_logger(),
+      common::Logger::instance().getInner(),
       "client::MenuItemProtocol {} constructor called: protocol={}",
       constructorType, protocol);
 }

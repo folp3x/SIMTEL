@@ -1,7 +1,5 @@
 #include "config_parser.h"
 
-#include <fstream>
-
 #include "common/validator/validator.h"
 
 namespace client {

@@ -1,0 +1,28 @@
+#pragma once
+
+#include <concepts>
+#include <optional>
+
+#include "common/types.h"
+
+namespace common {
+class Serializer {
+public:
+  template <typename T>
+    requires std::is_arithmetic_v<T>
+  static std::optional<binary_t> toBinary(T data);
+
+  template <typename T>
+    requires std::is_arithmetic_v<T>
+  static std::optional<T> fromBinary(const binary_t &binary);
+
+  // контейнер, элементы которого расположены в памяти непрерывно
+  template <std::ranges::contiguous_range Container>
+  static std::optional<binary_t> toBinary(const Container &data);
+
+  template <std::ranges::contiguous_range Container>
+  static bool fromBinary(const binary_t &binary, Container &data);
+};
+} // namespace common
+
+#include "serializer_impl.h"

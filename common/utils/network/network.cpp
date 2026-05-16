@@ -8,17 +8,18 @@
 #include "common/validator/validator.h"
 
 namespace common {
+// парсит IP, возвращает его в хостовом порядке байт
 std::expected<uint64_t, std::string> parseIP(const std::string &str) {
   in_addr tempAddr{};
-  if (inet_pton(AF_INET, str.c_str(), &(tempAddr)) != 1)
-    return std::unexpected("IP address parse error");
+  if (inet_pton(PF_INET, str.c_str(), &(tempAddr)) != 1) {
+    return std::unexpected("IP address parse error");   
+  }
 
-  in_addr_t tempIP = tempAddr.s_addr;
-  uint32_t ip = static_cast<uint32_t>(tempIP);
+  uint32_t ip = tempAddr.s_addr;
 
   std::string validationInfo = Validator::isCorrectIP(ip);
   if (validationInfo.empty()) {
-    return ip;
+    return ntohl(ip);
   }
   return std::unexpected(validationInfo);
 }
@@ -28,8 +29,9 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
 
   if (portParseResult) {
     float port = *portParseResult;
-    if (port != floor(port))
-      return std::unexpected("Port must be integer");
+    if (port != floor(port)) {
+      return std::unexpected("Port must be integer");   
+    }
 
     std::string validationInfo = Validator::isCorrectPort(port);
     if (validationInfo.empty()) {

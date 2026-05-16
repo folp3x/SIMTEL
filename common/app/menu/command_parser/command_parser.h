@@ -8,13 +8,14 @@
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
 
 namespace common {
-using ArgsParsersMap =
-    std::unordered_map<std::string,
-                       std::function<std::unique_ptr<MenuItem>(
-                           const std::vector<std::string> &, std::string &)>>;
-
 class CommandParser {
 protected:
+  // парсер принимающий вектор аргументов и out-парамер для доп. сообщения
+  using ArgsParsersMap =
+      std::unordered_map<std::string,
+                         std::function<std::unique_ptr<MenuItem>(
+                             const std::vector<std::string> &, std::string &)>>;
+
   virtual ArgsParsersMap getArgsParsers() const = 0;
 
   static std::unique_ptr<MenuItem>

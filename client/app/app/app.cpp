@@ -5,39 +5,109 @@
 #include <stdexcept>
 
 #include "client/app/menu/menu/menu.h"
+#include "client/network/socket/socket.h"
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 
 namespace client {
-std::string App::handleActiveCommand(const MenuItemActive &cmd) {
-  logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
-  AppState newState = cmd.getActive() ? AppState::ACTIVE : AppState::INACTIVE;
+common::MenuMessage App::formChangeMessage(const std::string &paramName,
+                                           const std::string &valueStr,
+                                           bool changed) const {
+  std::string content = paramName;
+  content += changed ? " changed to " : " already set to ";
+  content += valueStr;
 
-  bool stateChanged = newState != state;
-  if (stateChanged)
-    state = newState;
-
-  std::string stateStr = std::string(appStateToStr(newState));
-  return formChangeMessage("State", stateStr, stateChanged);
+  return common::MenuMessage{content};
 }
 
-std::string App::handleMoveCommand(const MenuItemMove &cmd) {
-  std::vector<float> coords = cmd.getCoords();
+std::expected<float, std::string> App::fetchDistance() {
+  Socket sock{};
+  auto connectError = sock.connectTo(serverAddr);
+  if (connectError) {
+    return std::unexpected("Error connecting to server: " + *connectError);
+  }
+
+  auto sendError = sock.sendLocation(protocol, location);
+  if (sendError) {
+    return std::unexpected("Error sending location to server: " + *sendError);
+  }
+
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                     "Location sent to server: {}", location.toStr());
+
+  auto receiveResult = sock.receiveDistance(protocol);
+  if (!receiveResult) {
+    return std::unexpected("Error receiving distance from server: " +
+                           receiveResult.error());
+  }
+
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                     "Distance received from server: {}",
+                     common::toStr(*receiveResult));
+
+  return *receiveResult;
+}
+
+App::Messages App::handleActiveCommand(const MenuItemActive &cmd) {
+  logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
+
+  Messages messages = {};
+
+  AppState newState = cmd.getActive() ? AppState::ACTIVE : AppState::INACTIVE;
+  bool stateChanged = newState != state;
+  if (stateChanged) {
+    state = newState;
+
+    if (state == AppState::ACTIVE) {
+      auto fetchResult = fetchDistance();
+      if (fetchResult) {
+        distance = *fetchResult;
+      } else {
+        messages.push_back({fetchResult.error(), common::MenuMessageType::ERR});
+      }
+    }
+  }
+
+  messages.push_back(
+      formChangeMessage("State", appStateToStr(state), stateChanged));
+
+  return messages;
+}
+
+App::Messages App::handleMoveCommand(const MenuItemMove<> &cmd) {
+  auto coords = cmd.getCoords();
   logCommandProcess(
       cmd.getName(),
       fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
-  try {
-    bool locationChanged = !location.coordsEqual(coords);
-    if (locationChanged)
-      location.move<std::vector<float>>(coords);
 
-    return formChangeMessage("Position", location.toStr(), locationChanged);
+  Messages messages = {};
+
+  bool locationChanged = !location.coordsEqual(coords);
+  try {
+    if (locationChanged) {
+      location.move(coords);
+
+      if (state == AppState::ACTIVE) {
+        auto fetchResult = fetchDistance();
+        if (fetchResult) {
+          distance = *fetchResult;
+        } else {
+          messages.push_back(
+              {fetchResult.error(), common::MenuMessageType::ERR});
+        }
+      }
+    }
+
+    messages.push_back(
+        formChangeMessage("Location", location.toStr(), locationChanged));
   } catch (const std::invalid_argument &e) {
-    return "Position coords count is invalid";
+    messages.push_back({"Location coords count is invalid"});
   }
+
+  return messages;
 }
 
-std::string App::handleProtocolCommand(const MenuItemProtocol &cmd) {
+common::MenuMessage App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
   logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
@@ -46,102 +116,85 @@ std::string App::handleProtocolCommand(const MenuItemProtocol &cmd) {
     common::Protocol newProtocol = *protocolParseResult;
 
     bool protocolChanged = newProtocol != protocol;
-    if (protocolChanged)
+    if (protocolChanged) {
       protocol = newProtocol;
+    }
 
-    std::string protocolStr = std::string(protocolToStr(newProtocol));
-    return formChangeMessage("Protocol", protocolStr, protocolChanged);
+    return {formChangeMessage("Protocol", protocolToStr(protocol),
+                              protocolChanged)};
   }
-  return "Invalid protocol";
+
+  return {"Invalid protocol"};
 }
 
-std::string App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                               bool &exit) {
-  std::string message = "";
+App::Messages App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                                 bool &exit) {
+  Messages messages;
   std::string cmdNameUpper = common::uppercased(cmd->getName());
-  bool correctCommand = true;
+  bool isCorrectCommand = true;
+
   // выполнение команды в засимости от ее типа
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Received invalid command: {}",
-                       invalidCmd->getError());
-    message = "Error! " + invalidCmd->getError();
-    correctCommand = false;
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Received invalid command: {}", invalidCmd->getError());
+    messages.push_back({"Error! " + invalidCmd->getError()});
+    isCorrectCommand = false;
   } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
     logCommandProcess(cmdNameUpper);
-    message = "Exiting app...";
+    messages.push_back({"Exiting app..."});
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
-    message = handleActiveCommand(*activeCmd);
-  } else if (auto *moveCmd = dynamic_cast<MenuItemMove *>(cmd.get())) {
-    message = handleMoveCommand(*moveCmd);
+    messages = handleActiveCommand(*activeCmd);
+  } else if (auto *moveCmd = dynamic_cast<MenuItemMove<> *>(cmd.get())) {
+    messages = handleMoveCommand(*moveCmd);
   } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
-    message = handleProtocolCommand(*protocolCmd);
+    messages.push_back(handleProtocolCommand(*protocolCmd));
   }
 
-  if (correctCommand) {
-    SPDLOG_LOGGER_INFO(spdlog::default_logger(), "Finished command {}",
-                       cmdNameUpper);
+  if (isCorrectCommand) {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Finished command {}", cmdNameUpper);
   }
 
-  return message;
+  return messages;
 }
 
-App::App(const common::Location<float> &location_,
-         const common::NetworkAddress &addr_, const common::imsi_t &imsi_,
-         const common::imei_t &imei_)
-    : common::App<Config>(location_, addr_), imsi(imsi_), imei(imei_) {}
-
-App::App(const App &other)
-    : common::App<Config>(other.location, other.addr), imsi(other.imsi),
-      imei(other.imei) {
-  logConstructor("COPY", location, addr, imsi, imei);
-}
-
-App::App(App &&other) noexcept
-    : common::App<Config>(std::move(other.location), std::move(other.addr)),
-      imsi(std::move(other.imsi)), imei(std::move(other.imei)) {
-  logConstructor("MOVE", location, addr, imsi, imei);
-}
-
-void App::logConstructor(const std::string constructorType,
-                         const common::Location<float> &location,
-                         const common::NetworkAddress &addr,
-                         const common::imsi_t &imsi,
-                         const common::imei_t &imei) const {
-  SPDLOG_LOGGER_DEBUG(spdlog::default_logger(),
-                      "client::App {} constructor called: location={}, "
-                      "addr={}, imsi={}, imei={}",
-                      constructorType, location.toStr(), addr.toStr(), imsi,
-                      imei);
-}
+App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
+         const common::imei_t &imei_, const common::NetworkAddress &serverAddr_)
+    : common::App<Config>(location_), imsi(imsi_), imei(imei_),
+      serverAddr(serverAddr_) {}
 
 void App::run() {
   Menu menu;
 
   bool isRunning = true;
 
-  SPDLOG_LOGGER_INFO(spdlog::default_logger(), "App started");
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
+    menu.showMenuHeaderLine();
     menu.showStatus(state, imsi, location, protocol);
+    menu.showMenuHeaderLine();
+    menu.showDistance(serverAddr, distance);
+    menu.showMenuHeaderLine();
     menu.showCommandsInfo(getCommandsInfo());
 
-    std::string extraMsg = "";
-    auto cmd = menu.getCommand(extraMsg);
+    std::string extraMsgContent = "";
+    auto cmd = menu.getCommand(extraMsgContent);
 
-    if (!extraMsg.empty())
-      menu.showMessage(extraMsg);
+    if (!extraMsgContent.empty()) {
+      menu.showMessage({extraMsgContent});
+    }
 
     bool exit = false;
-    std::string message = handleCommand(cmd, exit);
+    auto messages = handleCommand(cmd, exit);
+    menu.showMessages(messages);
 
-    if (!message.empty())
-      menu.showMessage(message);
-
-    if (exit)
+    if (exit) {
       isRunning = false;
-    else
+    } else {
       std::cout << std::endl;
+    }
   }
-  SPDLOG_LOGGER_INFO(spdlog::default_logger(), "App exited");
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }
 } // namespace client

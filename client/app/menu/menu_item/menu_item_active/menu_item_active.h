@@ -16,6 +16,7 @@ public:
   MenuItemActive(MenuItemActive &&other) noexcept;
 
   virtual std::string_view getName() const override;
+
   bool getActive() const;
   static int getArgsCount();
 };

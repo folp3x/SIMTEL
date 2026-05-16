@@ -8,8 +8,9 @@ namespace common {
 std::unique_ptr<MenuItem>
 CommandParser::parseExitArgs(const std::vector<std::string> &args,
                              std::string &extraMsg) {
-  if (args.size() > MenuItemExit::getArgsCount())
+  if (args.size() > MenuItemExit::getArgsCount()) {
     extraMsg = "Extra arguments ignored";
+  }
 
   return std::make_unique<MenuItemExit>();
 }
@@ -20,21 +21,23 @@ CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
   std::vector<std::string> tokens = split(lowercased(ltrimmed(str)));
 
-  if (tokens.empty())
+  if (tokens.empty()) {
     return std::make_unique<MenuItemInvalid>("Empty command");
+  }
 
   std::string commandName = tokens[0];
 
   auto argsParsers = getArgsParsers();
-  auto parserIt = argsParsers.find(commandName);
-  if (parserIt == argsParsers.end()) {
+  auto it = argsParsers.find(commandName);
+  if (it == argsParsers.end()) {
     // если для команды нет обработчика
     return std::make_unique<MenuItemInvalid>("Unknown command");
   }
 
+  // удаление названия команды
   tokens.erase(tokens.begin());
+  auto cmd = it->second(tokens, extraMsg);
 
-  auto cmd = parserIt->second(tokens, extraMsg);
   return cmd;
 }
 } // namespace common

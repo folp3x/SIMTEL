@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/app/config/config/config.h"
-#include "common/types/types.h"
+#include "common/types.h"
 
 namespace client {
 class Config : public common::Config {

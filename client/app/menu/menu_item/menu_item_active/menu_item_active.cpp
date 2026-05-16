@@ -1,8 +1,6 @@
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-
 #include "menu_item_active.h"
 
-#include <spdlog/spdlog.h>
+#include "common/logging/logger/logger.h"
 
 namespace client {
 MenuItemActive::MenuItemActive(bool active_) : active(active_) {}
@@ -23,7 +21,7 @@ MenuItemActive::MenuItemActive(MenuItemActive &&other) noexcept
 
 void MenuItemActive::logConstructor(const std::string &constructorType,
                                     bool active) const {
-  SPDLOG_LOGGER_DEBUG(spdlog::default_logger(),
+  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
                       "client::MenuItemActive {} constructor called: active={}",
                       constructorType, active);
 }

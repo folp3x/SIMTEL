@@ -9,7 +9,7 @@
 namespace common {
 // проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(std::string_view filePath) {
-  int jsonExtLen = std::strlen(".json");
+  size_t jsonExtLen = std::strlen(".json");
   return (filePath.size() < jsonExtLen) ||
          filePath.substr(filePath.size() - jsonExtLen) == ".json";
 }
@@ -33,8 +33,9 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
   bool lessDigits, moreDigits;
   if (minLength_) {
     minLength = *minLength_;
-    if (minLength < 0)
+    if (minLength < 0) {
       throw std::invalid_argument("minLength_ must be > 0");
+    }
 
     minLengthStr = std::to_string(minLength);
     lessDigits = str.size() < minLength;
@@ -42,8 +43,9 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
 
   if (maxLength_) {
     maxLength = *maxLength_;
-    if (maxLength < 0)
+    if (maxLength < 0) {
       throw std::invalid_argument("maxLength_ must be > 0");
+    }
 
     maxLengthStr = std::to_string(maxLength);
     moreDigits = str.size() > maxLength;
@@ -63,9 +65,9 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
   return "";
 }
 
-// проверяет коррекность IPv4. ip должен иметь сетевой порядок байт
+// проверяет коррекность IPv4. ip должен иметь хостовой порядок байт
 std::string Validator::isCorrectIP(uint32_t ip) {
-  uint8_t lowByte = (ip >> 3 * 8) & 0xFF;
+  uint8_t lowByte = ip & 0xFF;
   if (lowByte < MIN_IP_LOW_BYTE || lowByte > MAX_IP_LOW_BYTE) {
     return "IP low byte must be from " + std::to_string(MIN_IP_LOW_BYTE) +
            " to " + std::to_string(MAX_IP_LOW_BYTE);
