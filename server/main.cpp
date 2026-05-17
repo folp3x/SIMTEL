@@ -1,11 +1,23 @@
-#include "app/app/app.h"
+#include <csignal>
 
+#include "app/app/app.h"
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
 
+void exitHandler(int signal) {
+  if (signal == SIGINT) {
+    if (common::Logger::isInitialized()) {
+      common::Logger::instance().getInner()->flush();
+    }
+    std::exit(signal);
+  }
+}
+
 int main(int argc, char *argv[]) {
   try {
+    std::signal(SIGINT, exitHandler);
+
     // настройка логирования
     try {
       common::Logger::init("Server logger", "./logs", "server",

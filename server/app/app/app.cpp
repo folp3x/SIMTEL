@@ -52,6 +52,7 @@ void App::run() {
     menu.showMenuHeaderLine();
     menu.showCommandsInfo(getCommandsInfo());
 
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
     while (true) {
       auto acceptResult = sock->acceptConnection();
       if (!acceptResult) {
@@ -80,7 +81,7 @@ void App::run() {
       auto sendError = clientSock->sendDistance(clientProtocol, distance);
       if (sendError) {
         SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                           "Error sending distance to client:  {}", *sendError);
+                           "Error sending distance to client: {}", *sendError);
         continue;
       }
 
@@ -89,5 +90,7 @@ void App::run() {
                          common::toStr(distance));
     }
   }
+
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }
 } // namespace server

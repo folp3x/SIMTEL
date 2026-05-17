@@ -23,11 +23,11 @@ protected:
                          std::string_view argsStr = "") const;
 
 public:
-  virtual ~App() = default;
-
   App(const Location<> &location_);
   App(const App &other);
   App(App &&other) noexcept;
+
+  virtual ~App() = default;
 
   virtual Messages handleCommand(const std::unique_ptr<MenuItem> &cmd,
                                  bool &exit) = 0;

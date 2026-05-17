@@ -7,7 +7,7 @@
 
 namespace common {
 std::unique_ptr<Logger> Logger::ptr = nullptr;
-std::once_flag Logger::initialized{};
+bool Logger::initialized = false;
 
 Logger::Logger() { spdLogger = spdlog::null_logger_mt("null logger"); }
 
@@ -26,15 +26,18 @@ Logger::Logger(const std::string &loggerName, const std::string &logDirPath,
 
 void Logger::init(const std::string &loggerName, const std::string &logDirPath,
                   const std::string &appName, spdlog::level::level_enum level) {
-  std::call_once(initialized, [&]() {
+  if (!initialized) {
     ptr = std::unique_ptr<Logger>(
         new Logger(loggerName, logDirPath, appName, level));
-  });
+    initialized = true;
+  }
 }
 
 void Logger::disable() {
-  std::call_once(initialized,
-                 [&]() { ptr = std::unique_ptr<Logger>(new Logger()); });
+  if (!initialized) {
+    ptr = std::unique_ptr<Logger>(new Logger());
+    initialized = true;
+  }
 }
 
 const Logger &Logger::instance() {
@@ -43,6 +46,8 @@ const Logger &Logger::instance() {
   }
   return *ptr;
 }
+
+bool Logger::isInitialized() { return initialized; }
 
 std::shared_ptr<spdlog::logger> Logger::getInner() const { return spdLogger; }
 

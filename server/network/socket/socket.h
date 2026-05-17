@@ -11,6 +11,9 @@ private:
 
   sockaddr_in sockAddr;
 
+  void logReceiveLocation(const std::string &dataStr) const;
+  void logSendDistance(const std::string &dataStr) const;
+
 public:
   Socket() = default;
   Socket(int sock_, const sockaddr_in &sockAddr_);

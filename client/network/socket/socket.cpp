@@ -3,6 +3,7 @@
 #include "common/json/json_parser/json_parser.h"
 #include "common/network/serializer/serializer.h"
 #include "common/types.h"
+#include "common/utils/network/network.h"
 
 namespace client {
 std::expected<int, std::string> Socket::initSock() {
@@ -19,6 +20,16 @@ std::expected<int, std::string> Socket::initSock() {
   }
 
   return inited;
+}
+
+void Socket::logSendLocation(const std::string &dataStr) const {
+  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+                      "Sending location: {}", dataStr);
+}
+
+void Socket::logReceiveDistance(const std::string &dataStr) const {
+  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+                      "Received distance: {}", dataStr);
 }
 
 std::optional<std::string>
@@ -53,12 +64,15 @@ Socket::sendLocation(common::Protocol protocol,
     if (!serializeResult) {
       return serializeResult.error();
     }
+    logSendLocation(common::toStr(*serializeResult));
 
     return sendMessage(protocolId, *serializeResult);
   }
   case common::Protocol::JSON: {
     std::string jsonStr = loc.toJson().dump();
+    logSendLocation(jsonStr);
     common::binary_t binary = common::binary_t(jsonStr.begin(), jsonStr.end());
+
     return sendMessage(protocolId, binary);
   }
   }
@@ -86,6 +100,7 @@ Socket::receiveDistance(common::Protocol protocol) const {
 
   switch (protocol) {
   case common::Protocol::BINARY: {
+    logReceiveDistance(common::toStr(receiveResult->content));
     auto deserializeResult =
         common::Serializer::fromBinary<float>(receiveResult->content);
 
@@ -103,6 +118,8 @@ Socket::receiveDistance(common::Protocol protocol) const {
 
     std::string jsonStr = std::string(receiveResult->content.begin(),
                                       receiveResult->content.end());
+    logReceiveDistance(jsonStr);
+
     auto error =
         common::JsonParser<float>::parseField(std::move(distInfo), jsonStr);
     if (error) {
