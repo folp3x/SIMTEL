@@ -105,7 +105,7 @@ Socket::receiveDistance(common::Protocol protocol) const {
         common::Serializer::fromBinary<float>(receiveResult->content);
 
     if (!deserializeResult) {
-      return std::unexpected("Error deserializing distance");
+      return std::unexpected("Failed to deserialize distance");
     }
 
     return *deserializeResult;

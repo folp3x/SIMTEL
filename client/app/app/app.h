@@ -45,7 +45,7 @@ private:
   virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                              bool &exit) override;
 
-  void updateDistance();
+  void updateDistance(int updateFreqSec);
 
 public:
   App(const common::Location<> &location_, const common::imsi_t &imsi_,

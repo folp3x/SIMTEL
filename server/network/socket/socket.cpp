@@ -107,7 +107,7 @@ std::optional<std::string> Socket::sendDistance(common::Protocol protocol,
   case common::Protocol::BINARY: {
     auto serializeResult = common::Serializer::toBinary<float>(distance);
     if (!serializeResult) {
-      return "Error serializing distance";
+      return "Failed to serializeq distance";
     }
     logSendDistance(common::toStr(*serializeResult));
 

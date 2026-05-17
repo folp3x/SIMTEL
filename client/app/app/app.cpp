@@ -3,6 +3,7 @@
 #include <iostream>
 #include <spdlog/fmt/fmt.h>
 #include <stdexcept>
+#include <thread>
 
 #include "client/app/menu/menu/menu.h"
 #include "client/network/socket/socket.h"
@@ -150,7 +151,7 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   }
 }
 
-void App::updateDistance() {
+void App::updateDistance(int updateFreqSec) {
   while (true) {
     if (state == AppState::ACTIVE) {
       auto fetchResult = fetchDistance();
@@ -163,6 +164,7 @@ void App::updateDistance() {
       SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
                          "Error updating distance: {}", fetchResult.error());
     }
+    std::this_thread::sleep_for(std::chrono::seconds(updateFreqSec));
   }
 }
 
