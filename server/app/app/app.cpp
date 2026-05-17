@@ -43,7 +43,8 @@ App::Messages App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   return messages;
 }
 
-void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) const {
+void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {
+  activeClientThreads++;
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                      "Client with addr={} connected", clientSock->getAddrStr());
   common::Protocol clientProtocol;
@@ -52,6 +53,8 @@ void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) const {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Error receiving location from client: {}",
                        receiveResult.error());
+    activeClientThreads--;
+    activeClientThreads.notify_one();
     return;
   }
 
@@ -65,17 +68,20 @@ void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) const {
   if (sendError) {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Error sending distance to client: {}", *sendError);
+    activeClientThreads--;
+    activeClientThreads.notify_one();
     return;
   }
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                      "Distance sent to client: {}", common::toStr(distance));
+
+  activeClientThreads--;
+  activeClientThreads.notify_one();
 }
 
-void App::handleClients() const {
+void App::handleClients() {
   constexpr int MAX_CLIENT_THREADS = 20;
-
-  std::vector<std::jthread> clients{};
 
   while (isRunning) {
     auto acceptResult = sock->acceptConnection();
@@ -83,14 +89,23 @@ void App::handleClients() const {
       continue;
     }
 
-    if (clients.size() >= MAX_CLIENT_THREADS) {
+    if (activeClientThreads >= MAX_CLIENT_THREADS) {
       SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
                          "Too many clients. {} rejected",
                          (*acceptResult)->getAddrStr());
+      continue;
     }
-    clients.emplace_back([this, clientSock = std::move(*acceptResult)]() {
-      handleSingleClient(clientSock);
-    });
+
+    std::thread singleClientHandler{
+        [this, clientSock = std::move(*acceptResult)]() {
+          handleSingleClient(clientSock);
+        }};
+    singleClientHandler.detach();
+  }
+
+  // ожидание завершения обработки всех клиентов
+  if (activeClientThreads.load() != 0) {
+    activeClientThreads.wait(0);
   }
 }
 

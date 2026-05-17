@@ -2,6 +2,7 @@
 
 #include "common/app/app/app.h"
 
+#include <atomic>
 #include <memory>
 
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
@@ -17,11 +18,13 @@ private:
   std::unique_ptr<Socket> sock;
   common::NetworkAddress addr;
 
+  std::atomic<int> activeClientThreads{0};
+
   virtual Messages handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                                  bool &exit) override;
 
-  void handleSingleClient(const std::unique_ptr<Socket> &clientSock) const;
-  void handleClients() const;
+  void handleSingleClient(const std::unique_ptr<Socket> &clientSock);
+  void handleClients();
 
 public:
   App(const common::Location<> &location_, const common::NetworkAddress &addr_);
