@@ -22,7 +22,8 @@ public:
   create(const common::NetworkAddress &address);
 
   std::optional<std::string> listenForConnections() const;
-  std::expected<std::unique_ptr<Socket>, std::string> acceptConnection() const;
+  std::expected<std::unique_ptr<Socket>, std::string>
+  acceptConnection() const;
 
   std::expected<common::Location<>, std::string>
   receiveLocation(common::Protocol &clientProtocol) const;

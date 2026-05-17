@@ -27,12 +27,12 @@ protected:
 
   static std::expected<int, std::string> initSock();
 
-  void closeSock() const;
-
 public:
   Socket() = default;
   Socket(int sock_);
   ~Socket();
+
+  void closeSock() const;
 
   Socket(const Socket &) = delete;
   Socket &operator=(const Socket &) = delete;
