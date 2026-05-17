@@ -25,22 +25,20 @@ App::App(const common::Location<> &location_,
   }
 }
 
-App::Messages App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                                 bool &exit) {
-  Messages messages = {};
+void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                        bool &exit) {
   // выполнение команды в засимости от ее типа
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    messages.push_back({"Error! " + invalidCmd->getError()});
+    messages.push(
+        {"Error! " + invalidCmd->getError(), common::MenuMessageType::ERR});
   } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
-    messages.push_back({"Exiting app..."});
+    messages.push({"Exiting app..."});
     exit = true;
   } else if (auto *distCmd = dynamic_cast<MenuItemDist<> *>(cmd.get())) {
     auto coords = distCmd->getCoords();
     auto dist = DistanceCalculator::calc<decltype(coords)>(location, coords);
-    messages.push_back({"Distance: " + common::toStr<decltype(dist)>(dist)});
+    messages.push({"Distance: " + common::toStr<decltype(dist)>(dist)});
   }
-
-  return messages;
 }
 
 void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {
@@ -111,6 +109,7 @@ void App::handleClients() {
 
 void App::run() {
   Menu menu;
+  messages = {};
   isRunning = true;
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
@@ -131,7 +130,7 @@ void App::run() {
     }
 
     bool exit = false;
-    auto messages = handleCommand(cmd, exit);
+    handleCommand(cmd, exit);
     menu.showMessages(messages);
 
     if (exit) {

@@ -15,8 +15,6 @@ private:
                       const Location<> &location) const;
 
 protected:
-  using Messages = std::vector<common::MenuMessage>;
-
   Location<> location{};
 
   void logCommandProcess(std::string_view commandName,
@@ -29,8 +27,8 @@ public:
 
   virtual ~App() = default;
 
-  virtual Messages handleCommand(const std::unique_ptr<MenuItem> &cmd,
-                                 bool &exit) = 0;
+  virtual void handleCommand(const std::unique_ptr<MenuItem> &cmd,
+                             bool &exit) = 0;
 
   virtual void run() = 0;
 };
