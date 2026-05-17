@@ -85,6 +85,3 @@ if(BUILD_CLIENT_TESTS OR BUILD_COMMON_TESTS)
 	)
 	add_library(test_utils STATIC ${TEST_UTILS_SOURCES_LIST})
 endif()
-
-option(COPY_CLIENT_DATA "Copy client data directory" ON)
-option(COPY_SERVER_DATA "Copy server data directory" ON)

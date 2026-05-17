@@ -29,6 +29,8 @@ target_link_libraries(${APP_LIB_NAME} PUBLIC ${CLIENT_LIBRARIES_LIST})
 add_executable(${APP_TARGET_NAME} "main.cpp")
 target_link_libraries(${APP_TARGET_NAME} PRIVATE ${APP_LIB_NAME})
 
+option(COPY_CLIENT_DATA "Copy data directory" ON)
+
 if(COPY_CLIENT_DATA)
 add_custom_command(TARGET ${APP_TARGET_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory 
