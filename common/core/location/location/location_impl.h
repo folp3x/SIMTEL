@@ -66,7 +66,7 @@ void Location<T>::move(const Container &newCoords) {
 }
 
 template <typename T> std::string Location<T>::toStr() const {
-  constexpr int precision = 4;
+  int precision = 4;
   return common::toStr(coords.begin(), coords.end(), precision, '(', ')');
 }
 
@@ -102,7 +102,7 @@ Location<T>::fromJsonStr(const std::string &str) {
   auto locInfo =
       std::make_unique<JsonArrayInfo<float, constants::LOCATION_COORDS_COUNT>>(
           "loc",
-          [&](const common::coords_t<float> &coords) { loc.move(coords); },
+          [&](const common::coords_t<> &coords) { loc.move(coords); },
           nlohmann::json::value_t::number_float);
 
   auto error =

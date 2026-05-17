@@ -11,6 +11,9 @@ private:
 
   sockaddr_in sockAddr;
 
+  void logReceiveLocation(const std::string &dataStr) const;
+  void logSendDistance(const std::string &dataStr) const;
+
 public:
   Socket() = default;
   Socket(int sock_, const sockaddr_in &sockAddr_);
@@ -19,7 +22,8 @@ public:
   create(const common::NetworkAddress &address);
 
   std::optional<std::string> listenForConnections() const;
-  std::expected<std::unique_ptr<Socket>, std::string> acceptConnection() const;
+  std::expected<std::unique_ptr<Socket>, std::string>
+  acceptConnection() const;
 
   std::expected<common::Location<>, std::string>
   receiveLocation(common::Protocol &clientProtocol) const;

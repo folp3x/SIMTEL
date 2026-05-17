@@ -22,8 +22,7 @@ void App<T>::logCommandProcess(std::string_view commandName,
                        argsStr);
   } else {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Processing command {}",
-                       nameUpper);
+                       "Processing command {}", nameUpper);
   }
 }
 

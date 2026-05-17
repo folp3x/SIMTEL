@@ -12,7 +12,7 @@ namespace common {
 std::expected<uint64_t, std::string> parseIP(const std::string &str) {
   in_addr tempAddr{};
   if (inet_pton(PF_INET, str.c_str(), &(tempAddr)) != 1) {
-    return std::unexpected("IP address parse error");   
+    return std::unexpected("IP address parse error");
   }
 
   uint32_t ip = tempAddr.s_addr;
@@ -30,7 +30,7 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
   if (portParseResult) {
     float port = *portParseResult;
     if (port != floor(port)) {
-      return std::unexpected("Port must be integer");   
+      return std::unexpected("Port must be integer");
     }
 
     std::string validationInfo = Validator::isCorrectPort(port);
@@ -41,5 +41,27 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
   } else {
     return std::unexpected("Port parse error: " + portParseResult.error());
   }
+}
+
+std::string toStr(const binary_t &binary) {
+  if (binary.empty()) {
+    return "";
+  }
+
+  constexpr int ONE_BYTE_CHARS = 3;
+  std::string str;
+  str.reserve(binary.size() * ONE_BYTE_CHARS);
+  char buf[ONE_BYTE_CHARS];
+
+  for (size_t i = 0; i < binary.size(); ++i) {
+    if (i > 0) {
+      str += " ";
+    }
+    snprintf(buf, sizeof(buf), "%02X", binary[i]);
+
+    str += buf;
+  }
+
+  return str;
 }
 } // namespace common

@@ -3,7 +3,7 @@
 #include <rang.hpp>
 
 namespace common {
-enum class MenuMessageType { INFO, WARNING, ERR };
+enum class MenuMessageType { INFO, ERR };
 
 inline rang::fg menuMessageTypeToColor(MenuMessageType type) {
   switch (type) {

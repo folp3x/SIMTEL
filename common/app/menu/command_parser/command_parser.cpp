@@ -31,7 +31,8 @@ CommandParser::parseCommand(const std::string &str,
   auto it = argsParsers.find(commandName);
   if (it == argsParsers.end()) {
     // если для команды нет обработчика
-    return std::make_unique<MenuItemInvalid>("Unknown command");
+    return std::make_unique<MenuItemInvalid>("Unknown command '" + commandName +
+                                             "'");
   }
 
   // удаление названия команды

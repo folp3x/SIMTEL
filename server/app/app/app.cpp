@@ -1,5 +1,7 @@
 #include "app.h"
 
+#include <thread>
+
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/logging/logger/logger.h"
@@ -23,28 +25,96 @@ App::App(const common::Location<> &location_,
   }
 }
 
-App::Messages App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                                 bool &exit) {
-  Messages messages = {};
+void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                        bool &exit) {
   // выполнение команды в засимости от ее типа
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    messages.push_back({"Error! " + invalidCmd->getError()});
+    messages.push(
+        {"Error! " + invalidCmd->getError(), common::MenuMessageType::ERR});
   } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
-    messages.push_back({"Exiting app..."});
+    messages.push({"Exiting app..."});
     exit = true;
   } else if (auto *distCmd = dynamic_cast<MenuItemDist<> *>(cmd.get())) {
     auto coords = distCmd->getCoords();
     auto dist = DistanceCalculator::calc<decltype(coords)>(location, coords);
-    messages.push_back({"Distance: " + common::toStr<decltype(dist)>(dist)});
+    messages.push({"Distance: " + common::toStr<decltype(dist)>(dist)});
+  }
+}
+
+void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {
+  activeClientThreads++;
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                     "Client with addr={} connected", clientSock->getAddrStr());
+  common::Protocol clientProtocol;
+  auto receiveResult = clientSock->receiveLocation(clientProtocol);
+  if (!receiveResult) {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Error receiving location from client: {}",
+                       receiveResult.error());
+    activeClientThreads--;
+    activeClientThreads.notify_one();
+    return;
   }
 
-  return messages;
+  common::Location clientLocation = *receiveResult;
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                     "Location received from client: {}",
+                     clientLocation.toStr());
+
+  float distance = DistanceCalculator::calc(location, clientLocation);
+  auto sendError = clientSock->sendDistance(clientProtocol, distance);
+  if (sendError) {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Error sending distance to client: {}", *sendError);
+    activeClientThreads--;
+    activeClientThreads.notify_one();
+    return;
+  }
+
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                     "Distance sent to client: {}", common::toStr(distance));
+
+  activeClientThreads--;
+  activeClientThreads.notify_one();
+}
+
+void App::handleClients() {
+  constexpr int MAX_CLIENT_THREADS = 20;
+
+  while (isRunning) {
+    auto acceptResult = sock->acceptConnection();
+    if (!acceptResult) {
+      continue;
+    }
+
+    if (activeClientThreads >= MAX_CLIENT_THREADS) {
+      SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
+                         "Too many clients. {} rejected",
+                         (*acceptResult)->getAddrStr());
+      continue;
+    }
+
+    std::thread singleClientHandler{
+        [this, clientSock = std::move(*acceptResult)]() {
+          handleSingleClient(clientSock);
+        }};
+    singleClientHandler.detach();
+  }
+
+  // ожидание завершения обработки всех клиентов
+  if (activeClientThreads.load() != 0) {
+    activeClientThreads.wait(0);
+  }
 }
 
 void App::run() {
   Menu menu;
+  messages = {};
+  isRunning = true;
 
-  bool isRunning = true;
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
+
+  std::thread clientsHandler{[this]() { handleClients(); }};
 
   while (isRunning) {
     menu.showMenuHeaderLine();
@@ -52,42 +122,28 @@ void App::run() {
     menu.showMenuHeaderLine();
     menu.showCommandsInfo(getCommandsInfo());
 
-    while (true) {
-      auto acceptResult = sock->acceptConnection();
-      if (!acceptResult) {
-        continue;
-      }
+    std::string extraMsgContent = "";
+    auto cmd = menu.getCommand(extraMsgContent);
 
-      auto clientSock = std::move(*acceptResult);
-      SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                         "Client with addr={} connected",
-                         clientSock->getAddrStr());
+    if (!extraMsgContent.empty()) {
+      menu.showMessage({extraMsgContent});
+    }
 
-      common::Protocol clientProtocol;
-      auto receiveResult = clientSock->receiveLocation(clientProtocol);
-      if (!receiveResult) {
-        SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                           "Error receiving location from client: {}",
-                           receiveResult.error());
-      }
+    bool exit = false;
+    handleCommand(cmd, exit);
+    menu.showMessages(messages);
 
-      common::Location clientLocation = *receiveResult;
-      SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                         "Location received from client: {}",
-                         clientLocation.toStr());
-
-      float distance = DistanceCalculator::calc(location, clientLocation);
-      auto sendError = clientSock->sendDistance(clientProtocol, distance);
-      if (sendError) {
-        SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                           "Error sending distance to client:  {}", *sendError);
-        continue;
-      }
-
-      SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                         "Distance sent to client: {}",
-                         common::toStr(distance));
+    if (exit) {
+      isRunning = false;
+      // закрытие чтобы прервать accept
+      sock->closeSock();
+    } else {
+      std::cout << std::endl;
     }
   }
+
+  clientsHandler.join();
+
+  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }
 } // namespace server

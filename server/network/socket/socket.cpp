@@ -4,8 +4,19 @@
 #include <stdexcept>
 
 #include "common/network/serializer/serializer.h"
+#include "common/utils/network/network.h"
 
 namespace server {
+void Socket::logReceiveLocation(const std::string &dataStr) const {
+  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+                      "Received location: {}", dataStr);
+}
+
+void Socket::logSendDistance(const std::string &dataStr) const {
+  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+                      "Sending distance: {}", dataStr);
+}
+
 Socket::Socket(int sock_, const sockaddr_in &addr_)
     : common::Socket(sock_), sockAddr(addr_) {}
 
@@ -64,11 +75,13 @@ Socket::receiveLocation(common::Protocol &clientProtocol) const {
   clientProtocol = *protocolSearchResult;
   switch (clientProtocol) {
   case common::Protocol::BINARY: {
+    logReceiveLocation(common::toStr(receiveResult->content));
     return common::Location<>::fromBinary(receiveResult->content);
   }
   case common::Protocol::JSON: {
     std::string jsonStr = std::string(receiveResult->content.begin(),
                                       receiveResult->content.end());
+    logReceiveLocation(jsonStr);
 
     auto parseResult = common::Location<>::fromJsonStr(jsonStr);
     if (!parseResult) {
@@ -93,16 +106,18 @@ std::optional<std::string> Socket::sendDistance(common::Protocol protocol,
   switch (protocol) {
   case common::Protocol::BINARY: {
     auto serializeResult = common::Serializer::toBinary<float>(distance);
-
     if (!serializeResult) {
-      return "Error serializing distance";
+      return "Failed to serializeq distance";
     }
+    logSendDistance(common::toStr(*serializeResult));
 
     return sendMessage(protocolId, *serializeResult);
   }
   case common::Protocol::JSON: {
     std::string jsonStr = nlohmann::json{{"dist", distance}}.dump();
+    logSendDistance(jsonStr);
     common::binary_t binary = common::binary_t(jsonStr.begin(), jsonStr.end());
+
     return sendMessage(protocolId, binary);
   }
   }

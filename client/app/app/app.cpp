@@ -3,6 +3,7 @@
 #include <iostream>
 #include <spdlog/fmt/fmt.h>
 #include <stdexcept>
+#include <thread>
 
 #include "client/app/menu/menu/menu.h"
 #include "client/network/socket/socket.h"
@@ -48,10 +49,8 @@ std::expected<float, std::string> App::fetchDistance() {
   return *receiveResult;
 }
 
-App::Messages App::handleActiveCommand(const MenuItemActive &cmd) {
+void App::handleActiveCommand(const MenuItemActive &cmd) {
   logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
-
-  Messages messages = {};
 
   AppState newState = cmd.getActive() ? AppState::ACTIVE : AppState::INACTIVE;
   bool stateChanged = newState != state;
@@ -61,26 +60,22 @@ App::Messages App::handleActiveCommand(const MenuItemActive &cmd) {
     if (state == AppState::ACTIVE) {
       auto fetchResult = fetchDistance();
       if (fetchResult) {
+        std::lock_guard lock(distanceMtx);
         distance = *fetchResult;
       } else {
-        messages.push_back({fetchResult.error(), common::MenuMessageType::ERR});
+        messages.push({fetchResult.error(), common::MenuMessageType::ERR});
       }
     }
   }
 
-  messages.push_back(
-      formChangeMessage("State", appStateToStr(state), stateChanged));
-
-  return messages;
+  messages.push(formChangeMessage("State", appStateToStr(state), stateChanged));
 }
 
-App::Messages App::handleMoveCommand(const MenuItemMove<> &cmd) {
+void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   auto coords = cmd.getCoords();
   logCommandProcess(
       cmd.getName(),
       fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
-
-  Messages messages = {};
 
   bool locationChanged = !location.coordsEqual(coords);
   try {
@@ -90,24 +85,22 @@ App::Messages App::handleMoveCommand(const MenuItemMove<> &cmd) {
       if (state == AppState::ACTIVE) {
         auto fetchResult = fetchDistance();
         if (fetchResult) {
+          std::lock_guard lock(distanceMtx);
           distance = *fetchResult;
         } else {
-          messages.push_back(
-              {fetchResult.error(), common::MenuMessageType::ERR});
+          messages.push({fetchResult.error(), common::MenuMessageType::ERR});
         }
       }
     }
 
-    messages.push_back(
+    messages.push(
         formChangeMessage("Location", location.toStr(), locationChanged));
   } catch (const std::invalid_argument &e) {
-    messages.push_back({"Location coords count is invalid"});
+    messages.push({"Location coords count is invalid"});
   }
-
-  return messages;
 }
 
-common::MenuMessage App::handleProtocolCommand(const MenuItemProtocol &cmd) {
+void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
   logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
@@ -120,16 +113,16 @@ common::MenuMessage App::handleProtocolCommand(const MenuItemProtocol &cmd) {
       protocol = newProtocol;
     }
 
-    return {formChangeMessage("Protocol", protocolToStr(protocol),
-                              protocolChanged)};
+    messages.push({formChangeMessage("Protocol", protocolToStr(protocol),
+                                     protocolChanged)});
+    return;
   }
 
-  return {"Invalid protocol"};
+  messages.push({"Invalid protocol"});
 }
 
-App::Messages App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                                 bool &exit) {
-  Messages messages;
+void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                        bool &exit) {
   std::string cmdNameUpper = common::uppercased(cmd->getName());
   bool isCorrectCommand = true;
 
@@ -137,26 +130,42 @@ App::Messages App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Received invalid command: {}", invalidCmd->getError());
-    messages.push_back({"Error! " + invalidCmd->getError()});
+    messages.push(
+        {"Error! " + invalidCmd->getError(), common::MenuMessageType::ERR});
     isCorrectCommand = false;
   } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
     logCommandProcess(cmdNameUpper);
-    messages.push_back({"Exiting app..."});
+    messages.push({"Exiting app..."});
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
-    messages = handleActiveCommand(*activeCmd);
+    handleActiveCommand(*activeCmd);
   } else if (auto *moveCmd = dynamic_cast<MenuItemMove<> *>(cmd.get())) {
-    messages = handleMoveCommand(*moveCmd);
+    handleMoveCommand(*moveCmd);
   } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
-    messages.push_back(handleProtocolCommand(*protocolCmd));
+    handleProtocolCommand(*protocolCmd);
   }
 
   if (isCorrectCommand) {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Finished command {}", cmdNameUpper);
   }
+}
 
-  return messages;
+void App::updateDistance(int updateFreqSec) {
+  while (true) {
+    if (state == AppState::ACTIVE) {
+      auto fetchResult = fetchDistance();
+      if (fetchResult) {
+        std::lock_guard lock(distanceMtx);
+        distance = *fetchResult;
+        continue;
+      }
+
+      SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
+                         "Error updating distance: {}", fetchResult.error());
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(updateFreqSec));
+  }
 }
 
 App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
@@ -166,15 +175,18 @@ App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
 
 void App::run() {
   Menu menu;
-
-  bool isRunning = true;
+  messages = {};
+  isRunning = true;
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
     menu.showStatus(state, imsi, location, protocol);
     menu.showMenuHeaderLine();
-    menu.showDistance(serverAddr, distance);
+    {
+      std::lock_guard lock(distanceMtx);
+      menu.showDistance(serverAddr, distance);
+    }
     menu.showMenuHeaderLine();
     menu.showCommandsInfo(getCommandsInfo());
 
@@ -186,7 +198,7 @@ void App::run() {
     }
 
     bool exit = false;
-    auto messages = handleCommand(cmd, exit);
+    handleCommand(cmd, exit);
     menu.showMessages(messages);
 
     if (exit) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <queue>
 #include <string>
 
 #include "common/app/menu/command_parser/command_parser.h"
@@ -24,7 +25,7 @@ public:
   std::unique_ptr<MenuItem> getCommand(std::string &extraMsg) const;
 
   inline void showMessage(const MenuMessage &msg) const;
-  void showMessages(std::vector<MenuMessage> &messages) const;
+  void showMessages(std::priority_queue<common::MenuMessage> &messages) const;
 
   void showCommandsInfo(const CommandInfoMap &commands) const;
 };

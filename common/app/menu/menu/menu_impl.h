@@ -27,9 +27,11 @@ void Menu<T>::showMessage(const MenuMessage &msg) const {
 }
 
 template <std::derived_from<CommandParser> T>
-void Menu<T>::showMessages(std::vector<MenuMessage> &messages) const {
-  for (const auto &msg : messages) {
-    showMessage(msg);
+void Menu<T>::showMessages(
+    std::priority_queue<common::MenuMessage> &messages) const {
+  while (!messages.empty()) {
+    showMessage(messages.top());
+    messages.pop();
   }
 }
 
