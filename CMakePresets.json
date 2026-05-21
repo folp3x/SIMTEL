@@ -1,0 +1,37 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        // если нужно указать путь к компилятору
+        // "CMAKE_C_COMPILER": "/usr/bin/gcc-XX",
+        // "CMAKE_CXX_COMPILER": "/usr/bin/g++-XX"
+        "BUILD_CLIENT": "ON",
+        "BUILD_SERVER": "ON"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-release-tests",
+      "displayName": "Linux Release with Tests",
+      "inherits": "linux-release",
+      "cacheVariables": {
+        "BUILD_COMMON_TESTS": "ON",
+        "BUILD_CLIENT_TESTS": "ON"
+      }
+    }
+  ]
+}
