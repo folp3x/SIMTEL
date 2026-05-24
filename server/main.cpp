@@ -18,7 +18,6 @@ int main(int argc, char *argv[]) {
   try {
     std::signal(SIGINT, exitHandler);
 
-    // настройка логирования
     try {
       common::Logger::init("Server logger", "./logs", "server",
                            spdlog::level::debug);
@@ -26,7 +25,6 @@ int main(int argc, char *argv[]) {
       std::cerr << "Logger initialization error" << e.what() << std::endl;
     }
 
-    //  парсинг аргументов командной строки
     auto cliParser = server::CLIParser::create();
 
     std::string msg = "";
@@ -34,13 +32,11 @@ int main(int argc, char *argv[]) {
     bool parsed = cliParser->parse(argc, argv, msg, helpCalled);
 
     if (helpCalled) {
-      // вызов --help
       std::cout << msg << std::endl;
       return 0;
     }
 
     if (!parsed) {
-      // ошибка парсинга
       std::cout << msg << std::endl;
       return 1;
     }
@@ -59,7 +55,6 @@ int main(int argc, char *argv[]) {
 
       config = *configParseResult;
     } else if (!cliParser->allConfigOptsSet()) {
-      // если --config не указан должны быть указаны все конфигурационные опции
       std::cout
           << "If --config is not specified all config options are required"
           << std::endl;
@@ -75,7 +70,7 @@ int main(int argc, char *argv[]) {
 
     common::Location<> location(config.getLoc());
     common::NetworkAddress addr{config.getIP(), config.getPort()};
-    // запуск главного цикла приложения
+
     server::App app{location, addr};
     app.run();
 

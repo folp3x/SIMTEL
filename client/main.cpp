@@ -18,7 +18,6 @@ int main(int argc, char *argv[]) {
   try {
     std::signal(SIGINT, exitHandler);
 
-    // настройка логирования
     try {
       common::Logger::init("Client logger", "./logs", "client",
                            spdlog::level::debug);
@@ -26,7 +25,6 @@ int main(int argc, char *argv[]) {
       std::cerr << "Logger initialization error" << e.what() << std::endl;
     }
 
-    // парсинг аргументов командной строки
     auto cliParser = client::CLIParser::create();
 
     std::string msg = "";
@@ -34,7 +32,6 @@ int main(int argc, char *argv[]) {
     bool parsed = cliParser->parse(argc, argv, msg, helpCalled);
 
     if (helpCalled) {
-      // вызов --help
       std::cout << msg << std::endl;
       SPDLOG_LOGGER_CRITICAL(common::Logger::instance().getInner(),
                              "Help showed");
@@ -42,7 +39,6 @@ int main(int argc, char *argv[]) {
     }
 
     if (!parsed) {
-      // ошибка парсинга
       std::cout << msg << std::endl;
       SPDLOG_LOGGER_CRITICAL(common::Logger::instance().getInner(),
                              "Cli arg parse error: {}", msg);
@@ -85,7 +81,7 @@ int main(int argc, char *argv[]) {
 
     common::Location<> location(config.getLoc());
     common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
-    // запуск главного цикла приложения
+
     client::App app{location, config.getImsi(), config.getImei(), serverAddr};
     app.run();
 
