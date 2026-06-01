@@ -5,6 +5,7 @@
 # VS
 .editorconfig
 .vs
+testEnvironments.json
 
 # git
 .gitattributes

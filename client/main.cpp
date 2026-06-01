@@ -5,7 +5,7 @@
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
 
-void exitHandler(int signal) {
+static void exitHandler(int signal) {
   if (signal == SIGINT) {
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
