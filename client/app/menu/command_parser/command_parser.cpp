@@ -41,7 +41,7 @@ CommandParser::parseProtocolArgs(const std::vector<std::string> &args,
   std::string value = args[0];
 
   auto nameFindResult = common::protocolNameFromAlias(value);
-  std::string name = args[0];
+  std::string name;
   if (nameFindResult) {
     name = *nameFindResult;
   } else {

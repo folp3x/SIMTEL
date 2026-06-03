@@ -126,7 +126,7 @@ std::expected<binary_t, std::string> Location<T>::toBinary() const {
 template <typename T>
 std::expected<Location<T>, std::string>
 Location<T>::fromBinary(const binary_t &binary) {
-  coords_t coords;
+  coords_t coords{};
 
   bool deserialized = Serializer::fromBinary<decltype(coords)>(binary, coords);
   if (!deserialized) {

@@ -1,6 +1,7 @@
 #pragma once
 
 namespace common {
+
 template <typename T, size_t S>
 void JsonArrayInfo<T, S>::logConstructor(
     const std::string &constructorType, const std::string &name,
@@ -14,7 +15,7 @@ void JsonArrayInfo<T, S>::logConstructor(
 template <typename T, size_t S>
 JsonArrayInfo<T, S>::JsonArrayInfo(
     const std::string &name,
-    const std::function<void(const std::array<T, S> &)> successCallback,
+    const std::function<void(const std::array<T, S> &)> &successCallback,
     nlohmann::json::value_t elemType_,
     const std::function<std::string(const std::array<T, S> &)> &checkFn)
     : JsonFieldInfo<std::array<T, S>>(name, successCallback,
@@ -43,7 +44,7 @@ std::optional<std::string>
 JsonArrayInfo<T, S>::parse(const nlohmann::json &json) {
   auto error = JsonFieldInfo<std::array<T, S>>::parse(json);
   if (error) {
-    return *error;
+    return error;
   }
 
   std::string nameQuoted = this->getName(true);

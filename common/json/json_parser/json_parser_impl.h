@@ -9,7 +9,7 @@ JsonParser<T>::parseFields(const nlohmann::json &json) {
   for (const auto &info : fieldsInfo) {
     auto error = info->parse(json);
     if (error) {
-      return *error;
+      return error;
     }
   }
 
@@ -21,7 +21,7 @@ template <typename T>
 template <typename F>
 void JsonParser<T>::addParsedField(
     const std::string &name,
-    const std::function<void(const F &)> successCallback,
+    const std::function<void(const F &)> &successCallback,
     nlohmann::json::value_t type,
     const std::function<std::string(const F &)> &checkFn) {
   auto info =
@@ -34,7 +34,7 @@ template <typename T>
 template <typename E, size_t S>
 void JsonParser<T>::addParsedArray(
     const std::string &name,
-    const std::function<void(const std::array<E, S> &)> successCallback,
+    const std::function<void(const std::array<E, S> &)> &successCallback,
     nlohmann::json::value_t elemType,
     const std::function<std::string(const std::array<E, S> &)> &checkFn) {
   auto info = std::make_unique<JsonArrayInfo<E, S>>(name, successCallback,
@@ -50,7 +50,7 @@ JsonParser<T>::parseField(const std::unique_ptr<JsonFieldInfo<T>> &fieldInfo,
     auto json = nlohmann::json::parse(str);
     auto error = fieldInfo->parse(json);
     if (error) {
-      *error;
+      return error;
     }
   } catch (const nlohmann::json::exception &e) {
     return "JSON parse error: " + std::string(e.what());

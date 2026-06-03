@@ -17,7 +17,6 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
   std::string content = paramName;
   content += changed ? " changed to " : " already set to ";
   content += valueStr;
-
   return common::MenuMessage{content};
 }
 

@@ -12,7 +12,7 @@
 namespace common {
 class Socket {
 private:
-  static constexpr size_t MAX_MSG_SIZE = 1 * constants::BYTES_IN_MB;
+  static constexpr size_t MAX_MSG_SIZE = constants::BYTES_IN_MB;
   static constexpr size_t MSG_PARTS_COUNT = 2;
   static constexpr int INVALID_SOCK = -1;
 

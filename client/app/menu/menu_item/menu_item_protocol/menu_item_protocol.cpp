@@ -8,7 +8,7 @@ MenuItemProtocol::MenuItemProtocol(const std::string &protocol_)
 
 std::string_view MenuItemProtocol::getName() const { return "protocol"; }
 
-int MenuItemProtocol::getArgsCount() { return 1; }
+size_t MenuItemProtocol::getArgsCount() { return 1; }
 
 MenuItemProtocol::MenuItemProtocol(const MenuItemProtocol &other)
     : protocol(other.protocol) {

@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "common/utils/print/print.h"
 #include "common/logging/logger/logger.h"
+#include "common/utils/print/print.h"
 
 namespace client {
 void Menu::logInput(const std::string &input) const {

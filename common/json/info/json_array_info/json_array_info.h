@@ -18,7 +18,7 @@ private:
 public:
   JsonArrayInfo(
       const std::string &name,
-      const std::function<void(const std::array<T, S> &)> successCallback,
+      const std::function<void(const std::array<T, S> &)> &successCallback,
       nlohmann::json::value_t elemType_,
       const std::function<std::string(const std::array<T, S> &)> &checkFn =
           nullptr);

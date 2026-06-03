@@ -21,7 +21,7 @@ public:
   virtual std::string_view getName() const override;
 
   std::string getProtocol() const;
-  static int getArgsCount();
+  static size_t getArgsCount();
 };
 
 } // namespace client

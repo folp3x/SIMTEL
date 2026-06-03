@@ -18,14 +18,14 @@ protected:
   template <typename F>
   void addParsedField(
       const std::string &name,
-      const std::function<void(const F &)> successCallback,
+      const std::function<void(const F &)> &successCallback,
       nlohmann::json::value_t type,
       const std::function<std::string(const F &)> &checkFn = nullptr);
 
   template <typename E, size_t S>
   void addParsedArray(
       const std::string &name,
-      const std::function<void(const std::array<E, S> &)> successCallback,
+      const std::function<void(const std::array<E, S> &)> &successCallback,
       nlohmann::json::value_t elemType,
       const std::function<std::string(const std::array<E, S> &)> &checkFn =
           nullptr);

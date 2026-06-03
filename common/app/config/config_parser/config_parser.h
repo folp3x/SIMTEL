@@ -19,7 +19,7 @@ protected:
   void initPortField();
   void initLocField();
 
-  virtual void initFields();
+  virtual void initFields() override;
 
 public:
   static std::unique_ptr<ConfigParser> create();

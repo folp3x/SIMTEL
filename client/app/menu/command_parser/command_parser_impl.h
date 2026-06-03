@@ -8,7 +8,7 @@ template <typename T>
 std::unique_ptr<common::MenuItem>
 CommandParser::parseMoveArgs(const std::vector<std::string> &args,
                              std::string &extraMsg) {
-  const int requiredArgsCount = MenuItemMove<T>::getArgsCount();
+  const size_t requiredArgsCount = MenuItemMove<T>::getArgsCount();
 
   if (args.empty()) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");

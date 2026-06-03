@@ -5,15 +5,11 @@
 namespace common {
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<int> precision_) {
+std::string toStr(T num, std::optional<unsigned int> precision_) {
   if (!precision_) {
     return std::to_string(num);
   } else {
-    int precision = *precision_;
-
-    if (precision < 0) {
-      throw std::invalid_argument("precision_ must be > 0");
-    }
+    unsigned int precision = *precision_;
 
     std::string formatStr = "%." + std::to_string(precision) + "f";
     size_t size = snprintf(nullptr, 0, formatStr.c_str(), num) + 1;

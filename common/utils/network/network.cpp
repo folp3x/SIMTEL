@@ -28,7 +28,7 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
   auto portParseResult = common::fromString<float>(str);
 
   if (portParseResult) {
-    float port = *portParseResult;
+    double port = *portParseResult;
     if (port != floor(port)) {
       return std::unexpected("Port must be integer");
     }

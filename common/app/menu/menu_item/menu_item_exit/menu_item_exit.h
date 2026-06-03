@@ -7,6 +7,6 @@ class MenuItemExit : public common::MenuItem {
 public:
   virtual std::string_view getName() const override;
 
-  static int getArgsCount();
+  static size_t getArgsCount();
 };
 } // namespace common

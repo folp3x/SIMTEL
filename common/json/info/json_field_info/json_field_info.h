@@ -25,7 +25,7 @@ protected:
 public:
   JsonFieldInfo(
       const std::string &name_,
-      const std::function<void(const T &)> successCallback_,
+      const std::function<void(const T &)> &successCallback_,
       nlohmann::json::value_t type_,
       const std::function<std::string(const T &)> &checkFn_ = nullptr);
 

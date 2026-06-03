@@ -14,7 +14,7 @@ void JsonFieldInfo<T>::logConstructor(const std::string &constructorType,
 template <typename T>
 JsonFieldInfo<T>::JsonFieldInfo(
     const std::string &name_,
-    const std::function<void(const T &)> successCallback_,
+    const std::function<void(const T &)> &successCallback_,
     nlohmann::json::value_t type_,
     const std::function<std::string(const T &)> &checkFn_)
     : name(name_), successCallback(successCallback_), type(type_),

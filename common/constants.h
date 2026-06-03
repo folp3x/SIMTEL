@@ -2,9 +2,7 @@
 
 #include <string>
 
-namespace common {
-namespace constants {
+namespace common::constants {
 constexpr int LOCATION_COORDS_COUNT = 3;
 constexpr int BYTES_IN_MB = 1024 * 1024;
-} // namespace constants
-} // namespace common
+} // namespace common::constants

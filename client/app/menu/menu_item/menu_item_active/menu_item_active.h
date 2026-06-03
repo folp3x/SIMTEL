@@ -18,6 +18,6 @@ public:
   virtual std::string_view getName() const override;
 
   bool getActive() const;
-  static int getArgsCount();
+  static size_t getArgsCount();
 };
 } // namespace client

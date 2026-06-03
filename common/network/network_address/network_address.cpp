@@ -90,7 +90,7 @@ std::string NetworkAddress::toStr() const {
 }
 
 NetworkAddress NetworkAddress::fromStr(const std::string &fullAddress) {
-  size_t delim = fullAddress.rfind(":");
+  size_t delim = fullAddress.rfind(':');
   if (delim == std::string::npos) {
     throw std::invalid_argument("fullAddress must have port delimeter");
   }

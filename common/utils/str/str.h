@@ -24,7 +24,7 @@ template <class Iterator,
           class U = typename std::iterator_traits<Iterator>::value_type>
   requires std::is_arithmetic_v<U>
 std::string toStr(Iterator begin, Iterator end,
-                  std::optional<int> precision = 4, char leftBorder = '[',
+                  std::optional<unsigned int> precision = 4, char leftBorder = '[',
                   char rightBorder = ']');
 
 template <typename T>

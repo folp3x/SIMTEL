@@ -22,6 +22,8 @@ protected:
   parseExitArgs(const std::vector<std::string> &args, std::string &extraMsg);
 
 public:
+  virtual ~CommandParser() = default;
+
   std::unique_ptr<MenuItem> parseCommand(const std::string &str,
                                          std::string &extraMsg) const;
 };

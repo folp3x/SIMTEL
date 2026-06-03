@@ -14,13 +14,13 @@ private:
   Logger(const std::string &loggerName, const std::string &logDirPath,
          const std::string &appName, spdlog::level::level_enum level);
 
+public:
   Logger();
   Logger(Logger const &) = delete;
   Logger(Logger &&) noexcept = delete;
   Logger &operator=(Logger const &) = delete;
   Logger &operator=(Logger &&) noexcept = delete;
 
-public:
   static const Logger &instance();
 
   static void init(const std::string &loggerName, const std::string &logDirPath,

@@ -42,7 +42,8 @@ Socket::connectTo(const common::NetworkAddress &address) {
   sock = *initResult;
 
   sockaddr_in serverAddr = common::Socket::toSockAddr(address);
-  if (connect(sock, (sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
+  if (connect(sock, reinterpret_cast<sockaddr *>(&serverAddr),
+              sizeof(serverAddr)) < 0) {
     return common::Socket::getLastError();
   }
 

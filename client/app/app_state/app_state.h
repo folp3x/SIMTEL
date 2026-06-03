@@ -3,7 +3,7 @@
 #include <string>
 
 namespace client {
-enum class AppState { ACTIVE, INACTIVE };
+enum class AppState : uint8_t { ACTIVE, INACTIVE };
 
 inline std::string appStateToStr(AppState state) {
   switch (state) {
