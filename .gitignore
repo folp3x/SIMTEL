@@ -6,6 +6,8 @@
 .editorconfig
 .vs
 testEnvironments.json
+# VS Code
+.vscode
 
 # git
 .gitattributes
