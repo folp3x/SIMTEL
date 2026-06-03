@@ -15,7 +15,7 @@ std::vector<std::string> split(const std::string &str);
 
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<int> precision_ = 4);
+std::string toStr(T num, std::optional<unsigned int> precision_ = 4);
 
 // итератор указывающий на числовой элемент контейнера
 // решение найдено здесь:
@@ -24,8 +24,8 @@ template <class Iterator,
           class U = typename std::iterator_traits<Iterator>::value_type>
   requires std::is_arithmetic_v<U>
 std::string toStr(Iterator begin, Iterator end,
-                  std::optional<unsigned int> precision = 4, char leftBorder = '[',
-                  char rightBorder = ']');
+                  std::optional<unsigned int> precision = 4,
+                  char leftBorder = '[', char rightBorder = ']');
 
 template <typename T>
   requires std::is_arithmetic_v<T>

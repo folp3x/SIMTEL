@@ -35,8 +35,9 @@ std::string toStr(T num, std::optional<unsigned int> precision_) {
 
 template <class Iterator, class U>
   requires std::is_arithmetic_v<U>
-std::string toStr(Iterator begin, Iterator end, std::optional<int> precision,
-                  char leftBorder, char rightBorder) {
+std::string toStr(Iterator begin, Iterator end,
+                  std::optional<unsigned int> precision, char leftBorder,
+                  char rightBorder) {
   if (begin == end) {
     return std::to_string(leftBorder) + std::to_string(rightBorder);
   }
