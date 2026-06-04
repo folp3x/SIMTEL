@@ -169,9 +169,10 @@ void App::updateDistance(int updateFreqSec) {
 }
 
 App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
-         const common::imei_t &imei_, const common::NetworkAddress &serverAddr_)
+         const common::imei_t &imei_, const common::NetworkAddress &serverAddr_,
+         const std::vector<AddressBookRecord> &addressBook_)
     : common::App<Config>(location_), imsi(imsi_), imei(imei_),
-      serverAddr(serverAddr_) {}
+      serverAddr(serverAddr_), addressBook(addressBook_) {}
 
 void App::run() {
   Menu menu;

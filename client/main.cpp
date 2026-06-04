@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
     common::Location<> location(config.getLoc());
     common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
 
-    client::App app{location, config.getImsi(), config.getImei(), serverAddr};
+    client::App app{
+        location, config.getImsi(), config.getImei(), serverAddr, {}};
     app.run();
 
     return 0;

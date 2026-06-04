@@ -4,7 +4,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
-#include "common/json/info/json_array_info/json_array_info.h"
+#include "common/json/info/json_field_info/json_field_info.h"
 
 namespace common {
 // абстрактный класс для парсинга данных из JSON
@@ -28,6 +28,15 @@ protected:
       const std::function<void(const std::array<E, S> &)> &successCallback,
       nlohmann::json::value_t elemType,
       const std::function<std::string(const std::array<E, S> &)> &checkFn =
+          nullptr);
+
+  template <typename E>
+  void addParsedVector(
+      const std::string &name,
+      const std::function<void(const std::vector<E> &)> &successCallback,
+      nlohmann::json::value_t elemType,
+      const std::function<bool(const E &)> &filterFn = nullptr,
+      const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 
   virtual void initFields() = 0;

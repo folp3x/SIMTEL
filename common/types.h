@@ -10,6 +10,7 @@
 namespace common {
 using imei_t = std::string;
 using imsi_t = std::string;
+using msisdn_t = std::string;
 
 template <typename T = float,
           size_t S = common::constants::LOCATION_COORDS_COUNT>

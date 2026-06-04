@@ -11,6 +11,7 @@
 #include "client/app/menu/menu_item/menu_item_active/menu_item_active.h"
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
+#include "client/core/address_book/address_book_record/address_book_record.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
 
@@ -32,6 +33,8 @@ private:
 
   std::priority_queue<common::MenuMessage> messages{};
 
+  const std::vector<AddressBookRecord> &addressBook{};
+
   common::MenuMessage formChangeMessage(const std::string &paramName,
                                         const std::string &valueStr,
                                         bool changed = true) const;
@@ -49,7 +52,8 @@ private:
 
 public:
   App(const common::Location<> &location_, const common::imsi_t &imsi_,
-      const common::imei_t &imei_, const common::NetworkAddress &serverAddr_);
+      const common::imei_t &imei_, const common::NetworkAddress &serverAddr_,
+      const std::vector<AddressBookRecord> &addressBook_);
 
   virtual void run() override;
 };

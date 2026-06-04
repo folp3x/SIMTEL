@@ -14,9 +14,9 @@
     }
   ],
   "smscConfig": {
-    "smsSegmentBytes": 140,
-    "bufferBytes": 1024,
-    "smsTtlMs": 30000,
+    "smsSegment_bytes": 140,
+    "buffer_bytes": 1024,
+    "smsTtl_ms": 30000,
     "cdrStorageType": "log",
     "cdrAccessParams": {}
   }

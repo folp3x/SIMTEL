@@ -11,6 +11,7 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_active/menu_item_active.cpp"
 	"app/menu/menu_item/menu_item_protocol/menu_item_protocol.cpp"
 	"network/socket/socket.cpp"
+	"core/address_book/address_book_parser/address_book_parser.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

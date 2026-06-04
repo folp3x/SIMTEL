@@ -2,6 +2,9 @@
 
 #include <fstream>
 
+#include "common/json/info/json_array_info/json_array_info.h"
+#include "common/json/info/json_vector_info/json_vector_info.h"
+
 namespace common {
 template <typename T>
 std::optional<std::string>
@@ -39,6 +42,20 @@ void JsonParser<T>::addParsedArray(
     const std::function<std::string(const std::array<E, S> &)> &checkFn) {
   auto info = std::make_unique<JsonArrayInfo<E, S>>(name, successCallback,
                                                     elemType, checkFn);
+  fieldsInfo.push_back(std::move(info));
+}
+
+// добавление в список полей вектора JSON
+template <typename T>
+template <typename E>
+void JsonParser<T>::addParsedVector(
+    const std::string &name,
+    const std::function<void(const std::vector<E> &)> &successCallback,
+    nlohmann::json::value_t elemType,
+    const std::function<bool(const E &)> &filterFn,
+    const std::function<std::string(const std::vector<E> &)> &checkFn) {
+  auto info = std::make_unique<JsonVectorInfo<E>>(name, successCallback,
+                                                  elemType, filterFn, checkFn);
   fieldsInfo.push_back(std::move(info));
 }
 

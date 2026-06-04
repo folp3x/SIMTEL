@@ -1,7 +1,6 @@
 #pragma once
 
 namespace common {
-
 template <typename T, size_t S>
 void JsonArrayInfo<T, S>::logConstructor(
     const std::string &constructorType, const std::string &name,

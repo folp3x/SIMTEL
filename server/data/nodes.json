@@ -4,9 +4,9 @@
         "loc": [1],
         "mmeId": "1",
         "networkGeneration": "LTE",
-        "sinrDb": 20.0,
-        "beamwidth": 65.0,
+        "eirp_DbmW": 46.0,
+        "beamWidth_deg": 65.0,
         "maxConnections": 10,
-        "connectionBufferBytes": 512
+        "connectionBuffer_bytes": 512
     }
 ]
