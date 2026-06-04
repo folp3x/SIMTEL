@@ -3,12 +3,6 @@
 #include "common/validator/validator.h"
 
 namespace common {
-template <std::derived_from<Config> T> void ConfigParser<T>::initIpField() {
-  this->template addParsedField<std::string>(
-      "ip", [this](const std::string &ip) { config.setIP(ip); },
-      nlohmann::json::value_t::string, Validator::isCorrectIpStr);
-}
-
 template <std::derived_from<Config> T> void ConfigParser<T>::initPortField() {
   this->template addParsedField<int>(
       "port", [this](int port) { config.setPort(port); },
@@ -22,7 +16,6 @@ template <std::derived_from<Config> T> void ConfigParser<T>::initLocField() {
 }
 
 template <std::derived_from<Config> T> void ConfigParser<T>::initFields() {
-  initIpField();
   initPortField();
   initLocField();
 }

@@ -8,15 +8,6 @@ namespace common {
 template <std::derived_from<Config> T>
 CLIParser<T>::CLIParser(const std::string &appTitle) : cliApp(appTitle) {}
 
-template <std::derived_from<Config> T> void CLIParser<T>::initIpOption() {
-  ipOpt = cliApp.add_option_function<std::string>(
-      "-a, --ip", [this](const std::string &ip) { config.setIP(ip); },
-      "Set IP address");
-  ipOpt->check(Validator::isCorrectIpStr);
-  ipOpt->type_name("IPv4");
-  configOpts.push_back(ipOpt);
-}
-
 template <std::derived_from<Config> T> void CLIParser<T>::initPortOption() {
   portOpt = cliApp.add_option_function<int>(
       "-p, --port", [this](int port) { config.setPort(port); }, "Set port");
@@ -52,7 +43,6 @@ void CLIParser<T>::initConfigFileOption() {
 }
 
 template <std::derived_from<Config> T> void CLIParser<T>::initOptions() {
-  initIpOption();
   initPortOption();
   initLocOption();
   initConfigFileOption();
@@ -107,8 +97,6 @@ template <std::derived_from<Config> T>
 T CLIParser<T>::redefineConfig(const T &definedConfig) const {
   T redefinedConfig = definedConfig;
 
-  if (isOptSet(ipOpt))
-    redefinedConfig.setIP(config.getIP());
   if (isOptSet(portOpt))
     redefinedConfig.setPort(config.getPort());
   if (isOptSet(locOpt))

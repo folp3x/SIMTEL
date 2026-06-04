@@ -19,7 +19,6 @@ protected:
   T config{};
 
   // опции для получения параметров конфигурации
-  CLI::Option *ipOpt = nullptr;
   CLI::Option *portOpt = nullptr;
   CLI::Option *locOpt = nullptr;
 
@@ -29,7 +28,6 @@ protected:
 
   explicit CLIParser(const std::string &appTitle);
 
-  void initIpOption();
   void initPortOption();
   void initLocOption();
   void initConfigFileOption();

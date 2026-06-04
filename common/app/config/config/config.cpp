@@ -2,12 +2,8 @@
 
 namespace common {
 bool Config::isInitialized() const {
-  return locationSet && !ip.empty() && port != INVALID_PORT;
+  return locationSet && port != INVALID_PORT;
 }
-
-std::string Config::getIP() const { return ip; }
-
-void Config::setIP(const std::string &ip_) { ip = ip_; }
 
 int Config::getPort() const { return port; }
 

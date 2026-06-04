@@ -15,7 +15,6 @@ protected:
 
   ConfigParser() = default;
 
-  void initIpField();
   void initPortField();
   void initLocField();
 

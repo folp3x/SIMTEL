@@ -1,5 +1,6 @@
 {
-  "ip": "127.0.0.1",
   "port": 60000,
-  "loc": [ 1 ]
+  "loc": [ 1 ],
+  "bsFilePath": "nodes.json",
+  "epcNodesFilePath": "eps.json"
 }

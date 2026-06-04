@@ -15,10 +15,17 @@ void ConfigParser::initImsiField() {
       nlohmann::json::value_t::string, common::Validator::isCorrectIMSI);
 }
 
+void ConfigParser::initIpField() {
+  this->template addParsedField<std::string>(
+      "ip", [this](const std::string &ip) { config.setIP(ip); },
+      nlohmann::json::value_t::string, common::Validator::isCorrectIpStr);
+}
+
 void ConfigParser::initFields() {
   common::ConfigParser<Config>::initFields();
   initImeiField();
   initImsiField();
+  initIpField();
 }
 
 std::unique_ptr<ConfigParser> ConfigParser::create() {

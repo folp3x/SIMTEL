@@ -11,6 +11,7 @@ private:
 
   void initImeiField();
   void initImsiField();
+  void initIpField();
 
   virtual void initFields() override;
 

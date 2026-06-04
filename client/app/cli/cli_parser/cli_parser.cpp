@@ -24,10 +24,20 @@ void CLIParser::initImsiOpt() {
   configOpts.push_back(imsiOpt);
 }
 
+void CLIParser::initIpOpt() {
+  ipOpt = cliApp.add_option_function<std::string>(
+      "-a, --ip", [this](const std::string &ip) { config.setIP(ip); },
+      "Set IP address");
+  ipOpt->check(common::Validator::isCorrectIpStr);
+  ipOpt->type_name("IPv4");
+  configOpts.push_back(ipOpt);
+}
+
 void CLIParser::initOptions() {
   common::CLIParser<Config>::initOptions();
   initImeiOpt();
   initImsiOpt();
+  initIpOpt();
 }
 
 std::unique_ptr<CLIParser> CLIParser::create() {
@@ -44,6 +54,8 @@ Config CLIParser::redefineConfig(const Config &definedConfig) const {
     redefinedConfig.setImei(config.getImei());
   if (isOptSet(imsiOpt))
     redefinedConfig.setImsi(config.getImsi());
+  if (isOptSet(ipOpt))
+    redefinedConfig.setIP(config.getIP());
 
   return redefinedConfig;
 }

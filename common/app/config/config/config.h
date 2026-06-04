@@ -12,7 +12,6 @@ private:
 
   bool locationSet = false;
 
-  std::string ip = "";
   int port = INVALID_PORT;
   common::coords_t<> loc = {0};
 
@@ -20,9 +19,6 @@ public:
   virtual ~Config() = default;
 
   virtual bool isInitialized() const;
-
-  std::string getIP() const;
-  void setIP(const std::string &ip_);
 
   int getPort() const;
   void setPort(int port_);
