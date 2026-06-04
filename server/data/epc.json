@@ -1,0 +1,7 @@
+{
+    "ttlSec": 120,
+    "hlrStorageType": "JSON",
+    "hlrAccessParams": {},
+    "cdrStorageType": "log",
+    "cdrAccessParams": {}
+}

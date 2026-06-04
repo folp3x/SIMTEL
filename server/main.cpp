@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
       std::cerr << "Logger initialization error" << e.what() << std::endl;
     }
 
-    auto cliParser = server::CLIParser::create();
+    auto cliParser = server::CLIParser::create("server");
 
     std::string msg = "";
     bool helpCalled = false;

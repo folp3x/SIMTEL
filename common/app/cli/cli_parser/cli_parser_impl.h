@@ -56,7 +56,9 @@ bool CLIParser<T>::isOptSet(CLI::Option *opt) {
 template <std::derived_from<Config> T>
 std::unique_ptr<CLIParser<T>>
 CLIParser<T>::create(const std::string &cliAppName) {
-  auto parser = std::make_unique<CLIParser<T>>(cliAppName);
+  auto parser = std::unique_ptr<common::CLIParser<T>>(
+      new common::CLIParser<T>(cliAppName));
+  ;
   parser->initOptions();
   return parser;
 }
