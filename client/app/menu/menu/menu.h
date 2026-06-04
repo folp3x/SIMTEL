@@ -4,7 +4,7 @@
 
 #include <optional>
 
-#include "client/app/app_state/app_state.h"
+#include "client/app/app_active/app_active.h"
 #include "client/app/menu/command_parser/command_parser.h"
 #include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
@@ -19,7 +19,7 @@ private:
   virtual void logInput(const std::string &input) const override;
 
 public:
-  void showStatus(AppState state, const common::imsi_t &imsi,
+  void showStatus(bool inActive, const common::imsi_t &imsi,
                   const common::Location<> &location,
                   common::Protocol protocol) const;
 

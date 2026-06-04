@@ -51,12 +51,12 @@ std::expected<float, std::string> App::fetchDistance() {
 void App::handleActiveCommand(const MenuItemActive &cmd) {
   logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
 
-  AppState newState = cmd.getActive() ? AppState::ACTIVE : AppState::INACTIVE;
-  bool stateChanged = newState != state;
+  bool newActive = cmd.getActive();
+  bool stateChanged = newActive != inActive;
   if (stateChanged) {
-    state = newState;
+    inActive = newActive;
 
-    if (state == AppState::ACTIVE) {
+    if (inActive) {
       auto fetchResult = fetchDistance();
       if (fetchResult) {
         std::lock_guard lock(distanceMtx);
@@ -67,7 +67,8 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
     }
   }
 
-  messages.push(formChangeMessage("State", appStateToStr(state), stateChanged));
+  messages.push(
+      formChangeMessage("State", appActiveToStr(inActive), stateChanged));
 }
 
 void App::handleMoveCommand(const MenuItemMove<> &cmd) {
@@ -81,7 +82,7 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
     if (locationChanged) {
       location.move(coords);
 
-      if (state == AppState::ACTIVE) {
+      if (inActive) {
         auto fetchResult = fetchDistance();
         if (fetchResult) {
           std::lock_guard lock(distanceMtx);
@@ -152,7 +153,7 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
 
 void App::updateDistance(int updateFreqSec) {
   while (true) {
-    if (state == AppState::ACTIVE) {
+    if (inActive) {
       auto fetchResult = fetchDistance();
       if (fetchResult) {
         std::lock_guard lock(distanceMtx);
@@ -180,7 +181,7 @@ void App::run() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
-    menu.showStatus(state, imsi, location, protocol);
+    menu.showStatus(inActive, imsi, location, protocol);
     menu.showMenuHeaderLine();
     {
       std::lock_guard lock(distanceMtx);

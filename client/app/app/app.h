@@ -6,7 +6,7 @@
 #include <optional>
 #include <queue>
 
-#include "client/app/app_state/app_state.h"
+#include "client/app/app_active/app_active.h"
 #include "client/app/config/config/config.h"
 #include "client/app/menu/menu_item/menu_item_active/menu_item_active.h"
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
@@ -22,7 +22,7 @@ private:
   const common::imsi_t imsi;
   const common::imei_t imei;
 
-  AppState state = AppState::INACTIVE;
+  bool inActive = false;
   common::Protocol protocol = common::Protocol::JSON;
 
   std::optional<float> distance = std::nullopt;

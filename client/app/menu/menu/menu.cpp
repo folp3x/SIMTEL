@@ -11,21 +11,18 @@ void Menu::logInput(const std::string &input) const {
                      "Received input: {}", input);
 }
 
-void Menu::showStatus(AppState state, const common::imsi_t &imsi,
+void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
                       const common::Location<> &location,
                       common::Protocol protocol) const {
   std::cout << "IMSI: " << imsi << std::endl;
 
   // текущее состояние
   std::cout << "State: ";
-  std::string statusStr = appStateToStr(state);
-  switch (state) {
-  case AppState::ACTIVE:
+  std::string statusStr = appActiveToStr(inActive);
+  if (inActive) {
     common::printColored(statusStr, rang::fg::green);
-    break;
-  case AppState::INACTIVE:
+  } else {
     common::printColored(statusStr, rang::fg::red);
-    break;
   }
 
   std::cout << "Location: " << location.toStr() << std::endl;
