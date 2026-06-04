@@ -6,47 +6,47 @@ set(CMAKE_CXX_STANDARD 23)
 # установка библиотек
 include(FetchContent)
 
-FetchContent_Declare(
+fetchcontent_declare(
 	rang
 	URL https://github.com/agauniyal/rang/archive/refs/tags/v3.2.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(rang)
+fetchcontent_makeavailable(rang)
 
-FetchContent_Declare(
+fetchcontent_declare(
 	json
 	URL https://github.com/nlohmann/json/archive/refs/tags/v3.11.3.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(json)
+fetchcontent_makeavailable(json)
 
-FetchContent_Declare(
+fetchcontent_declare(
 	cli11
 	URL https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.6.2.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(cli11)
+fetchcontent_makeavailable(cli11)
 
-FetchContent_Declare(
+fetchcontent_declare(
 	spdlog
 	URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(spdlog)
+fetchcontent_makeavailable(spdlog)
 
-FetchContent_Declare(
+fetchcontent_declare(
 	frozen
 	URL https://github.com/serge-sans-paille/frozen/archive/refs/tags/1.2.0.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(frozen)
+fetchcontent_makeavailable(frozen)
 
-FetchContent_Declare(
+fetchcontent_declare(
     zpp_bits
     URL https://github.com/eyalz800/zpp_bits/archive/refs/tags/v4.7.1.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(zpp_bits)
+fetchcontent_makeavailable(zpp_bits)
 
 if(NOT TARGET zpp_bits)
     add_library(zpp_bits INTERFACE)

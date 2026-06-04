@@ -17,7 +17,7 @@ protected:
                           {"port", 49152},
                           {"imei", "123456789012345"},
                           {"imsi", "543210987654321"},
-                          {"loc", {1.1, 2, 3}}};
+                          {"loc", {1.1}}};
   }
 };
 
@@ -69,7 +69,7 @@ TEST_F(ConfigParserTest, Parse_CorrectJson) {
   ASSERT_TRUE(result.has_value());
 
   client::Config config = *result;
-  bool locParsed = config.getLoc() == common::coords_t<float>{1.1, 2, 3};
+  bool locParsed = config.getLoc() == common::coords_t<float>{1.1};
 
   EXPECT_TRUE(config.getIP() == "127.0.0.1");
   EXPECT_EQ(config.getPort(), 49152);

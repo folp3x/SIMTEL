@@ -14,7 +14,7 @@ private:
 
   std::string ip = "";
   int port = INVALID_PORT;
-  common::coords_t<> loc = {0, 0, 0};
+  common::coords_t<> loc = {0};
 
 public:
   virtual ~Config() = default;

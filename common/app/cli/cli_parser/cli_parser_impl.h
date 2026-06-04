@@ -26,11 +26,18 @@ template <std::derived_from<Config> T> void CLIParser<T>::initPortOption() {
 }
 
 template <std::derived_from<Config> T> void CLIParser<T>::initLocOption() {
-  locOpt = cliApp.add_option_function<common::coords_t<>>(
-      "-l, --loc",
-      [this](const common::coords_t<> &loc) { config.setLoc(loc); },
-      "Set position vector");
-  locOpt->type_name("x y z (real)");
+  if constexpr (common::constants::LOCATION_COORDS_COUNT == 1) {
+    locOpt = cliApp.add_option_function<float>(
+        "-l, --loc", [this](float x) { config.setLoc({x}); },
+        "Set position vector");
+    locOpt->type_name("x (real)");
+  } else {
+    locOpt = cliApp.add_option_function<common::coords_t<>>(
+        "-l, --loc",
+        [this](const common::coords_t<> &loc) { config.setLoc(loc); },
+        "Set position vector");
+    locOpt->type_name("coords (real)");
+  }
   configOpts.push_back(locOpt);
 }
 

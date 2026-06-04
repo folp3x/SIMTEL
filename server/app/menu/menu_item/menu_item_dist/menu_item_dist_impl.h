@@ -12,7 +12,7 @@ template <typename T> std::string_view MenuItemDist<T>::getName() const {
   return "move";
 }
 
-template <typename T> int MenuItemDist<T>::getArgsCount() {
+template <typename T> size_t MenuItemDist<T>::getArgsCount() {
   return common::constants::LOCATION_COORDS_COUNT;
 }
 

@@ -19,10 +19,10 @@ TEST_F(CommandParserTest, Parse_MoveNoArg) {
 }
 
 TEST_F(CommandParserTest, Parse_MoveRedundantArg) {
-  auto cmd = parser.parseCommand("move 1 2 3 4", extraMsg);
+  auto cmd = parser.parseCommand("move 1 2", extraMsg);
   auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
-  client::MenuItemMove<float> correctCmd{{1, 2, 3}};
+  client::MenuItemMove<float> correctCmd{{1}};
 
   ASSERT_FALSE(moveCmd == nullptr);
   ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
@@ -53,28 +53,6 @@ TEST_F(CommandParserTest, Parse_MoveOneIntegerArg) {
   auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
   client::MenuItemMove<float> correctCmd{{1}};
-
-  ASSERT_FALSE(moveCmd == nullptr);
-  ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
-}
-
-TEST_F(CommandParserTest, Parse_MoveTwoArgs) {
-
-  auto cmd = parser.parseCommand("move 1.1 2", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
-
-  client::MenuItemMove<float> correctCmd{{1.1, 2}};
-
-  ASSERT_FALSE(moveCmd == nullptr);
-  ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
-}
-
-TEST_F(CommandParserTest, Parse_MoveThreeArgs) {
-
-  auto cmd = parser.parseCommand("move 1.1 2 3", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
-
-  client::MenuItemMove<float> correctCmd{{1.1, 2, 3}};
 
   ASSERT_FALSE(moveCmd == nullptr);
   ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
