@@ -38,4 +38,14 @@ CommandParser::parseMoveArgs(const std::vector<std::string> &args,
 
   return std::make_unique<MenuItemMove<T>>(coords);
 }
+
+template <typename T>
+std::unique_ptr<common::MenuItem>
+CommandParser::parseWithoutArgs(const std::vector<std::string> &args,
+                                std::string &extraMsg) {
+  if (!args.empty()) {
+    extraMsg = "Extra arguments ignored";
+  }
+  return std::make_unique<T>();
+}
 } // namespace client

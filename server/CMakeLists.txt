@@ -2,7 +2,6 @@ set(APP_TARGET_NAME "server")
 set(APP_LIB_NAME "server_lib")
 
 set(SOURCES_LIST
-    "validator/validator.cpp"
     "app/app/app.cpp"
     "app/menu/command_parser/command_parser.cpp"
     "app/menu/menu/menu.cpp"

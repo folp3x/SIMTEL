@@ -5,7 +5,8 @@
 #include <stdexcept>
 #include <thread>
 
-#include "client/app/menu/menu/menu.h"
+#include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
+#include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "client/network/socket/socket.h"
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
@@ -121,6 +122,34 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   messages.push({"Invalid protocol"});
 }
 
+void App::handleSmsCommand(const MenuItemSMS &cmd) {
+  common::msisdn_t targetMsisdn = "";
+  if (cmd.getSpeedDialNum() != constants::EMPTY_SPEED_DIAL_NUM) {
+    auto findResult = findBySpeedDialNum(cmd.getSpeedDialNum());
+    if (!findResult) {
+      messages.push({"Unknown speed dial num"});
+    } else {
+      targetMsisdn = std::move(*findResult);
+    }
+  }
+
+  std::string smsContent = "";
+  if (!cmd.getContent().empty()) {
+    smsContent = cmd.getContent();
+  } else {
+    smsContent = menu.getMessageContent();
+    if (smsContent.empty()) {
+      messages.push(
+          {"SMS content cant be empty", common::MenuMessageType::ERR});
+    } else {
+      // удаление '\n'
+      smsContent.pop_back();
+    }
+  }
+
+  messages.push({"SMS: " + targetMsisdn + ", " + smsContent});
+}
+
 void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                         bool &exit) {
   std::string cmdNameUpper = common::uppercased(cmd->getName());
@@ -143,6 +172,14 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
     handleMoveCommand(*moveCmd);
   } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
     handleProtocolCommand(*protocolCmd);
+  } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
+    handleSmsCommand(*smsCmd);
+  } else if (auto *sentCmd = dynamic_cast<MenuItemSent *>(cmd.get())) {
+    messages.push({"SENT"});
+  } else if (auto *receivedCmd = dynamic_cast<MenuItemReceived *>(cmd.get())) {
+    messages.push({"RECEIVED"});
+  } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
+    messages.push({"DIALOG"});
   }
 
   if (isCorrectCommand) {
@@ -168,23 +205,30 @@ void App::updateDistance(int updateFreqSec) {
   }
 }
 
+std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
+  auto it = addressBook.find(num);
+  if (it == addressBook.end()) {
+    return std::nullopt;
+  }
+  return it->second;
+}
+
 App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
          const common::imei_t &imei_, const common::NetworkAddress &serverAddr_,
-         const std::vector<AddressBookRecord> &addressBook_)
+         const std::map<char, common::msisdn_t> &addressBook_)
     : common::App<Config>(location_), imsi(imsi_), imei(imei_),
       serverAddr(serverAddr_), addressBook(addressBook_) {}
 
 void App::run() {
-  Menu menu;
   messages = {};
   isRunning = true;
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
-    menu.showStatus(inActive, imsi, location, protocol);
+    menu.showStatus(inActive, imsi, protocol);
     menu.showMenuHeaderLine();
-    menu.showDistance(serverAddr, distance);
+    menu.showSignalInfo(location, distance);
     menu.showMenuHeaderLine();
     menu.showAddressBook(addressBook);
     menu.showMenuHeaderLine();

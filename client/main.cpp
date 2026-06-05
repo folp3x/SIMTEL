@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     auto addressBookParseResult =
         addressBookParser->parse("./data/subscribers.json");
 
-    std::vector<AddressBookRecord> addressBook{};
+    std::map<char, common::msisdn_t> addressBook{};
 
     if (addressBookParseResult) {
       addressBook = std::move(*addressBookParseResult);

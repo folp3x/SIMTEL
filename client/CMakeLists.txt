@@ -12,6 +12,11 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_protocol/menu_item_protocol.cpp"
 	"network/socket/socket.cpp"
 	"core/address_book/address_book_parser/address_book_parser.cpp"
+	"app/menu/menu_item/menu_item_sms/menu_item_sms.cpp"
+	"app/menu/menu_item/menu_item_sent/menu_item_sent.cpp"
+	"app/menu/menu_item/menu_item_received/menu_item_received.cpp"
+	"app/menu/menu_item/menu_item_dialog/menu_item_dialog.cpp"
+	"validator/validator.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

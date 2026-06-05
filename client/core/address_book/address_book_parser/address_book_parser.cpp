@@ -15,8 +15,9 @@ void AddressBookParser::initFields() {
             break;
           }
 
-          char speedDialNum = (i <= 9) ? static_cast<char>(i + '0') : '_';
-          records.push_back({speedDialNum, subscribers[i]});
+          char speedDialNum = (i <= 9) ? static_cast<char>(i + '0')
+                                       : constants::EMPTY_SPEED_DIAL_NUM;
+          records[speedDialNum] = subscribers[i];
         }
       },
       nlohmann::json::value_t::string,
@@ -31,7 +32,7 @@ AddressBookParser::create(const common::msisdn_t &curMsisdn) {
   return parser;
 }
 
-std::expected<std::vector<AddressBookRecord>, std::string>
+std::expected<std::map<char, common::msisdn_t>, std::string>
 AddressBookParser::parseJson(const nlohmann::json &json) {
   // очистка конфига
   records.clear();
