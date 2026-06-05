@@ -58,6 +58,34 @@ TEST_F(CommandParserTest, Parse_MoveOneIntegerArg) {
   ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
 }
 
+TEST_F(CommandParserTest, Parse_MoveTwoArgs) {
+  if constexpr (common::constants::LOCATION_COORDS_COUNT < 2) {
+    GTEST_SKIP() << "Test used only in n-dimensional space where n >= 2";
+  }
+
+  auto cmd = parser.parseCommand("move 1.1 2", extraMsg);
+  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+
+  client::MenuItemMove<float> correctCmd{{1.1, 2}};
+
+  ASSERT_FALSE(moveCmd == nullptr);
+  ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
+}
+
+TEST_F(CommandParserTest, Parse_MoveThreeArgs) {
+  if constexpr (common::constants::LOCATION_COORDS_COUNT < 3) {
+    GTEST_SKIP() << "Test used only in n-dimensional space where n >= 3";
+  }
+
+  auto cmd = parser.parseCommand("move 1.1 2 3", extraMsg);
+  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+
+  client::MenuItemMove<float> correctCmd{{1.1, 2, 3}};
+
+  ASSERT_FALSE(moveCmd == nullptr);
+  ASSERT_TRUE(moveCmd->getCoords() == correctCmd.getCoords());
+}
+
 TEST_F(CommandParserTest, Parse_UnknownCommand) {
   std::string tempMsg = "";
   auto cmd = parser.parseCommand("123", tempMsg);
