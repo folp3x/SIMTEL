@@ -13,12 +13,15 @@
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+#include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
 
 namespace client {
 class App : common::App<Config> {
 private:
+  common::Location<> location{};
+
   Menu menu;
 
   bool isRunning = false;
@@ -50,11 +53,14 @@ private:
   void handleSmsCommand(const MenuItemSMS &cmd);
 
   virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                             bool &exit) override;
+                             bool &exit);
 
   void updateDistance(int updateFreqSec);
 
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
+
+  void logCommandProcess(std::string_view commandName,
+                         std::string_view argsStr = "") const;
 
 public:
   App(const common::Location<> &location_, const common::imsi_t &imsi_,

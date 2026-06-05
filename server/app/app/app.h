@@ -7,6 +7,8 @@
 #include <queue>
 
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
+#include "common/app/menu/menu_message/menu_message.h"
+#include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
 #include "server/app/config/config/config.h"
 #include "server/network/socket/socket.h"
@@ -14,6 +16,8 @@
 namespace server {
 class App : common::App<Config> {
 private:
+  common::Location<> location{};
+
   bool isRunning = true;
 
   std::unique_ptr<Socket> sock;
@@ -22,9 +26,6 @@ private:
   std::atomic<int> activeClientThreads{0};
 
   std::priority_queue<common::MenuMessage> messages{};
-
-  virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                             bool &exit) override;
 
   void handleSingleClient(const std::unique_ptr<Socket> &clientSock);
   void handleClients();

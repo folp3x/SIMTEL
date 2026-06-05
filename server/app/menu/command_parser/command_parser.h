@@ -2,8 +2,6 @@
 
 #include "common/app/menu/command_parser/command_parser.h"
 
-#include "server/app/menu/command_info/command_info.h"
-
 namespace server {
 class CommandParser : public common::CommandParser {
 private:

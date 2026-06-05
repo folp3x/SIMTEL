@@ -10,6 +10,7 @@
 #include "client/network/socket/socket.h"
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+#include "common/utils/str/str.h"
 
 namespace client {
 common::MenuMessage App::formChangeMessage(const std::string &paramName,
@@ -216,8 +217,8 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
 App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
          const common::imei_t &imei_, const common::NetworkAddress &serverAddr_,
          const std::map<char, common::msisdn_t> &addressBook_)
-    : common::App<Config>(location_), imsi(imsi_), imei(imei_),
-      serverAddr(serverAddr_), addressBook(addressBook_) {}
+    : location(location_), imsi(imsi_), imei(imei_), serverAddr(serverAddr_),
+      addressBook(addressBook_) {}
 
 void App::run() {
   messages = {};
@@ -252,5 +253,18 @@ void App::run() {
     }
   }
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
+}
+
+void App::logCommandProcess(std::string_view commandName,
+                            std::string_view argsStr) const {
+  std::string nameUpper = common::uppercased(commandName);
+  if (!argsStr.empty()) {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Processing command {} with args: {}", nameUpper,
+                       argsStr);
+  } else {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Processing command {}", nameUpper);
+  }
 }
 } // namespace client

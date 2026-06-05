@@ -12,7 +12,7 @@
 namespace server {
 App::App(const common::Location<> &location_,
          const common::NetworkAddress &addr_)
-    : common::App<Config>(location_), addr(addr_) {
+    : location(location_), addr(addr_) {
   auto createResult = Socket::create(addr_);
   if (!createResult) {
     throw std::runtime_error("Error creating socket: " + createResult.error());
@@ -22,22 +22,6 @@ App::App(const common::Location<> &location_,
   auto error = sock->listenForConnections();
   if (error) {
     throw std::runtime_error("Error listening for connections: " + *error);
-  }
-}
-
-void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                        bool &exit) {
-  // выполнение команды в засимости от ее типа
-  if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    messages.push(
-        {"Error! " + invalidCmd->getError(), common::MenuMessageType::ERR});
-  } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
-    messages.push({"Exiting app..."});
-    exit = true;
-  } else if (auto *distCmd = dynamic_cast<MenuItemDist<> *>(cmd.get())) {
-    auto coords = distCmd->getCoords();
-    auto dist = DistanceCalculator::calc<decltype(coords)>(location, coords);
-    messages.push({"Distance: " + common::toStr<decltype(dist)>(dist)});
   }
 }
 
@@ -120,28 +104,11 @@ void App::run() {
     menu.showMenuHeaderLine();
     menu.showStatus(location);
     menu.showMenuHeaderLine();
-    menu.showCommandsInfo(getCommandsInfo());
 
-    std::string extraMsgContent = "";
-    auto cmd = menu.getCommand(extraMsgContent);
-
-    if (!extraMsgContent.empty()) {
-      menu.showMessage({extraMsgContent});
-    }
-
-    bool exit = false;
-    handleCommand(cmd, exit);
     menu.showMessages(messages);
-
-    if (exit) {
-      isRunning = false;
-      // закрытие чтобы прервать accept
-      sock->closeSock();
-    } else {
-      std::cout << std::endl;
-    }
   }
 
+  sock->closeSock();
   clientsHandler.join();
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
