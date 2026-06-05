@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
-
 #include "common/json/info/json_field_info/json_field_info.h"
+
+#include <vector>
 
 namespace common {
 // класс с информацией для парсинга вектора из JSON
@@ -21,7 +21,8 @@ public:
       const std::function<std::string(const std::vector<T> &)> &checkFn =
           nullptr);
 
-  virtual std::optional<std::string> parse(const nlohmann::json &json) override;
+  virtual std::optional<std::string> parse(const nlohmann::json &json,
+                                           bool finalParse) override;
 };
 } // namespace common
 

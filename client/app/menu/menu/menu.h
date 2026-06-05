@@ -6,6 +6,7 @@
 
 #include "client/app/app_active/app_active.h"
 #include "client/app/menu/command_parser/command_parser.h"
+#include "client/core/address_book/address_book_record/address_book_record.h"
 #include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
@@ -24,6 +25,8 @@ public:
                   common::Protocol protocol) const;
 
   void showDistance(const common::NetworkAddress &serverAddr,
-                    std::optional<float>) const;
+                    std::optional<float> distance) const;
+
+  void showAddressBook(const std::vector<AddressBookRecord> &book) const;
 };
 } // namespace client

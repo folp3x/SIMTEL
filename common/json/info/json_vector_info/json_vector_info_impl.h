@@ -13,21 +13,21 @@ JsonVectorInfo<T>::JsonVectorInfo(
       elemType(elemType_), filterFn(filterFn_) {}
 
 template <typename T>
-std::optional<std::string>
-JsonVectorInfo<T>::parse(const nlohmann::json &json) {
-  auto error = JsonFieldInfo<std::vector<T>>::parse(json);
+std::optional<std::string> JsonVectorInfo<T>::parse(const nlohmann::json &json,
+                                                    bool finalParse) {
+  auto error = JsonFieldInfo<std::vector<T>>::parse(json, false);
   if (error) {
     return error;
   }
 
   std::string nameQuoted = this->getName(true);
 
-  const auto &fieldJson = this->name.empty() ? json : json[this->name];
+  const auto &fieldJson = this->getFieldJson(json);
 
   std::vector<T> field{};
 
   for (size_t i = 0; i < fieldJson.size(); ++i) {
-    auto elemJson = json[this->name][i];
+    auto elemJson = fieldJson[i];
     if (!(hasJsonType(elemJson, elemType))) {
       return nameQuoted + " elements must have a type: '" +
              jsonTypeToStr(elemType) + "'";
@@ -39,7 +39,9 @@ JsonVectorInfo<T>::parse(const nlohmann::json &json) {
     }
   }
 
-  this->successCallback(field);
+  if (finalParse) {
+    this->successCallback(field);
+  }
 
   return std::nullopt;
 }

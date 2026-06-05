@@ -40,15 +40,15 @@ JsonArrayInfo<T, S>::JsonArrayInfo(JsonArrayInfo &&other) noexcept
 
 template <typename T, size_t S>
 std::optional<std::string>
-JsonArrayInfo<T, S>::parse(const nlohmann::json &json) {
-  auto error = JsonFieldInfo<std::array<T, S>>::parse(json);
+JsonArrayInfo<T, S>::parse(const nlohmann::json &json, bool finalParse) {
+  auto error = JsonFieldInfo<std::array<T, S>>::parse(json, false);
   if (error) {
     return error;
   }
 
   std::string nameQuoted = this->getName(true);
 
-  const auto &fieldJson = json[this->name];
+  const auto &fieldJson = this->getFieldJson(json);
   if (fieldJson.size() != S) {
     return nameQuoted + " must have exactly " + std::to_string(S) + " elements";
   }
@@ -56,7 +56,7 @@ JsonArrayInfo<T, S>::parse(const nlohmann::json &json) {
   std::array<T, S> field{};
 
   for (size_t i = 0; i < S; ++i) {
-    auto elemJson = json[this->name][i];
+    auto elemJson = fieldJson[i];
     if (!(hasJsonType(elemJson, elemType))) {
       return nameQuoted + " elements must have a type: '" +
              jsonTypeToStr(elemType) + "'";
@@ -64,7 +64,9 @@ JsonArrayInfo<T, S>::parse(const nlohmann::json &json) {
     field[i] = elemJson.template get<T>();
   }
 
-  this->successCallback(field);
+  if (finalParse) {
+    this->successCallback(field);
+  }
 
   return std::nullopt;
 }

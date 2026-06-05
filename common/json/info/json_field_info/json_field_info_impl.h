@@ -36,19 +36,20 @@ JsonFieldInfo<T>::JsonFieldInfo(JsonFieldInfo &&other) noexcept
 }
 
 template <typename T>
-std::optional<std::string> JsonFieldInfo<T>::parse(const nlohmann::json &json) {
+std::optional<std::string> JsonFieldInfo<T>::parse(const nlohmann::json &json,
+                                                   bool finalParse) {
   std::string nameQuoted = getName(true);
 
-  if (!json.contains(getName())) {
+  if (!name.empty() && !json.contains(name)) {
     return nameQuoted + " is required";
   }
 
-  const auto &fieldJson = json[name];
+  const auto &fieldJson = getFieldJson(json);
   if (!hasJsonType(fieldJson, type)) {
     return nameQuoted + " must have a type '" + jsonTypeToStr(type) + "'";
   }
 
-  T field = fieldJson.get<T>();
+  T field = fieldJson.template get<T>();
 
   if (checkFn) {
     std::string checkResult = checkFn(field);
@@ -57,12 +58,20 @@ std::optional<std::string> JsonFieldInfo<T>::parse(const nlohmann::json &json) {
     }
   }
 
-  successCallback(field);
+  if (finalParse) {
+    successCallback(field);
+  }
 
   return std::nullopt;
 }
 
 template <typename T> std::string JsonFieldInfo<T>::getName(bool quoted) const {
   return quoted ? "'" + name + "'" : name;
+}
+
+template <typename T>
+nlohmann::json
+JsonFieldInfo<T>::getFieldJson(const nlohmann::json &json) const {
+  return name.empty() ? json : json[name];
 }
 } // namespace common

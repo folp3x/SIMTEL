@@ -1,6 +1,8 @@
 #include "address_book_parser.h"
 
-namespace common {
+#include "client/constants.h"
+
+namespace client {
 AddressBookParser::AddressBookParser(const common::msisdn_t &curMsisdn_)
     : curMsisdn(curMsisdn_) {}
 
@@ -9,11 +11,16 @@ void AddressBookParser::initFields() {
       "",
       [this](const std::vector<common::msisdn_t> &subscribers) {
         for (int i = 0; i < subscribers.size(); ++i) {
-          char speedDialNum = (i <= 9) ? static_cast<char>(i) : '0';
+          if (i >= constants::MAX_ADDRESS_BOOK_SIZE) {
+            break;
+          }
+
+          char speedDialNum = (i <= 9) ? static_cast<char>(i + '0') : '_';
           records.push_back({speedDialNum, subscribers[i]});
         }
       },
-      nlohmann::json::value_t::string);
+      nlohmann::json::value_t::string,
+      [this](const common::msisdn_t &msisdn) { return msisdn != curMsisdn; });
 }
 
 std::unique_ptr<AddressBookParser>
@@ -36,4 +43,4 @@ AddressBookParser::parseJson(const nlohmann::json &json) {
 
   return records;
 }
-} // namespace common
+} // namespace client

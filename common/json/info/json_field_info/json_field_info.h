@@ -33,9 +33,12 @@ public:
 
   JsonFieldInfo(JsonFieldInfo &&other) noexcept;
 
-  virtual std::optional<std::string> parse(const nlohmann::json &json) override;
+  virtual std::optional<std::string> parse(const nlohmann::json &json,
+                                           bool finalParse = true) override;
 
   virtual std::string getName(bool quoted = false) const override;
+
+  virtual nlohmann::json getFieldJson(const nlohmann::json &json) const;
 };
 } // namespace common
 

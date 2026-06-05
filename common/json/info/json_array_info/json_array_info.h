@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-
 #include "common/json/info/json_field_info/json_field_info.h"
+
+#include <array>
 
 namespace common {
 // класс с информацией для парсинга JSON-массива
@@ -27,7 +27,8 @@ public:
 
   JsonArrayInfo(JsonArrayInfo &&other) noexcept;
 
-  virtual std::optional<std::string> parse(const nlohmann::json &json) override;
+  virtual std::optional<std::string> parse(const nlohmann::json &json,
+                                           bool finalParse = true) override;
 };
 } // namespace common
 

@@ -4,6 +4,7 @@
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
+#include "core/address_book/address_book_parser/address_book_parser.h"
 
 static void exitHandler(int signal) {
   if (signal == SIGINT) {
@@ -82,8 +83,22 @@ int main(int argc, char *argv[]) {
     common::Location<> location(config.getLoc());
     common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
 
-    client::App app{
-        location, config.getImsi(), config.getImei(), serverAddr, {}};
+    auto addressBookParser = client::AddressBookParser::create("");
+
+    auto addressBookParseResult =
+        addressBookParser->parse("./data/subscribers.json");
+
+    std::vector<AddressBookRecord> addressBook{};
+
+    if (addressBookParseResult) {
+      addressBook = std::move(*addressBookParseResult);
+    } else {
+      std::cout << "Error loading address book: "
+                << addressBookParseResult.error() << std::endl;
+    }
+
+    client::App app{location, config.getImsi(), config.getImei(), serverAddr,
+                    addressBook};
     app.run();
 
     return 0;

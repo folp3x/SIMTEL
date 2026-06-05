@@ -35,4 +35,11 @@ void Menu::showDistance(const common::NetworkAddress &serverAddr,
   std::string distStr = distance ? common::toStr(*distance) : "unknown";
   std::cout << "Distance to " + serverAddrStr + ": " + distStr << std::endl;
 }
+
+void Menu::showAddressBook(const std::vector<AddressBookRecord> &book) const {
+  std::cout << "Address book: " << std::endl;
+  for (const auto &record : book) {
+    std::cout << record.speedDialNum << " - " << record.msisdn << std::endl;
+  }
+}
 } // namespace client

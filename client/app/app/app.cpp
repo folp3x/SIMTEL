@@ -184,10 +184,9 @@ void App::run() {
     menu.showMenuHeaderLine();
     menu.showStatus(inActive, imsi, location, protocol);
     menu.showMenuHeaderLine();
-    {
-      std::lock_guard lock(distanceMtx);
-      menu.showDistance(serverAddr, distance);
-    }
+    menu.showDistance(serverAddr, distance);
+    menu.showMenuHeaderLine();
+    menu.showAddressBook(addressBook);
     menu.showMenuHeaderLine();
     menu.showCommandsInfo(getCommandsInfo());
 
