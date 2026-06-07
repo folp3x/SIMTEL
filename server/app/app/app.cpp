@@ -1,5 +1,6 @@
 #include "app.h"
 
+#include <csignal>
 #include <thread>
 
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
@@ -9,6 +10,17 @@
 #include "server/core/distance_calculator/distance_calculator.h"
 
 namespace server {
+void App::sigintHandler(int signal) {
+  if (signal == SIGINT) {
+    if (common::Logger::isInitialized()) {
+      common::Logger::instance().getInner()->flush();
+    }
+
+    std::cout << "Exiting app..." << std::endl;
+    std::exit(signal);
+  }
+}
+
 App::App(const common::Location<> &location_,
          const common::NetworkAddress &addr_)
     : location(location_), addr(addr_) {
@@ -22,6 +34,8 @@ App::App(const common::Location<> &location_,
   if (error) {
     throw std::runtime_error("Error listening for connections: " + *error);
   }
+
+  std::signal(SIGINT, sigintHandler);
 }
 
 void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {

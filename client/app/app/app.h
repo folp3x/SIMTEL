@@ -21,17 +21,18 @@
 namespace client {
 class App : common::App<Config> {
 private:
+  std::mutex distanceMtx{};
   UeContext ctx;
 
   Menu menu;
 
   bool isRunning = false;
 
-  std::mutex distanceMtx{};
-
   std::priority_queue<common::MenuMessage> messages{};
 
   std::map<char, common::msisdn_t> addressBook{};
+
+  static void sigintHandler(int signal);
 
   common::MenuMessage formChangeMessage(const std::string &paramName,
                                         const std::string &valueStr,

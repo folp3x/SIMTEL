@@ -1,26 +1,11 @@
-#include <csignal>
-
 #include "app/app/app.h"
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
 #include "core/address_book/address_book_parser/address_book_parser.h"
 
-static void exitHandler(int signal) {
-  if (signal == SIGINT) {
-    if (common::Logger::isInitialized()) {
-      common::Logger::instance().getInner()->flush();
-    }
-
-    std::cout << "Exiting app..." << std::endl;
-    std::exit(signal);
-  }
-}
-
 int main(int argc, char *argv[]) {
   try {
-    std::signal(SIGINT, exitHandler);
-
     try {
       common::Logger::init("Client logger", "./logs", "client",
                            spdlog::level::debug);

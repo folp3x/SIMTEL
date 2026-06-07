@@ -1,5 +1,6 @@
 #include "app.h"
 
+#include <csignal>
 #include <iostream>
 #include <spdlog/fmt/fmt.h>
 #include <stdexcept>
@@ -13,6 +14,17 @@
 #include "common/utils/str/str.h"
 
 namespace client {
+void App::sigintHandler(int signal) {
+  if (signal == SIGINT) {
+    if (common::Logger::isInitialized()) {
+      common::Logger::instance().getInner()->flush();
+    }
+
+    std::cout << "Exiting app..." << std::endl;
+    std::exit(signal);
+  }
+}
+
 common::MenuMessage App::formChangeMessage(const std::string &paramName,
                                            const std::string &valueStr,
                                            bool changed) const {
@@ -216,7 +228,9 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
 
 App::App(const UeContext &ctx_,
          const std::map<char, common::msisdn_t> &addressBook_)
-    : ctx(ctx_), addressBook(addressBook_) {}
+    : ctx(ctx_), addressBook(addressBook_) {
+  std::signal(SIGINT, sigintHandler);
+}
 
 void App::run() {
   messages = {};
