@@ -6,13 +6,14 @@
 #include <optional>
 #include <queue>
 
-#include "client/app/app_active/app_active.h"
 #include "client/app/config/config/config.h"
 #include "client/app/menu/menu/menu.h"
 #include "client/app/menu/menu_item/menu_item_active/menu_item_active.h"
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+#include "client/core/ue/ue_active/ue_active.h"
+#include "client/core/ue/ue_context/ue_context.h"
 #include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
@@ -20,22 +21,13 @@
 namespace client {
 class App : common::App<Config> {
 private:
-  common::Location<> location{};
+  UeContext ctx;
 
   Menu menu;
 
   bool isRunning = false;
 
-  const common::imsi_t imsi;
-  const common::imei_t imei;
-
-  bool inActive = false;
-  common::Protocol protocol = common::Protocol::JSON;
-
-  std::optional<float> distance = std::nullopt;
   std::mutex distanceMtx{};
-
-  common::NetworkAddress serverAddr;
 
   std::priority_queue<common::MenuMessage> messages{};
 
@@ -63,8 +55,7 @@ private:
                          std::string_view argsStr = "") const;
 
 public:
-  App(const common::Location<> &location_, const common::imsi_t &imsi_,
-      const common::imei_t &imei_, const common::NetworkAddress &serverAddr_,
+  App(const UeContext &ctx_,
       const std::map<char, common::msisdn_t> &addressBook_);
 
   virtual void run() override;

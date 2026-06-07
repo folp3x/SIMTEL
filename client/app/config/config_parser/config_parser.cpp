@@ -1,5 +1,6 @@
 #include "config_parser.h"
 
+#include "client/validator/validator.h"
 #include "common/validator/validator.h"
 
 namespace client {
@@ -21,11 +22,22 @@ void ConfigParser::initIpField() {
       nlohmann::json::value_t::string, common::Validator::isCorrectIpStr);
 }
 
+void ConfigParser::initAddressBookFilePathField() {
+  this->template addParsedField<std::string>(
+      "addressBookFilePath",
+      [this](const std::string &filePath) {
+        config.setAddressBookFilePath(filePath);
+      },
+      nlohmann::json::value_t::string,
+      client::Validator::isCorrectAddressBookFilePath);
+}
+
 void ConfigParser::initFields() {
   common::ConfigParser<Config>::initFields();
   initImeiField();
   initImsiField();
   initIpField();
+  initAddressBookFilePathField();
 }
 
 std::unique_ptr<ConfigParser> ConfigParser::create() {

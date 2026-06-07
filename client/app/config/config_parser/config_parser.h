@@ -12,6 +12,7 @@ private:
   void initImeiField();
   void initImsiField();
   void initIpField();
+  void initAddressBookFilePathField();
 
   virtual void initFields() override;
 

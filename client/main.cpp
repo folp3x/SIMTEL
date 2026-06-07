@@ -80,13 +80,9 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    common::Location<> location(config.getLoc());
-    common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
-
     auto addressBookParser = client::AddressBookParser::create("");
-
     auto addressBookParseResult =
-        addressBookParser->parse("./data/subscribers.json");
+        addressBookParser->parse(config.getAddressBookFilePath());
 
     std::map<char, common::msisdn_t> addressBook{};
 
@@ -97,8 +93,13 @@ int main(int argc, char *argv[]) {
                 << addressBookParseResult.error() << std::endl;
     }
 
-    client::App app{location, config.getImsi(), config.getImei(), serverAddr,
-                    addressBook};
+    common::Location<> location(config.getLoc());
+    common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
+
+    client::UeContext ctx{location, config.getImsi(), config.getImei(),
+                          serverAddr};
+
+    client::App app{ctx, addressBook};
     app.run();
 
     return 0;

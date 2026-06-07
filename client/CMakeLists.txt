@@ -17,6 +17,7 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_received/menu_item_received.cpp"
 	"app/menu/menu_item/menu_item_dialog/menu_item_dialog.cpp"
 	"validator/validator.cpp"
+	"core/ue/ue_context/ue_context.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

@@ -1,5 +1,7 @@
 #include "validator.h"
 
+#include "common/validator/validator.h"
+
 namespace client {
 std::string
 Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {
@@ -7,5 +9,10 @@ Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {
     return "Speed dial number must contain only 1 digit";
   }
   return "";
+}
+
+std::string
+Validator::isCorrectAddressBookFilePath(const std::string &filePath) {
+  return common::Validator::jsonFilePathExists(filePath, "Address book");
 }
 } // namespace client

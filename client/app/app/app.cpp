@@ -24,20 +24,20 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
 
 std::expected<float, std::string> App::fetchDistance() {
   Socket sock{};
-  auto connectError = sock.connectTo(serverAddr);
+  auto connectError = sock.connectTo(ctx.getServerAddr());
   if (connectError) {
     return std::unexpected("Error connecting to server: " + *connectError);
   }
 
-  auto sendError = sock.sendLocation(protocol, location);
+  auto sendError = sock.sendLocation(ctx.getProtocol(), ctx.getLocation());
   if (sendError) {
     return std::unexpected("Error sending location to server: " + *sendError);
   }
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Location sent to server: {}", location.toStr());
+                     "Location sent to server: {}", ctx.getLocation().toStr());
 
-  auto receiveResult = sock.receiveDistance(protocol);
+  auto receiveResult = sock.receiveDistance(ctx.getProtocol());
   if (!receiveResult) {
     return std::unexpected("Error receiving distance from server: " +
                            receiveResult.error());
@@ -54,23 +54,23 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
   logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
 
   bool newActive = cmd.getActive();
-  bool stateChanged = newActive != inActive;
+  bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
-    inActive = newActive;
+    ctx.setInActive(newActive);
 
-    if (inActive) {
+    if (ctx.isInActive()) {
       auto fetchResult = fetchDistance();
       if (fetchResult) {
         std::lock_guard lock(distanceMtx);
-        distance = *fetchResult;
+        ctx.setDistance(*fetchResult);
       } else {
         messages.push({fetchResult.error(), common::MenuMessageType::ERR});
       }
     }
   }
 
-  messages.push(
-      formChangeMessage("State", appActiveToStr(inActive), stateChanged));
+  messages.push(formChangeMessage("State", ueActiveToStr(ctx.isInActive()),
+                                  stateChanged));
 }
 
 void App::handleMoveCommand(const MenuItemMove<> &cmd) {
@@ -79,24 +79,24 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
       cmd.getName(),
       fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
 
-  bool locationChanged = !location.coordsEqual(coords);
+  bool locationChanged = !ctx.getLocation().coordsEqual(coords);
   try {
     if (locationChanged) {
-      location.move(coords);
+      ctx.updateLocation(coords);
 
-      if (inActive) {
+      if (ctx.isInActive()) {
         auto fetchResult = fetchDistance();
         if (fetchResult) {
           std::lock_guard lock(distanceMtx);
-          distance = *fetchResult;
+          ctx.setDistance(*fetchResult);
         } else {
           messages.push({fetchResult.error(), common::MenuMessageType::ERR});
         }
       }
     }
 
-    messages.push(
-        formChangeMessage("Location", location.toStr(), locationChanged));
+    messages.push(formChangeMessage("Location", ctx.getLocation().toStr(),
+                                    locationChanged));
   } catch (const std::invalid_argument &e) {
     messages.push({"Location coords count is invalid"});
   }
@@ -110,13 +110,13 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   if (protocolParseResult) {
     common::Protocol newProtocol = *protocolParseResult;
 
-    bool protocolChanged = newProtocol != protocol;
+    bool protocolChanged = newProtocol != ctx.getProtocol();
     if (protocolChanged) {
-      protocol = newProtocol;
+      ctx.setProtocol(newProtocol);
     }
 
-    messages.push({formChangeMessage("Protocol", protocolToStr(protocol),
-                                     protocolChanged)});
+    messages.push({formChangeMessage(
+        "Protocol", protocolToStr(ctx.getProtocol()), protocolChanged)});
     return;
   }
 
@@ -191,11 +191,11 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
 
 void App::updateDistance(int updateFreqSec) {
   while (true) {
-    if (inActive) {
+    if (ctx.isInActive()) {
       auto fetchResult = fetchDistance();
       if (fetchResult) {
         std::lock_guard lock(distanceMtx);
-        distance = *fetchResult;
+        ctx.setDistance(*fetchResult);
         continue;
       }
 
@@ -214,11 +214,9 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
   return it->second;
 }
 
-App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
-         const common::imei_t &imei_, const common::NetworkAddress &serverAddr_,
+App::App(const UeContext &ctx_,
          const std::map<char, common::msisdn_t> &addressBook_)
-    : location(location_), imsi(imsi_), imei(imei_), serverAddr(serverAddr_),
-      addressBook(addressBook_) {}
+    : ctx(ctx_), addressBook(addressBook_) {}
 
 void App::run() {
   messages = {};
@@ -227,9 +225,9 @@ void App::run() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
-    menu.showStatus(inActive, imsi, protocol);
+    menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
     menu.showMenuHeaderLine();
-    menu.showSignalInfo(location, distance);
+    menu.showSignalInfo(ctx.getLocation(), ctx.getDistance());
     menu.showMenuHeaderLine();
     menu.showAddressBook(addressBook);
     menu.showMenuHeaderLine();

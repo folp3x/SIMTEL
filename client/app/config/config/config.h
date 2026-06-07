@@ -11,6 +11,8 @@ private:
 
   std::string ip = "";
 
+  std::string addressBookFilePath = "";
+
 public:
   virtual bool isInitialized() const override;
 
@@ -22,5 +24,8 @@ public:
 
   std::string getIP() const;
   void setIP(const std::string &ip_);
+
+  std::string getAddressBookFilePath() const;
+  void setAddressBookFilePath(const std::string &addressBookFilePath_);
 };
 } // namespace client

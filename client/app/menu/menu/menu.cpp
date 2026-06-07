@@ -31,7 +31,7 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
 
   // текущее состояние
   std::cout << ", state: ";
-  std::string statusStr = appActiveToStr(inActive);
+  std::string statusStr = ueActiveToStr(inActive);
   if (inActive) {
     common::printColored(statusStr, rang::fg::green, "");
   } else {

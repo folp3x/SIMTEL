@@ -3,5 +3,6 @@
   "port": 60000,
   "imei": "635298104776342",
   "imsi": "000000000000002",
-  "loc": [ 1.5 ]
+  "loc": [ 1.5 ],
+  "addressBookFilePath": "./data/address_book.json"
 }

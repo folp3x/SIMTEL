@@ -17,4 +17,12 @@ void Config::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 std::string Config::getIP() const { return ip; }
 
 void Config::setIP(const std::string &ip_) { ip = ip_; }
+
+std::string Config::getAddressBookFilePath() const {
+  return addressBookFilePath;
+}
+
+void Config::setAddressBookFilePath(const std::string &addressBookFilePath_) {
+  addressBookFilePath = addressBookFilePath_;
+}
 } // namespace client
