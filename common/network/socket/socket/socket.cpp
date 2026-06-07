@@ -49,7 +49,7 @@ std::expected<int, std::string> Socket::initSock() {
     return std::unexpected(getLastError());
   }
 
-  timeval tv = {5, 0}; // таймаут 5 секунд на отправку
+  timeval tv = {SEND_TIMEOUT_SEC, 0};
   if (setsockopt(inited, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
     close(inited);
     return std::unexpected(getLastError());
@@ -58,9 +58,10 @@ std::expected<int, std::string> Socket::initSock() {
   return inited;
 }
 
-void Socket::closeSock() const {
+void Socket::closeSock() {
   shutdown(sock, SHUT_RDWR);
   close(sock);
+  sock = INVALID_SOCK;
 }
 
 std::optional<std::string> Socket::sendMessage(uint8_t protocol,

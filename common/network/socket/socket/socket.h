@@ -15,6 +15,7 @@ private:
   static constexpr size_t MAX_MSG_SIZE = constants::BYTES_IN_MB;
   static constexpr size_t MSG_PARTS_COUNT = 2;
   static constexpr int INVALID_SOCK = -1;
+  static constexpr int SEND_TIMEOUT_SEC = 10;
 
   std::optional<std::string> sendAll(const void *data, size_t size_) const;
 
@@ -32,7 +33,7 @@ public:
   Socket(int sock_);
   ~Socket();
 
-  void closeSock() const;
+  void closeSock();
 
   Socket(const Socket &) = delete;
   Socket &operator=(const Socket &) = delete;

@@ -7,6 +7,8 @@
 namespace client {
 class Socket : public common::Socket {
 private:
+  static constexpr int RECEIVE_TIMEOUT_SEC = 10;
+
   static std::expected<int, std::string> initSock();
 
   void logSendLocation(const std::string &dataStr) const;

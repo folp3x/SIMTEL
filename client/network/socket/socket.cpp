@@ -13,7 +13,7 @@ std::expected<int, std::string> Socket::initSock() {
   }
 
   int inited = *initResult;
-  timeval tv = {5, 0}; // таймаут 5 секунд на получение
+  timeval tv = {RECEIVE_TIMEOUT_SEC, 0};
   if (setsockopt(inited, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
     close(inited);
     return std::unexpected(getLastError());
