@@ -14,15 +14,15 @@
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "client/core/ue/ue_active/ue_active.h"
 #include "client/core/ue/ue_context/ue_context.h"
-#include "common/core/location/location/location.h"
-#include "common/network/network_address/network_address.h"
-#include "common/network/protocol/protocol.h"
+#include "client/core/ue/ue_exchange/ue_exchange.h"
 
 namespace client {
 class App : common::App<Config> {
 private:
   std::mutex distanceMtx{};
   UeContext ctx;
+
+  UeExchange exchange;
 
   Menu menu;
 

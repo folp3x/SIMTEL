@@ -35,13 +35,7 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
 }
 
 std::expected<float, std::string> App::fetchDistance() {
-  Socket sock{};
-  auto connectError = sock.connectTo(ctx.getServerAddr());
-  if (connectError) {
-    return std::unexpected("Error connecting to server: " + *connectError);
-  }
-
-  auto sendError = sock.sendLocation(ctx.getProtocol(), ctx.getLocation());
+  auto sendError = exchange.sendLocation(ctx.getProtocol(), ctx.getLocation());
   if (sendError) {
     return std::unexpected("Error sending location to server: " + *sendError);
   }
@@ -49,7 +43,7 @@ std::expected<float, std::string> App::fetchDistance() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                      "Location sent to server: {}", ctx.getLocation().toStr());
 
-  auto receiveResult = sock.receiveDistance(ctx.getProtocol());
+  auto receiveResult = exchange.receiveDistance(ctx.getProtocol());
   if (!receiveResult) {
     return std::unexpected("Error receiving distance from server: " +
                            receiveResult.error());
@@ -79,6 +73,8 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
         messages.push({fetchResult.error(), common::MenuMessageType::ERR});
       }
     }
+
+    exchange.updateConnection(ctx.isInActive());
   }
 
   messages.push(formChangeMessage("State", ueActiveToStr(ctx.isInActive()),
@@ -228,7 +224,7 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
 
 App::App(const UeContext &ctx_,
          const std::map<char, common::msisdn_t> &addressBook_)
-    : ctx(ctx_), addressBook(addressBook_) {
+    : ctx(ctx_), addressBook(addressBook_), exchange(ctx.getServerAddr()) {
   std::signal(SIGINT, sigintHandler);
 }
 
