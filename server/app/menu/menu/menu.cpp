@@ -1,13 +1,9 @@
 #include "menu.h"
 
-#include <iostream>
-#include <rang.hpp>
+#include "common/utils/print/print.h"
 
 namespace server {
-void Menu::logInput(const std::string &input) const {};
-
-void Menu::showStatus(const common::Location<> &location) const {
-  std::cout << "Location: " << location.toStr() << std::endl;
+void Menu::showStatus() const {
   common::printColored("Processing clients...", rang::fg::cyan);
 }
 } // namespace server

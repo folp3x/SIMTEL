@@ -6,7 +6,6 @@
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/logging/logger/logger.h"
 #include "server/app/menu/menu/menu.h"
-#include "server/app/menu/menu_item/menu_item_dist/menu_item_dist.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 
 namespace server {
@@ -102,7 +101,7 @@ void App::run() {
 
   while (isRunning) {
     menu.showMenuHeaderLine();
-    menu.showStatus(location);
+    menu.showStatus();
     menu.showMenuHeaderLine();
 
     menu.showMessages(messages);

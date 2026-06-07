@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/app/menu/menu/menu.h"
+#include "common/app/menu/interactive_menu/interactive_menu.h"
 
 #include <optional>
 
@@ -12,7 +12,7 @@
 #include "common/types.h"
 
 namespace client {
-class Menu : public common::Menu<CommandParser> {
+class Menu : public common::InteractiveMenu<CommandParser> {
 private:
   CommandParser parser{};
 

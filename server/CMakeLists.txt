@@ -3,7 +3,6 @@ set(APP_LIB_NAME "server_lib")
 
 set(SOURCES_LIST
     "app/app/app.cpp"
-    "app/menu/command_parser/command_parser.cpp"
     "app/menu/menu/menu.cpp"
     "core/distance_calculator/distance_calculator.cpp"
     "network/socket/socket.cpp"

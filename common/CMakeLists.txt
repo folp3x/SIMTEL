@@ -13,6 +13,7 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_invalid/menu_item_invalid.cpp"
 	"app/menu/command_parser/command_parser.cpp"
 	"network/socket/socket/socket.cpp"
+	"app/menu/menu/menu.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

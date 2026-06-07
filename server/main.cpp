@@ -10,6 +10,8 @@ static void exitHandler(int signal) {
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
     }
+
+    std::cout << "Exiting app..." << std::endl;
     std::exit(signal);
   }
 }
