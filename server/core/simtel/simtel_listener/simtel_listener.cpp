@@ -21,7 +21,7 @@ SimtelListener::SimtelListener(
 }
 
 void SimtelListener::handleClients() {
-  while (true) {
+  while (listening) {
     auto acceptResult = sock->acceptConnection();
     if (!acceptResult) {
       continue;
@@ -42,5 +42,10 @@ void SimtelListener::handleClients() {
         }};
     singleClientHandler.detach();
   }
+}
+
+void SimtelListener::stopListening() {
+  listening = false;
+  sock->closeSock();
 }
 } // namespace server

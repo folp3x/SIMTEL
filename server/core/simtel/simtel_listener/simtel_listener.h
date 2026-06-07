@@ -7,6 +7,8 @@
 namespace server {
 class SimtelListener {
 private:
+  bool listening = true;
+
   std::unique_ptr<Socket> sock;
 
   static constexpr int MAX_CLIENT_THREADS = 20;
@@ -22,5 +24,7 @@ public:
           &handler_);
 
   void handleClients();
+
+  void stopListening();
 };
 } // namespace server

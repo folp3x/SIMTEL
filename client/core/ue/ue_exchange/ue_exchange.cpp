@@ -111,4 +111,6 @@ UeExchange::receiveDistance(common::Protocol protocol) const {
 
   throw std::invalid_argument("Unsupported protocol");
 }
+
+void UeExchange::closeConnection() { sock.closeSock(); }
 } // namespace client

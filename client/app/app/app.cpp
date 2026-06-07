@@ -11,11 +11,14 @@
 #include "client/network/socket/socket.h"
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+#include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/utils/str/str.h"
 
 namespace client {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
+    exchange.closeConnection();
+
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
     }
@@ -225,7 +228,8 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
 App::App(const UeContext &ctx_,
          const std::map<char, common::msisdn_t> &addressBook_)
     : ctx(ctx_), addressBook(addressBook_), exchange(ctx.getServerAddr()) {
-  std::signal(SIGINT, sigintHandler);
+  common::SignalHandler::setHandler(
+      SIGINT, [this](int signal) { sigintHandler(signal); });
 }
 
 void App::run() {

@@ -24,7 +24,7 @@ private:
   std::mutex messagesMtx{};
   std::priority_queue<common::MenuMessage> messages{};
 
-  static void sigintHandler(int signal);
+  void sigintHandler(int signal);
 
   void handleSingleClient(const std::unique_ptr<Socket> &clientSock);
 

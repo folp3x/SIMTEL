@@ -32,7 +32,7 @@ private:
 
   std::map<char, common::msisdn_t> addressBook{};
 
-  static void sigintHandler(int signal);
+  void sigintHandler(int signal);
 
   common::MenuMessage formChangeMessage(const std::string &paramName,
                                         const std::string &valueStr,

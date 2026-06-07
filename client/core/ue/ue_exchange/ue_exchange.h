@@ -21,5 +21,7 @@ public:
                                           const common::Location<> &loc) const;
   std::expected<float, std::string>
   receiveDistance(common::Protocol protocol) const;
+
+  void closeConnection();
 };
 } // namespace client

@@ -5,6 +5,7 @@
 
 #include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+#include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/logging/logger/logger.h"
 #include "server/app/menu/menu/menu.h"
 #include "server/core/distance_calculator/distance_calculator.h"
@@ -12,6 +13,8 @@
 namespace server {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
+    listener.stopListening();
+
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
     }
@@ -27,7 +30,8 @@ App::App(const common::Location<> &location_,
       listener(addr, [this](const std::unique_ptr<Socket> &clientSock) {
         handleSingleClient(clientSock);
       }) {
-  std::signal(SIGINT, sigintHandler);
+  common::SignalHandler::setHandler(
+      SIGINT, [this](int signal) { sigintHandler(signal); });
 }
 
 void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {

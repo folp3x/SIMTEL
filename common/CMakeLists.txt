@@ -14,6 +14,7 @@ set(SOURCES_LIST
 	"app/menu/command_parser/command_parser.cpp"
 	"network/socket/socket/socket.cpp"
 	"app/menu/menu/menu.cpp"
+	"app/signals/signal_handler/signal_handler.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
