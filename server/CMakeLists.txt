@@ -6,6 +6,7 @@ set(SOURCES_LIST
     "app/menu/menu/menu.cpp"
     "core/distance_calculator/distance_calculator.cpp"
     "network/socket/socket.cpp"
+    "core/simtel/simtel_listener/simtel_listener.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST
