@@ -31,6 +31,8 @@ public:
 
   common::imsi_t getImsi() const;
 
+  common::imei_t getImei() const;
+
   common::imsi_t getMtimsi() const;
   void setMtmsi(const std::string &mtmsi_);
 

@@ -3,20 +3,7 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 
-#include "common/network/serializer/serializer.h"
-#include "common/utils/network/network.h"
-
 namespace server {
-void Socket::logReceiveLocation(const std::string &dataStr) const {
-  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
-                      "Received location: {}", dataStr);
-}
-
-void Socket::logSendDistance(const std::string &dataStr) const {
-  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
-                      "Sending distance: {}", dataStr);
-}
-
 Socket::Socket(int sock_, const sockaddr_in &addr_)
     : common::Socket(sock_), sockAddr(addr_) {}
 
@@ -59,80 +46,13 @@ Socket::acceptConnection() const {
   return std::make_unique<Socket>(clientSock, clientAddr);
 }
 
-std::expected<common::Location<>, std::string>
-Socket::receiveLocation(common::Protocol &clientProtocol) const {
-  auto receiveResult = receiveMessage();
-  if (!receiveResult) {
-    return std::unexpected(receiveResult.error());
-  }
-
-  auto protocolSearchResult =
-      common::protocolFromNetworkId(receiveResult->protocol);
-  if (!protocolSearchResult) {
-    throw std::invalid_argument("Unsupported protocol");
-  }
-
-  clientProtocol = *protocolSearchResult;
-  switch (clientProtocol) {
-  case common::Protocol::BINARY: {
-    logReceiveLocation(common::toStr(receiveResult->content));
-    return common::Location<>::fromBinary(receiveResult->content);
-  }
-  case common::Protocol::JSON: {
-    std::string jsonStr = std::string(receiveResult->content.begin(),
-                                      receiveResult->content.end());
-    logReceiveLocation(jsonStr);
-
-    auto parseResult = common::Location<>::fromJsonStr(jsonStr);
-    if (!parseResult) {
-      return std::unexpected(parseResult.error());
-    }
-
-    return *parseResult;
-  }
-  }
-
-  throw std::invalid_argument("Unsupported protocol");
-}
-
-std::optional<std::string> Socket::sendDistance(common::Protocol protocol,
-                                                float distance) const {
-  auto convertResult = protocolToNetworkId(protocol);
-  if (!convertResult) {
-    throw std::invalid_argument("Unsupported protocol");
-  }
-  uint8_t protocolId = *convertResult;
-
-  switch (protocol) {
-  case common::Protocol::BINARY: {
-    auto serializeResult = common::Serializer::toBinary<float>(distance);
-    if (!serializeResult) {
-      return "Failed to serializeq distance";
-    }
-    logSendDistance(common::toStr(*serializeResult));
-
-    return sendMessage(protocolId, *serializeResult);
-  }
-  case common::Protocol::JSON: {
-    std::string jsonStr = nlohmann::json{{"dist", distance}}.dump();
-    logSendDistance(jsonStr);
-    common::binary_t binary = common::binary_t(jsonStr.begin(), jsonStr.end());
-
-    return sendMessage(protocolId, binary);
-  }
-  }
-
-  throw std::invalid_argument("Unsupported protocol");
-}
-
 std::string Socket::getAddrStr() const {
-  char buffer[INET_ADDRSTRLEN];
+  char buf[INET_ADDRSTRLEN];
 
-  if (inet_ntop(AF_INET, &sockAddr.sin_addr, buffer, INET_ADDRSTRLEN) ==
-      nullptr) {
+  if (inet_ntop(AF_INET, &sockAddr.sin_addr, buf, INET_ADDRSTRLEN) == nullptr) {
     return "invalid";
   }
 
-  return std::string(buffer) + ":" + std::to_string(ntohs(sockAddr.sin_port));
+  return std::string(buf) + ":" + std::to_string(ntohs(sockAddr.sin_port));
 }
 } // namespace server

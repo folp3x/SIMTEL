@@ -1,5 +1,7 @@
 #include "socket.h"
 
+#include <unistd.h>
+
 namespace client {
 std::expected<int, std::string> Socket::initSock() {
   auto initResult = common::Socket::initSock();

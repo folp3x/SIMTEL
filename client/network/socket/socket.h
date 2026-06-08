@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/core/location/location/location.h"
-#include "common/network/protocol/protocol.h"
+#include <expected>
+
 #include "common/network/socket/socket/socket.h"
 
 namespace client {

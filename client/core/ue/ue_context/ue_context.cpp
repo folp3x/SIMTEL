@@ -8,6 +8,8 @@ UeContext::UeContext(common::Location<> &location_, const common::imsi_t &imsi_,
 
 common::imsi_t UeContext::getImsi() const { return imsi; }
 
+common::imei_t UeContext::getImei() const { return imei; }
+
 common::imsi_t UeContext::getMtimsi() const { return mtimsi; }
 
 void UeContext::setMtmsi(const std::string &mtmsi_) {

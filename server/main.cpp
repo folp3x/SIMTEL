@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     }
 
     common::Location<> location(config.getLoc());
-    common::NetworkAddress addr{"0.0.0.0", config.getPort()};
+    common::NetworkAddress addr{"127.0.0.1", config.getPort()};
 
     server::App app{location, addr};
     app.run();

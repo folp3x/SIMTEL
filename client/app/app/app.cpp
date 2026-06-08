@@ -23,7 +23,7 @@ void App::sigintHandler(int signal) {
       common::Logger::instance().getInner()->flush();
     }
 
-    std::cout << "Exiting app..." << std::endl;
+    std::cout << std::endl << "Exiting app..." << std::endl;
     std::exit(signal);
   }
 }
@@ -65,6 +65,13 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
   bool newActive = cmd.getActive();
   bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
+    auto updateError = exchange.updateConnection(newActive);
+    if (updateError) {
+      messages.push({"Error updating connection: " + *updateError,
+                     common::MenuMessageType::ERR});
+      return;
+    }
+
     ctx.setInActive(newActive);
 
     if (ctx.isInActive()) {
@@ -76,8 +83,6 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
         messages.push({fetchResult.error(), common::MenuMessageType::ERR});
       }
     }
-
-    exchange.updateConnection(ctx.isInActive());
   }
 
   messages.push(formChangeMessage("State", ueActiveToStr(ctx.isInActive()),

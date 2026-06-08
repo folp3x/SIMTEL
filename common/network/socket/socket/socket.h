@@ -37,6 +37,8 @@ public:
 
   Socket(const Socket &) = delete;
   Socket &operator=(const Socket &) = delete;
+  Socket(Socket &&other);
+  Socket &operator=(Socket &&other);
 
   std::optional<std::string> sendMessage(uint8_t protocol,
                                          const binary_t &content) const;

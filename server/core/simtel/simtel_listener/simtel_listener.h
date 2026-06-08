@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 #include "server/network/socket/socket.h"
 
 namespace server {
@@ -15,13 +16,12 @@ private:
 
   std::atomic<int> activeThreads{0};
 
-  std::function<void(const std::unique_ptr<Socket> &clientSock)> handler;
+  std::function<void(std::shared_ptr<SimtelUeContext> ctx)> handler;
 
 public:
-  SimtelListener(
-      const common::NetworkAddress &addr,
-      const std::function<void(const std::unique_ptr<Socket> &clientSock)>
-          &handler_);
+  SimtelListener(const common::NetworkAddress &addr,
+                 const std::function<void(std::shared_ptr<SimtelUeContext> ctx)>
+                     &handler_);
 
   void handleClients();
 

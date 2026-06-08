@@ -19,7 +19,7 @@ void App::sigintHandler(int signal) {
       common::Logger::instance().getInner()->flush();
     }
 
-    std::cout << "Exiting app..." << std::endl;
+    std::cout << std::endl << "Exiting app..." << std::endl;
     std::exit(signal);
   }
 }
@@ -27,18 +27,19 @@ void App::sigintHandler(int signal) {
 App::App(const common::Location<> &location_,
          const common::NetworkAddress &addr)
     : location(location_),
-      listener(addr, [this](const std::unique_ptr<Socket> &clientSock) {
-        handleSingleClient(clientSock);
+      listener(addr, [this](std::shared_ptr<SimtelUeContext> ctx) {
+        handleSingleClient(ctx);
       }) {
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }
 
-void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {
+void App::handleSingleClient(std::shared_ptr<SimtelUeContext> ctx) {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Client with addr={} connected", clientSock->getAddrStr());
+                     "Client with addr={} connected",
+                     ctx->getSock()->getAddrStr());
   common::Protocol clientProtocol;
-  auto receiveResult = clientSock->receiveLocation(clientProtocol);
+  auto receiveResult = ctx->receiveLocation(clientProtocol);
   if (!receiveResult) {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Error receiving location from client: {}",
@@ -52,7 +53,7 @@ void App::handleSingleClient(const std::unique_ptr<Socket> &clientSock) {
                      clientLocation.toStr());
 
   float distance = DistanceCalculator::calc(location, clientLocation);
-  auto sendError = clientSock->sendDistance(clientProtocol, distance);
+  auto sendError = ctx->sendDistance(clientProtocol, distance);
   if (sendError) {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Error sending distance to client: {}", *sendError);
@@ -71,11 +72,11 @@ void App::run() {
 
   std::thread clientsHandler{[this]() { listener.handleClients(); }};
 
-  while (true) {
-    menu.showMenuHeaderLine();
-    menu.showStatus();
-    menu.showMenuHeaderLine();
+  menu.showMenuHeaderLine();
+  menu.showStatus();
+  menu.showMenuHeaderLine();
 
+  while (true) {
     menu.showMessages(messages);
   }
 

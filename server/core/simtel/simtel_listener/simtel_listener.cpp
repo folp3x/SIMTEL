@@ -5,8 +5,7 @@
 namespace server {
 SimtelListener::SimtelListener(
     const common::NetworkAddress &addr,
-    const std::function<void(const std::unique_ptr<Socket> &clientSock)>
-        &handler_)
+    const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler_)
     : handler(handler_) {
   auto createResult = Socket::create(addr);
   if (!createResult) {
@@ -34,12 +33,12 @@ void SimtelListener::handleClients() {
       continue;
     }
 
-    std::thread singleClientHandler{
-        [this, clientSock = std::move(*acceptResult)]() {
-          activeThreads++;
-          handler(clientSock);
-          activeThreads--;
-        }};
+    auto ctx = std::make_shared<SimtelUeContext>(std::move(*acceptResult));
+    std::thread singleClientHandler{[this, ctx]() {
+      activeThreads++;
+      handler(ctx);
+      activeThreads--;
+    }};
     singleClientHandler.detach();
   }
 }

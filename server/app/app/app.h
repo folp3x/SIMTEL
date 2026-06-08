@@ -26,7 +26,7 @@ private:
 
   void sigintHandler(int signal);
 
-  void handleSingleClient(const std::unique_ptr<Socket> &clientSock);
+  void handleSingleClient(std::shared_ptr<SimtelUeContext> ctx);
 
 public:
   App(const common::Location<> &location_, const common::NetworkAddress &addr);

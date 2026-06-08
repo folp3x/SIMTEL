@@ -41,6 +41,20 @@ sockaddr_in Socket::toSockAddr(const common::NetworkAddress &address) {
 
 Socket::Socket(int sock_) : sock(sock_) {}
 
+Socket::Socket(Socket &&other) {
+  sock = other.sock;
+  other.sock = INVALID_SOCK;
+}
+
+Socket &Socket::operator=(Socket &&other) {
+  if (&other != this) {
+    sock = other.sock;
+    other.sock = INVALID_SOCK;
+  }
+
+  return *this;
+}
+
 Socket::~Socket() { closeSock(); }
 
 std::expected<int, std::string> Socket::initSock() {

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "client/network/socket/socket.h"
+#include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
+#include "common/network/protocol/protocol.h"
 
 namespace client {
 class UeExchange {

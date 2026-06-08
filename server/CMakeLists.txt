@@ -7,6 +7,8 @@ set(SOURCES_LIST
     "core/distance_calculator/distance_calculator.cpp"
     "network/socket/socket.cpp"
     "core/simtel/simtel_listener/simtel_listener.cpp"
+    "core/simtel/simtel_ue_context/simtel_ue_context.cpp"
+    "core/simtel/simtel_base_station/simtel_base_station.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST
