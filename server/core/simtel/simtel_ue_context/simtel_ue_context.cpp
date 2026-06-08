@@ -13,13 +13,15 @@ void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
 
-Socket *SimtelUeContext::getSock() const { return sock.get(); }
-
 void SimtelUeContext::receiveLocationUpdate() {
   auto receiveResult = sock->receiveMessage();
   if (receiveResult) {
     resendToBs(*receiveResult);
   }
+}
+
+void SimtelUeContext::resendToUe(const common::binary_t &binary) const {
+  sock->sendMessage(binary);
 }
 
 void SimtelUeContext::resendToBs(const common::binary_t &binary) const {

@@ -40,8 +40,7 @@ public:
   Socket(Socket &&other);
   Socket &operator=(Socket &&other);
 
-  std::optional<std::string> sendMessage(uint8_t protocol, uint8_t type,
-                                         const binary_t &content) const;
+  std::optional<std::string> sendMessage(const binary_t &data) const;
   std::expected<binary_t, std::string> receiveMessage() const;
 };
 } // namespace common

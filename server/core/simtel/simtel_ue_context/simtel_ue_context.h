@@ -28,8 +28,6 @@ public:
 
   void setBs(SimtelBaseStation *bs_);
 
-  Socket *getSock() const;
-
   void receiveLocationUpdate();
 
   void resendToUe(const common::binary_t &binary) const;

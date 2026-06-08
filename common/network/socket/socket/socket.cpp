@@ -78,27 +78,17 @@ void Socket::closeSock() {
   sock = INVALID_SOCK;
 }
 
-std::optional<std::string> Socket::sendMessage(uint8_t protocol, uint8_t type,
-                                               const binary_t &content) const {
-  if (content.empty()) {
+std::optional<std::string> Socket::sendMessage(const binary_t &data) const {
+  if (data.empty()) {
     return "Empty message";
   }
 
-  if (content.size() > MAX_MSG_SIZE) {
+  if (data.size() > MAX_MSG_SIZE) {
     return "Too large message " +
            std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB";
   }
 
-  SocketMessageHeader header{protocol, type, htonl(content.size())};
-
-  // отправка заголовка
-  auto error = sendAll(&header, sizeof(header));
-  if (error) {
-    return error;
-  }
-
-  // отправка данных
-  error = sendAll(content.data(), content.size());
+  auto error = sendAll(data.data(), data.size());
   if (error) {
     return error;
   }

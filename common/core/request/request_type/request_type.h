@@ -5,6 +5,7 @@
 namespace common {
 enum class RequestType : uint8_t {
   Location_Update,
+  Measurement_Control,
   SM_Transfer,
   SM_Submit,
   MO_Forward_SM,

@@ -2,6 +2,7 @@
 
 #include "common/core/request/request_serializer/request_serializer.h"
 #include "common/core/request/request_type/request_type.h"
+#include "common/network/socket/socket_message/socket_message.h"
 #include "common/types.h"
 
 namespace client {
@@ -34,7 +35,17 @@ UeExchange::sendLocationUpdate(common::Protocol protocol,
   uint8_t requestTypeBinary =
       static_cast<uint8_t>(common::RequestType::Location_Update);
 
-  return sock.sendMessage(*convertResult, requestTypeBinary, *serializeResult);
+  common::SocketMessage msg{{*convertResult,
+                             static_cast<uint32_t>(serializeResult->size()),
+                             requestTypeBinary},
+                            *serializeResult};
+
+  auto msgSerializeResult = common::socketMessagetoBinary(msg);
+  if (!msgSerializeResult) {
+    return msgSerializeResult.error();
+  }
+
+  return sock.sendMessage(*msgSerializeResult);
 }
 
 void UeExchange::closeConnection() { sock.closeSock(); }
