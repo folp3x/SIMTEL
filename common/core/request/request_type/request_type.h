@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace server {
+namespace common {
 enum class RequestType : uint8_t {
   Location_Update,
   SM_Transfer,
@@ -14,4 +14,4 @@ enum class RequestType : uint8_t {
   SM_Delivery,
   SM_Delivery_Report
 };
-} // namespace server
+} // namespace common

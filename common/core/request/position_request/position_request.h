@@ -8,6 +8,7 @@
 
 namespace common {
 struct PositionRequest : Request {
-  common::Location<> loc{};
+  imei_t imei = "";
+  Location<> loc{};
 };
 } // namespace common

@@ -13,6 +13,6 @@ public:
   positionRequestToBinary(const PositionRequest &req);
 
   static std::expected<PositionRequest, std::string>
-  positionRequestFromBinary(uint8_t protocol, const binary_t &binary);
+  positionRequestFromBinary(const binary_t &binary);
 };
 } // namespace common
