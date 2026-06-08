@@ -17,5 +17,5 @@ template <typename T = float,
   requires std::is_arithmetic_v<T>
 using coords_t = std::array<T, S>;
 
-using binary_t = std::vector<uint8_t>;
+using binary_t = std::vector<std::byte>;
 } // namespace common

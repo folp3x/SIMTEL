@@ -57,7 +57,7 @@ std::string toStr(const binary_t &binary) {
     if (i > 0) {
       str += " ";
     }
-    snprintf(buf, sizeof(buf), "%02X", binary[i]);
+    snprintf(buf, sizeof(buf), "%02X", static_cast<uint8_t>(binary[i]));
 
     str += buf;
   }

@@ -2,22 +2,21 @@
 
 namespace common {
 std::expected<binary_t, std::string>
-RequestSerializer::positionRequestToBinary(const PositionRequest &req) {
-  auto convertResult = protocolToNetworkId(req.protocol);
-  if (!convertResult) {
-    throw std::invalid_argument("Unsupported protocol");
+RequestSerializer::positionRequestToBinary(Protocol protocol,
+                                           const PositionRequest &req) {
+  auto protocolConvertResult = protocolToNetworkId(protocol);
+  if (!protocolConvertResult) {
+    return std::unexpected("Unsupported protocol");
   }
-
-  uint8_t protocolId = *convertResult;
-  uint8_t requestType = static_cast<uint8_t>(req.type);
+  uint8_t protocolId = *protocolConvertResult;
 
   auto imeiSerializeResult = BinarySerializer::imeiToBinary(req.imei);
   if (!imeiSerializeResult) {
-    return std::unexpected("IMEI serialization error");
+    return std::unexpected("IMEI serialize error");
   }
 
   binary_t content;
-  switch (req.protocol) {
+  switch (protocol) {
   case Protocol::BINARY: {
     auto serializeResult = req.loc.toBinary();
     if (!serializeResult) {
@@ -28,23 +27,19 @@ RequestSerializer::positionRequestToBinary(const PositionRequest &req) {
   }
   case Protocol::JSON: {
     std::string jsonStr = req.loc.toJson().dump();
-    content = binary_t(jsonStr.begin(), jsonStr.end());
+    content = BinarySerializer::strToBinary(jsonStr);
     break;
   }
   }
 
   if (content.empty()) {
-    throw std::invalid_argument("Unsupported protocol");
+    return std::unexpected("Unsupported protocol");
   }
 
-  std::vector<uint8_t> result{};
-  size_t binarySize = sizeof(protocolId) + sizeof(requestType) +
-                      imeiSerializeResult->size() + content.size();
+  binary_t result{};
+  size_t binarySize = imeiSerializeResult->size() + content.size();
 
   result.reserve(binarySize);
-
-  result.push_back(protocolId);
-  result.push_back(requestType);
   result.insert(result.end(), imeiSerializeResult->begin(),
                 imeiSerializeResult->end());
   result.insert(result.end(), content.begin(), content.end());
@@ -53,37 +48,40 @@ RequestSerializer::positionRequestToBinary(const PositionRequest &req) {
 }
 
 std::expected<PositionRequest, std::string>
-RequestSerializer::positionRequestFromBinary(const binary_t &binary) {
-  PositionRequest req{};
-  if (binary.size() < sizeof(req.protocol) + sizeof(req.type)) {
-    return std::unexpected("Binary too short");
-  }
-
-  size_t offset = 0;
-  uint8_t protocolId = binary[offset++];
-
+RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
+                                             const binary_t &binary) {
   auto protocolSearchResult = protocolFromNetworkId(protocolId);
   if (!protocolSearchResult) {
-    throw std::invalid_argument("Unsupported protocol");
+    throw std::unexpected("Unsupported protocol");
   }
 
-  req.protocol = *protocolSearchResult;
-  uint8_t requestTypeNum = binary[offset++];
-  req.type = static_cast<RequestType>(requestTypeNum);
-
-  switch (req.protocol) {
+  PositionRequest req{};
+  switch (*protocolSearchResult) {
   case Protocol::BINARY: {
-    auto parseResult = Location<>::fromBinary(binary);
-    if (!parseResult) {
-      return std::unexpected(parseResult.error());
+    size_t offset = 0;
+    binary_t imeiBinary(binary.begin() + offset,
+                        binary.begin() + offset + constants::IMEI_BINARY_BYTES);
+
+    auto imeiParseResult = BinarySerializer::imeiFromBinary(imeiBinary);
+    if (!imeiParseResult) {
+      return std::unexpected("IMEI deserialize error");
+    }
+
+    offset += constants::IMEI_BINARY_BYTES;
+
+    auto locParseResult =
+        Location<>::fromBinary(binary_t{binary.begin() + offset, binary.end()});
+    if (!locParseResult) {
+      return std::unexpected(locParseResult.error());
     }
     return req;
   }
   case Protocol::JSON: {
-    std::string jsonStr = std::string(binary.begin(), binary.end());
+    std::string jsonStr = BinarySerializer::strFromBinary(binary);
 
+    imei_t imei;
     auto imeiInfo = std::make_unique<JsonFieldInfo<imei_t>>(
-        "imei", [&](const imei_t &imei) { req.imei = imei; },
+        "imei", [&](const imei_t &imei_) { imei = imei_; },
         nlohmann::json::value_t::string);
 
     auto imeiParseError =
@@ -92,19 +90,15 @@ RequestSerializer::positionRequestFromBinary(const binary_t &binary) {
       return std::unexpected(*imeiParseError);
     }
 
-    auto parseResult = Location<>::fromJsonStr(jsonStr);
-    if (!parseResult) {
-      return std::unexpected(parseResult.error());
+    auto locParseResult = Location<>::fromJsonStr(jsonStr);
+    if (!locParseResult) {
+      return std::unexpected(locParseResult.error());
     }
 
-    req.loc = std::move(*parseResult);
+    return PositionRequest{imei, *locParseResult};
   }
   }
 
-  if (!protocolSearchResult) {
-    throw std::invalid_argument("Unsupported protocol");
-  }
-
-  return req;
+  throw std::unexpected("Unsupported protocol");
 }
 } // namespace common

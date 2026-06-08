@@ -22,6 +22,7 @@ private:
   std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>> ueInfo =
       {};
   common::Location<> location{};
+  const float radius = 0;
 
   static std::queue<std::shared_ptr<SimtelUeContext>> connectionRequests;
 
@@ -30,5 +31,7 @@ public:
 
   common::binary_t getBuf() const;
   void setBuf(const common::binary_t &buf_);
+
+  common::Location<> getLocation() const;
 };
 } // namespace server

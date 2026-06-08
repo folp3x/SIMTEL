@@ -58,7 +58,7 @@ std::vector<std::string> split(const std::string &str) {
 
   // добавление последнего токена
   if (!curToken.empty()) {
-    tokens.push_back(curToken);   
+    tokens.push_back(curToken);
   }
 
   return tokens;

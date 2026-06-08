@@ -1,12 +1,16 @@
 #pragma once
 
-#include <vector>
-
-#include "common/types.h"
+#include "common/network/socket/socket_message_header/socket_message_header.h"
 
 namespace common {
 struct SocketMessage {
-  uint8_t protocol;
-  binary_t content;
+  SocketMessageHeader header{};
+  binary_t content{};
 };
+
+std::expected<SocketMessage, std::string>
+socketMessageFromBinary(const binary_t &binary);
+
+std::expected<binary_t, std::string>
+socketMessagetoBinary(const SocketMessage &msg);
 } // namespace common

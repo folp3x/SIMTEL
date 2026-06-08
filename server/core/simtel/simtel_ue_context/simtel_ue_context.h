@@ -20,25 +20,19 @@ private:
 
   SimtelBaseStation *bs = nullptr;
 
-  void logReceiveLocation(const std::string &dataStr) const;
-  void logSendDistance(const std::string &dataStr) const;
-
 public:
   explicit SimtelUeContext(std::unique_ptr<Socket> sock_);
 
   common::imsi_t getImsi() const;
   void setImsi(const common::imsi_t &imsi_);
 
+  void setBs(SimtelBaseStation *bs_);
+
   Socket *getSock() const;
 
-  void setProtocol(common::Protocol protocol_);
+  void receiveLocationUpdate();
 
-  std::expected<common::Location<>, std::string>
-  receiveLocation(common::Protocol &clientProtocol) const;
-  std::optional<std::string> sendDistance(common::Protocol protocol,
-                                          float distance) const;
-
-  void resendToUe() const;
-  void resendToBs() const;
+  void resendToUe(const common::binary_t &binary) const;
+  void resendToBs(const common::binary_t &binary) const;
 };
 } // namespace server

@@ -24,44 +24,12 @@ void App::sigintHandler(int signal) {
   }
 }
 
-App::App(const common::Location<> &location_,
-         const common::NetworkAddress &addr)
-    : location(location_),
-      listener(addr, [this](std::shared_ptr<SimtelUeContext> ctx) {
-        handleSingleClient(ctx);
+App::App(const common::NetworkAddress &addr)
+    : listener(addr, [this](std::shared_ptr<SimtelUeContext> ctx) {
+        SimtelBaseStation::handleConnectionRequest(ctx);
       }) {
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
-}
-
-void App::handleSingleClient(std::shared_ptr<SimtelUeContext> ctx) {
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Client with addr={} connected",
-                     ctx->getSock()->getAddrStr());
-  common::Protocol clientProtocol;
-  auto receiveResult = ctx->receiveLocation(clientProtocol);
-  if (!receiveResult) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Error receiving location from client: {}",
-                       receiveResult.error());
-    return;
-  }
-
-  common::Location clientLocation = *receiveResult;
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Location received from client: {}",
-                     clientLocation.toStr());
-
-  float distance = DistanceCalculator::calc(location, clientLocation);
-  auto sendError = ctx->sendDistance(clientProtocol, distance);
-  if (sendError) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Error sending distance to client: {}", *sendError);
-    return;
-  }
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Distance sent to client: {}", common::toStr(distance));
 }
 
 void App::run() {

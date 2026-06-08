@@ -23,6 +23,9 @@ public:
   template <std::ranges::contiguous_range Container>
   static bool fromBinary(const binary_t &binary, Container &data);
 
+  static binary_t strToBinary(const std::string &binary);
+  static std::string strFromBinary(const binary_t &binary);
+
   static std::optional<binary_t> imeiToBinary(const imei_t &imei);
 
   static std::optional<imei_t> imeiFromBinary(const binary_t &binary);

@@ -38,7 +38,8 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
 }
 
 std::expected<float, std::string> App::fetchDistance() {
-  auto sendError = exchange.sendLocation(ctx.getProtocol(), ctx.getLocation());
+  auto sendError = exchange.sendLocationUpdate(ctx.getProtocol(), ctx.getImsi(),
+                                               ctx.getLocation());
   if (sendError) {
     return std::unexpected("Error sending location to server: " + *sendError);
   }
@@ -46,17 +47,7 @@ std::expected<float, std::string> App::fetchDistance() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                      "Location sent to server: {}", ctx.getLocation().toStr());
 
-  auto receiveResult = exchange.receiveDistance(ctx.getProtocol());
-  if (!receiveResult) {
-    return std::unexpected("Error receiving distance from server: " +
-                           receiveResult.error());
-  }
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Distance received from server: {}",
-                     common::toStr(*receiveResult));
-
-  return *receiveResult;
+  return 0;
 }
 
 void App::handleActiveCommand(const MenuItemActive &cmd) {

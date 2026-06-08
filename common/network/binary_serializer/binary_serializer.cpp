@@ -4,6 +4,24 @@
 #include "common/validator/validator.h"
 
 namespace common {
+binary_t BinarySerializer::strToBinary(const std::string &binary) {
+  binary_t result;
+  result.reserve(binary.size());
+  for (char c : binary) {
+    result.push_back(static_cast<std::byte>(c));
+  }
+  return result;
+}
+
+std::string BinarySerializer::strFromBinary(const binary_t &binary) {
+  std::string result;
+  result.reserve(binary.size());
+  for (std::byte b : binary) {
+    result.push_back(static_cast<char>(b));
+  }
+  return result;
+}
+
 std::optional<binary_t> BinarySerializer::imeiToBinary(const imei_t &imei) {
   auto toNumConvertResult = fromString<uint64_t>(imei);
   if (!toNumConvertResult) {

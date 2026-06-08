@@ -78,7 +78,7 @@ void Socket::closeSock() {
   sock = INVALID_SOCK;
 }
 
-std::optional<std::string> Socket::sendMessage(uint8_t protocol,
+std::optional<std::string> Socket::sendMessage(uint8_t protocol, uint8_t type,
                                                const binary_t &content) const {
   if (content.empty()) {
     return "Empty message";
@@ -89,7 +89,7 @@ std::optional<std::string> Socket::sendMessage(uint8_t protocol,
            std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB";
   }
 
-  SocketMessageHeader header{protocol, htonl(content.size())};
+  SocketMessageHeader header{protocol, type, htonl(content.size())};
 
   // отправка заголовка
   auto error = sendAll(&header, sizeof(header));
@@ -106,12 +106,13 @@ std::optional<std::string> Socket::sendMessage(uint8_t protocol,
   return std::nullopt;
 }
 
-std::expected<SocketMessage, std::string> Socket::receiveMessage() const {
-  SocketMessageHeader header;
+std::expected<binary_t, std::string> Socket::receiveMessage() const {
+  binary_t header;
+  header.resize(constants::SOCKET_MESSAGE_HEADER_BYTES);
 
   // чтение заголовка
   ssize_t received =
-      recv(sock, &header, sizeof(header), MSG_WAITALL | MSG_NOSIGNAL);
+      recv(sock, header.data(), header.size(), MSG_WAITALL | MSG_NOSIGNAL);
   if (received < 0)
     return std::unexpected(getLastError());
   if (received == 0)
@@ -119,19 +120,24 @@ std::expected<SocketMessage, std::string> Socket::receiveMessage() const {
   if (received != sizeof(header))
     return std::unexpected("Incomplete header");
 
-  uint32_t msgSize = ntohl(header.msgSize);
+  uint32_t msgSize = ntohl(static_cast<uint8_t>(header[0]));
   if (msgSize > MAX_MSG_SIZE) {
     return std::unexpected("Too large message");
   }
 
   // чтение данных
-  binary_t data(msgSize);
-  received = recv(sock, data.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
+  binary_t content(msgSize);
+  received = recv(sock, content.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
   if (received < 0)
     return std::unexpected(getLastError());
   if (received != msgSize)
-    return std::unexpected("Incomplete data");
+    return std::unexpected("Incomplete content");
 
-  return SocketMessage{header.protocol, std::move(data)};
+  binary_t result;
+  result.reserve(header.size() + content.size());
+  result.insert(result.end(), header.begin(), header.end());
+  result.insert(result.end(), content.begin(), content.end());
+
+  return result;
 }
 } // namespace common

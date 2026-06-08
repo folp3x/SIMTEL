@@ -10,9 +10,9 @@ namespace common {
 class RequestSerializer {
 public:
   static std::expected<binary_t, std::string>
-  positionRequestToBinary(const PositionRequest &req);
+  positionRequestToBinary(Protocol protocol, const PositionRequest &req);
 
   static std::expected<PositionRequest, std::string>
-  positionRequestFromBinary(const binary_t &binary);
+  positionRequestFromBinary(uint8_t protocolId, const binary_t &binary);
 };
 } // namespace common

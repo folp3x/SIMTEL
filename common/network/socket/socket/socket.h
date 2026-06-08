@@ -7,7 +7,7 @@
 
 #include "common/constants.h"
 #include "common/network/network_address/network_address.h"
-#include "common/network/socket/socket_message/socket_message.h"
+#include "common/types.h"
 
 namespace common {
 class Socket {
@@ -40,8 +40,8 @@ public:
   Socket(Socket &&other);
   Socket &operator=(Socket &&other);
 
-  std::optional<std::string> sendMessage(uint8_t protocol,
+  std::optional<std::string> sendMessage(uint8_t protocol, uint8_t type,
                                          const binary_t &content) const;
-  std::expected<SocketMessage, std::string> receiveMessage() const;
+  std::expected<binary_t, std::string> receiveMessage() const;
 };
 } // namespace common
