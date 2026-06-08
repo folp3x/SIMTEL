@@ -1,7 +1,14 @@
 #include "simtel_base_station.h"
 
-namespace server {
-void SimtelBaseStation::put(const common::binary_t &data) { buf = data; }
+#include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
-common::binary_t SimtelBaseStation::get() const { return buf; }
+namespace server {
+std::queue<std::shared_ptr<SimtelUeContext>>
+    SimtelBaseStation::connectionRequests = {};
+
+std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
+    SimtelBaseStation::baseStations = {};
+
+void SimtelBaseStation::handleConnectionRequest(
+    std::shared_ptr<SimtelUeContext> ctx) {}
 } // namespace server

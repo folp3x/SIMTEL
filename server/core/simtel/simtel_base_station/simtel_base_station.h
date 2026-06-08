@@ -1,14 +1,31 @@
 #pragma once
 
+#include <array>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <unordered_map>
+
+#include "common/core/location/location/location.h"
 #include "common/types.h"
 
 namespace server {
+class SimtelUeContext;
+
 class SimtelBaseStation {
 private:
+  static constexpr size_t NODES_COUNT = 2;
+  static std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
+      baseStations;
+
   common::binary_t buf = {};
+  std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>> ueInfo =
+      {};
+  common::Location<> location{};
+
+  static std::queue<std::shared_ptr<SimtelUeContext>> connectionRequests;
 
 public:
-  void put(const common::binary_t &data);
-  common::binary_t get() const;
+  static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

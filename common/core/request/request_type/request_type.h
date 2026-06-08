@@ -4,6 +4,7 @@
 
 namespace server {
 enum class RequestType : uint8_t {
+  RRC_Connection,
   SM_Transfer,
   SM_Submit,
   MO_Forward_SM,

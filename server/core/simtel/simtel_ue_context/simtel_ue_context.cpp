@@ -2,6 +2,7 @@
 
 #include "common/network/serializer/serializer.h"
 #include "common/utils/network/network.h"
+#include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {
 void SimtelUeContext::logReceiveLocation(const std::string &dataStr) const {

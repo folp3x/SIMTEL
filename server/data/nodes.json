@@ -1,7 +1,17 @@
 [
     {
         "ecgi": "000000000000001",
-        "loc": [1],
+        "loc": [-100],
+        "mmeId": "1",
+        "networkGeneration": "LTE",
+        "eirp_DbmW": 46.0,
+        "beamWidth_deg": 65.0,
+        "maxConnections": 10,
+        "connectionBuf_bytes": 512
+    },
+    {
+        "ecgi": "000000000000002",
+        "loc": [100],
         "mmeId": "1",
         "networkGeneration": "LTE",
         "eirp_DbmW": 46.0,
