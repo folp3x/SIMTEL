@@ -10,5 +10,13 @@ std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
 
 void SimtelBaseStation::handleConnectionRequest(
-    std::shared_ptr<SimtelUeContext> ctx) {}
+    std::shared_ptr<SimtelUeContext> ctx) {
+
+    for (const auto &[id, bs] : baseStations) {
+  }
+}
+
+common::binary_t SimtelBaseStation::getBuf() const { return buf; }
+
+void SimtelBaseStation::setBuf(const common::binary_t &buf_) { buf = buf_; }
 } // namespace server

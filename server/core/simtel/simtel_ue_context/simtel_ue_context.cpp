@@ -1,6 +1,6 @@
 #include "simtel_ue_context.h"
 
-#include "common/network/serializer/serializer.h"
+#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/utils/network/network.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
@@ -21,6 +21,10 @@ SimtelUeContext::SimtelUeContext(std::unique_ptr<Socket> sock_)
 void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
 Socket *SimtelUeContext::getSock() const { return sock.get(); }
+
+void SimtelUeContext::setProtocol(common::Protocol protocol_) {
+  protocol = protocol_;
+}
 
 std::expected<common::Location<>, std::string>
 SimtelUeContext::receiveLocation(common::Protocol &clientProtocol) const {
@@ -68,7 +72,7 @@ SimtelUeContext::sendDistance(common::Protocol protocol, float distance) const {
 
   switch (protocol) {
   case common::Protocol::BINARY: {
-    auto serializeResult = common::Serializer::toBinary<float>(distance);
+    auto serializeResult = common::BinarySerializer::toBinary<float>(distance);
     if (!serializeResult) {
       return "Failed to serializeq distance";
     }

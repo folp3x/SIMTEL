@@ -16,7 +16,9 @@ private:
 
   std::unique_ptr<Socket> sock;
 
-  SimtelBaseStation *bs;
+  common::Protocol protocol = common::Protocol::JSON;
+
+  SimtelBaseStation *bs = nullptr;
 
   void logReceiveLocation(const std::string &dataStr) const;
   void logSendDistance(const std::string &dataStr) const;
@@ -29,9 +31,14 @@ public:
 
   Socket *getSock() const;
 
+  void setProtocol(common::Protocol protocol_);
+
   std::expected<common::Location<>, std::string>
   receiveLocation(common::Protocol &clientProtocol) const;
   std::optional<std::string> sendDistance(common::Protocol protocol,
                                           float distance) const;
+
+  void resendToUe() const;
+  void resendToBs() const;
 };
 } // namespace server

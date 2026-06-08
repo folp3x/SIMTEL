@@ -27,5 +27,8 @@ private:
 
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
+
+  common::binary_t getBuf() const;
+  void setBuf(const common::binary_t &buf_);
 };
 } // namespace server

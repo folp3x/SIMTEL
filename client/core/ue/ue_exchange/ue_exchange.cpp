@@ -1,7 +1,7 @@
 #include "ue_exchange.h"
 
 #include "common/json/json_parser/json_parser.h"
-#include "common/network/serializer/serializer.h"
+#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/types.h"
 #include "common/utils/network/network.h"
 
@@ -81,7 +81,7 @@ UeExchange::receiveDistance(common::Protocol protocol) const {
   case common::Protocol::BINARY: {
     logReceiveDistance(common::toStr(receiveResult->content));
     auto deserializeResult =
-        common::Serializer::fromBinary<float>(receiveResult->content);
+        common::BinarySerializer::fromBinary<float>(receiveResult->content);
 
     if (!deserializeResult) {
       return std::unexpected("Failed to deserialize distance");

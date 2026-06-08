@@ -15,6 +15,7 @@ set(SOURCES_LIST
 	"network/socket/socket/socket.cpp"
 	"app/menu/menu/menu.cpp"
 	"app/signals/signal_handler/signal_handler.cpp"
+	"core/request/request_serializer/request_serializer.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

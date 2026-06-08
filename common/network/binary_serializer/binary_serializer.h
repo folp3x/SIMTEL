@@ -6,7 +6,7 @@
 #include "common/types.h"
 
 namespace common {
-class Serializer {
+class BinarySerializer {
 public:
   template <typename T>
     requires std::is_arithmetic_v<T>
@@ -25,4 +25,4 @@ public:
 };
 } // namespace common
 
-#include "serializer_impl.h"
+#include "binary_serializer_impl.h"

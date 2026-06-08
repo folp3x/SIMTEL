@@ -5,7 +5,7 @@
 namespace common {
 template <typename T>
   requires std::is_arithmetic_v<T>
-std::optional<binary_t> Serializer::toBinary(T data) {
+std::optional<binary_t> BinarySerializer::toBinary(T data) {
   binary_t binary;
   auto out = zpp::bits::out(binary, zpp::bits::options::endian::big{});
 
@@ -18,7 +18,7 @@ std::optional<binary_t> Serializer::toBinary(T data) {
 
 template <typename T>
   requires std::is_arithmetic_v<T>
-std::optional<T> Serializer::fromBinary(const binary_t &binary) {
+std::optional<T> BinarySerializer::fromBinary(const binary_t &binary) {
   T data;
   auto in = zpp::bits::in(std::span(binary), zpp::bits::options::endian::big{});
 
@@ -30,7 +30,7 @@ std::optional<T> Serializer::fromBinary(const binary_t &binary) {
 }
 
 template <std::ranges::contiguous_range Container>
-std::optional<binary_t> Serializer::toBinary(const Container &data) {
+std::optional<binary_t> BinarySerializer::toBinary(const Container &data) {
   binary_t binary;
   auto out = zpp::bits::out(binary, zpp::bits::options::endian::big{});
 
@@ -42,7 +42,7 @@ std::optional<binary_t> Serializer::toBinary(const Container &data) {
 }
 
 template <std::ranges::contiguous_range Container>
-bool Serializer::fromBinary(const binary_t &binary, Container &data) {
+bool BinarySerializer::fromBinary(const binary_t &binary, Container &data) {
   if (std::ranges::empty(data)) {
     throw std::invalid_argument("data cant be empty and must have size equal "
                                 "to expected elements count");

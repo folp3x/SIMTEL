@@ -5,7 +5,7 @@
 
 #include "common/json/json_parser/json_parser.h"
 #include "common/logging/logger/logger.h"
-#include "common/network/serializer/serializer.h"
+#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/utils/str/str.h"
 
 namespace common {
@@ -116,7 +116,7 @@ Location<T, S>::fromJsonStr(const std::string &str) {
 
 template <typename T, size_t S>
 std::expected<binary_t, std::string> Location<T, S>::toBinary() const {
-  auto serializeResult = Serializer::toBinary<decltype(coords)>(coords);
+  auto serializeResult = BinarySerializer::toBinary<decltype(coords)>(coords);
   if (!serializeResult) {
     return std::unexpected("Failed to serialize location");
   }
@@ -128,7 +128,8 @@ std::expected<Location<T, S>, std::string>
 Location<T, S>::fromBinary(const binary_t &binary) {
   coords_t coords{};
 
-  bool deserialized = Serializer::fromBinary<decltype(coords)>(binary, coords);
+  bool deserialized =
+      BinarySerializer::fromBinary<decltype(coords)>(binary, coords);
   if (!deserialized) {
     return std::unexpected("Failed to serialize location");
   }
