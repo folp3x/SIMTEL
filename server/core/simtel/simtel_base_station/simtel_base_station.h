@@ -22,7 +22,7 @@ private:
   common::Location<> location{};
   const float radius = 0;
 
-  static std::queue<std::shared_ptr<SimtelUeContext>> connectionRequests;
+  static std::queue<common::RequestInfo> requests{};
 
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
