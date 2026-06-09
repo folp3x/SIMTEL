@@ -27,9 +27,6 @@ void SimtelListener::handleClients() {
     }
 
     if (activeThreads >= MAX_CLIENT_THREADS) {
-      SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
-                         "Too many clients. {} rejected",
-                         (*acceptResult)->getAddrStr());
       continue;
     }
 

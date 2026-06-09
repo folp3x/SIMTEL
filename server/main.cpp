@@ -5,13 +5,6 @@
 
 int main(int argc, char *argv[]) {
   try {
-    try {
-      common::Logger::init("Server logger", "./logs", "server",
-                           spdlog::level::debug);
-    } catch (const spdlog::spdlog_ex &e) {
-      std::cerr << "Logger initialization error" << e.what() << std::endl;
-    }
-
     auto cliParser = server::CLIParser::create("server");
 
     std::string msg = "";

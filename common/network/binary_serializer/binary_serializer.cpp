@@ -27,7 +27,6 @@ std::optional<binary_t> BinarySerializer::imeiToBinary(const imei_t &imei) {
   if (!toNumConvertResult) {
     return std::nullopt;
   }
-
   return toBinary<>(*toNumConvertResult);
 }
 
@@ -38,7 +37,7 @@ std::optional<imei_t> BinarySerializer::imeiFromBinary(const binary_t &binary) {
   }
 
   imei_t imei = std::to_string(*serializeResult);
-  size_t lenDiff = constants::IMEI_DEFAULT_LEGNTH - imei.length();
+  size_t lenDiff = IMEI_DEFAULT_LEGNTH - imei.length();
   if (lenDiff > 0) {
     imei = std::string(lenDiff, '0') + imei;
   }

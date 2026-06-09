@@ -8,6 +8,9 @@
 
 namespace common {
 class RequestSerializer {
+private:
+  static constexpr size_t IMEI_BINARY_BYTES = 8;
+
 public:
   static std::expected<binary_t, std::string>
   positionRequestToBinary(Protocol protocol, const PositionRequest &req);

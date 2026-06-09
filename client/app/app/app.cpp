@@ -44,9 +44,6 @@ std::expected<float, std::string> App::fetchDistance() {
     return std::unexpected("Error sending location to server: " + *sendError);
   }
 
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Location sent to server: {}", ctx.getLocation().toStr());
-
   return 0;
 }
 
@@ -205,9 +202,6 @@ void App::updateDistance(int updateFreqSec) {
         ctx.setDistance(*fetchResult);
         continue;
       }
-
-      SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
-                         "Error updating distance: {}", fetchResult.error());
     }
     std::this_thread::sleep_for(std::chrono::seconds(updateFreqSec));
   }

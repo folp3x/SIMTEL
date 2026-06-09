@@ -59,14 +59,13 @@ RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
   case Protocol::BINARY: {
     size_t offset = 0;
     binary_t imeiBinary(binary.begin() + offset,
-                        binary.begin() + offset + constants::IMEI_BINARY_BYTES);
+                        binary.begin() + offset + IMEI_BINARY_BYTES);
 
     auto imeiParseResult = BinarySerializer::imeiFromBinary(imeiBinary);
     if (!imeiParseResult) {
       return std::unexpected("IMEI deserialize error");
     }
-
-    offset += constants::IMEI_BINARY_BYTES;
+    offset += IMEI_BINARY_BYTES;
 
     auto locParseResult =
         Location<>::fromBinary(binary_t{binary.begin() + offset, binary.end()});
