@@ -23,20 +23,20 @@ std::string BinarySerializer::strFromBinary(const binary_t &binary) {
 }
 
 std::optional<binary_t> BinarySerializer::imeiToBinary(const imei_t &imei) {
-  auto toNumConvertResult = fromString<uint64_t>(imei);
-  if (!toNumConvertResult) {
+  auto imeiNum = fromString<uint64_t>(imei);
+  if (!imeiNum) {
     return std::nullopt;
   }
-  return toBinary<>(*toNumConvertResult);
+  return toBinary<>(*imeiNum);
 }
 
 std::optional<imei_t> BinarySerializer::imeiFromBinary(const binary_t &binary) {
-  auto serializeResult = fromBinary<uint64_t>(binary);
-  if (!serializeResult) {
+  auto deserialized = fromBinary<uint64_t>(binary);
+  if (!deserialized) {
     return std::nullopt;
   }
 
-  imei_t imei = std::to_string(*serializeResult);
+  imei_t imei = std::to_string(*deserialized);
   size_t lenDiff = IMEI_DEFAULT_LEGNTH - imei.length();
   if (lenDiff > 0) {
     imei = std::string(lenDiff, '0') + imei;

@@ -22,12 +22,12 @@ CommandParser::parseMoveArgs(const std::vector<std::string> &args,
       break;
     }
 
-    auto coordsParseResult = common::fromString<T>(args[i]);
-    if (coordsParseResult) {
-      coords.push_back(*coordsParseResult);
+    auto coord = common::fromString<T>(args[i]);
+    if (coord) {
+      coords.push_back(*coord);
     } else {
       return std::make_unique<common::MenuItemInvalid>(
-          "Argument parse error: " + coordsParseResult.error());
+          "Argument parse error: " + coord.error());
     }
   }
 

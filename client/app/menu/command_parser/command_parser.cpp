@@ -24,12 +24,12 @@ CommandParser::parseActiveArgs(const std::vector<std::string> &args,
 
   std::string isActiveStr = args[0];
 
-  auto parseResult = common::parseBool(isActiveStr);
-  if (parseResult) {
+  auto isActive = common::parseBool(isActiveStr);
+  if (isActive) {
     if (args.size() > MenuItemActive::getArgsCount()) {
       extraMsg = "Extra arguments ignored";
     }
-    return std::make_unique<MenuItemActive>(*parseResult);
+    return std::make_unique<MenuItemActive>(*isActive);
   }
 
   return std::make_unique<common::MenuItemInvalid>("Invalid argument");
@@ -44,12 +44,10 @@ CommandParser::parseProtocolArgs(const std::vector<std::string> &args,
 
   std::string value = args[0];
 
-  auto nameFindResult = common::protocolNameFromAlias(value);
-  std::string name;
-  if (nameFindResult) {
-    name = *nameFindResult;
-  } else {
-    name = value;
+  auto foundName = common::protocolNameFromAlias(value);
+  std::string name = value;
+  if (foundName) {
+    name = std::move(*foundName);
   }
 
   if (common::isCorrectProtocolStr(name)) {

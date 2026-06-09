@@ -85,7 +85,9 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   try {
     if (locationChanged) {
       ctx.updateLocation(coords);
-      handleLocationUpdate();
+      if (ctx.isInActive()) {
+        handleLocationUpdate();
+      }
     }
 
     messages.push(formChangeMessage("Location", ctx.getLocation().toStr(),
@@ -99,9 +101,9 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
   logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
-  auto protocolParseResult = common::protocolFromStr(protocolStr);
-  if (protocolParseResult) {
-    common::Protocol newProtocol = *protocolParseResult;
+  auto parsedProtocol = common::protocolFromStr(protocolStr);
+  if (parsedProtocol) {
+    common::Protocol newProtocol = std::move(*parsedProtocol);
 
     bool protocolChanged = newProtocol != ctx.getProtocol();
     if (protocolChanged) {
@@ -119,11 +121,11 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
 void App::handleSmsCommand(const MenuItemSMS &cmd) {
   common::msisdn_t targetMsisdn = "";
   if (cmd.getSpeedDialNum() != constants::EMPTY_SPEED_DIAL_NUM) {
-    auto findResult = findBySpeedDialNum(cmd.getSpeedDialNum());
-    if (!findResult) {
+    auto foundMsisdn = findBySpeedDialNum(cmd.getSpeedDialNum());
+    if (!foundMsisdn) {
       messages.push({"Unknown speed dial num"});
     } else {
-      targetMsisdn = std::move(*findResult);
+      targetMsisdn = std::move(*foundMsisdn);
     }
   }
 

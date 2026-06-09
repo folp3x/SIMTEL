@@ -8,6 +8,7 @@
 #include "client/network/socket/socket.h"
 #include "common/core/location/location/location.h"
 #include "common/core/request/position_request/position_request.h"
+#include "common/core/request/signal_request/signal_request.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
 
@@ -24,6 +25,7 @@ private:
     CallbackType callback{};
   };
 
+  mutable std::mutex signalLevelMtx;
   unsigned int signalLevel = 0;
 
   Socket sock{};
@@ -37,6 +39,8 @@ private:
   std::optional<std::string>
   sendLocationUpdate(common::Protocol protocol,
                      const common::PositionRequest &req) const;
+
+  std::expected<common::SignalRequest, std::string> receiveSignalLevel() const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);
@@ -52,6 +56,5 @@ public:
   void closeConnection();
 
   unsigned int getSignalLevel() const;
-  void setSignalLevel(unsigned int signalLevel_);
 };
 } // namespace client

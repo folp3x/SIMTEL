@@ -26,7 +26,7 @@ public:
 
   void setBs(SimtelBaseStation *bs_);
 
-  void receiveLocationUpdate();
+  void translateMessage();
 
   void resendToUe(const common::binary_t &binary) const;
   void resendToBs(const common::binary_t &binary) const;

@@ -2,7 +2,9 @@
 
 #include <optional>
 
+#include "common/core/request/bs_request/bs_request.h"
 #include "common/core/request/position_request/position_request.h"
+#include "common/core/request/signal_request/signal_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
 
@@ -17,5 +19,17 @@ public:
 
   static std::expected<PositionRequest, std::string>
   positionRequestFromBinary(uint8_t protocolId, const binary_t &binary);
+
+  static std::expected<binary_t, std::string>
+  signalRequestToBinary(Protocol protocol, const SignalRequest &req);
+
+  static std::expected<SignalRequest, std::string>
+  signalRequestFromBinary(uint8_t protocolId, const binary_t &binary);
+
+  static std::expected<binary_t, std::string>
+  bsRequestToBinary(Protocol protocol, const BsRequest &req);
+
+  static std::expected<BsRequest, std::string>
+  bsRequestFromBinary(uint8_t protocolId, const binary_t &binary);
 };
 } // namespace common

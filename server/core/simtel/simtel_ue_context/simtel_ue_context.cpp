@@ -15,10 +15,10 @@ void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
 
-void SimtelUeContext::receiveLocationUpdate() {
-  auto receiveResult = sock->receiveMessage();
-  if (receiveResult) {
-    resendToBs(*receiveResult);
+void SimtelUeContext::translateMessage() {
+  auto binary = sock->receiveMessage();
+  if (binary) {
+    resendToBs(*binary);
   }
 }
 

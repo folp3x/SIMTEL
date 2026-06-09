@@ -23,10 +23,16 @@ private:
       {};
   common::Location<> location{};
   const float radius = 0;
+  const unsigned int id = 0;
 
   std::queue<common::Request> requests{};
 
   unsigned int measureSignal(const common::Location<> &targetLoc) const;
+
+  std::optional<std::string>
+  sendSignalLevel(common::Protocol clientProtocol, const common::imei_t &imei,
+                  unsigned int signalLevel,
+                  std::shared_ptr<SimtelUeContext> ctx);
 
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);

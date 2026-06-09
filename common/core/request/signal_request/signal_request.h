@@ -1,11 +1,15 @@
 #pragma once
 
 #include "common/core/request/request/request.h"
+#include "common/types.h"
 
 namespace common {
-struct PositionRequest : Request {
+struct SignalRequest : Request {
+  imei_t imei = "";
   unsigned int signal = 0;
+  unsigned int bsId = 0;
 
-  PositionRequest(unsigned int signal_) : signal(signal_) {}
+  SignalRequest(const imei_t &imei_, unsigned int signal_, unsigned int bsId_)
+      : imei(imei_), signal(signal_), bsId(bsId_) {}
 };
 } // namespace common

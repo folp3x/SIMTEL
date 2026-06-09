@@ -34,21 +34,21 @@ int main(int argc, char *argv[]) {
     }
 
     client::Config config{};
-    if (auto configFilePathParseResult = cliParser->getParsedConfigFilePath()) {
+    auto configFilePath = cliParser->getParsedConfigFilePath();
+    if (configFilePath) {
       // парсинг данных из конфигурационного файла
-      std::string configFilePath = *configFilePathParseResult;
       auto configParser = client::ConfigParser::create();
-      auto configParseResult = configParser->parse(configFilePath);
-      if (!configParseResult) {
-        std::cout << "Error parsing config file: " << configParseResult.error()
+      auto parsedConfig = configParser->parse(*configFilePath);
+      if (!parsedConfig) {
+        std::cout << "Error parsing config file: " << parsedConfig.error()
                   << std::endl;
         SPDLOG_LOGGER_CRITICAL(common::Logger::instance().getInner(),
                                "Config file parse error: {}",
-                               configParseResult.error());
+                               parsedConfig.error());
         return 1;
       }
 
-      config = *configParseResult;
+      config = std::move(*parsedConfig);
     } else if (!cliParser->allConfigOptsSet()) {
       std::cout
           << "If --config is not specified all config options are required"
@@ -68,16 +68,13 @@ int main(int argc, char *argv[]) {
     }
 
     auto addressBookParser = client::AddressBookParser::create();
-    auto addressBookParseResult =
+    auto addressBook =
         addressBookParser->parse(config.getAddressBookFilePath());
 
-    std::map<char, common::msisdn_t> addressBook{};
-
-    if (addressBookParseResult) {
-      addressBook = std::move(*addressBookParseResult);
+    if (addressBook) {
     } else {
-      std::cout << "Error loading address book: "
-                << addressBookParseResult.error() << std::endl;
+      std::cout << "Error loading address book: " << addressBook.error()
+                << std::endl;
     }
 
     common::Location<> location(config.getLoc());
@@ -86,7 +83,7 @@ int main(int argc, char *argv[]) {
     client::UeContext ctx{location, config.getImsi(), config.getImei(),
                           serverAddr};
 
-    client::App app{ctx, addressBook};
+    client::App app{ctx, *addressBook};
     app.run();
 
     return 0;

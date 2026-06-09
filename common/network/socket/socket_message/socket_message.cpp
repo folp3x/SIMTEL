@@ -5,11 +5,11 @@ std::expected<SocketMessage, std::string>
 socketMessageFromBinary(const binary_t &binary) {
   SocketMessage message;
 
-  auto headerResult = socketMessageHeaderFromBinary(binary);
-  if (!headerResult) {
-    return std::unexpected(headerResult.error());
+  auto parsedHeader = socketMessageHeaderFromBinary(binary);
+  if (!parsedHeader) {
+    return std::unexpected(parsedHeader.error());
   }
-  message.header = *headerResult;
+  message.header = *parsedHeader;
 
   if (binary.size() <
       constants::SOCKET_MESSAGE_HEADER_BYTES + message.header.msgSize) {
@@ -26,12 +26,12 @@ socketMessageFromBinary(const binary_t &binary) {
 
 std::expected<binary_t, std::string>
 socketMessagetoBinary(const SocketMessage &msg) {
-  auto headerResult = socketMessageHeaderToBinary(msg.header);
-  if (!headerResult) {
-    return std::unexpected(headerResult.error());
+  auto parsedHeader = socketMessageHeaderToBinary(msg.header);
+  if (parsedHeader) {
+    return std::unexpected(parsedHeader.error());
   }
+  binary_t result = std::move(*parsedHeader);
 
-  binary_t result = std::move(*headerResult);
   result.insert(result.end(), msg.content.begin(), msg.content.end());
   return result;
 }

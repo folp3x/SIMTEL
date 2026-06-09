@@ -29,18 +29,17 @@ int main(int argc, char *argv[]) {
     }
 
     server::Config config{};
-    if (auto configFilePathParseResult = cliParser->getParsedConfigFilePath()) {
+    auto configFilePath = cliParser->getParsedConfigFilePath();
+    if (configFilePath) {
       // парсинг данных из конфигурационного файла
-      std::string configFilePath = *configFilePathParseResult;
       auto configParser = server::ConfigParser::create();
-      auto configParseResult = configParser->parse(configFilePath);
-      if (!configParseResult) {
-        std::cout << "Error parsing config file: " << configParseResult.error()
+      auto parsedConfig = configParser->parse(*configFilePath);
+      if (!parsedConfig) {
+        std::cout << "Error parsing config file: " << parsedConfig.error()
                   << std::endl;
         return 1;
       }
-
-      config = *configParseResult;
+      config = std::move(*parsedConfig);
     } else if (!cliParser->allConfigOptsSet()) {
       std::cout
           << "If --config is not specified all config options are required"
