@@ -2,6 +2,7 @@
 
 #include <system_error>
 #include <unistd.h>
+#include <zpp_bits.h>
 
 #include "common/network/socket/socket_message_header/socket_message_header.h"
 
@@ -107,13 +108,15 @@ std::expected<binary_t, std::string> Socket::receiveMessage() const {
     return std::unexpected(getLastError());
   if (received == 0)
     return std::unexpected("Connection closed");
-  if (received != sizeof(header))
+  if (received != header.size())
     return std::unexpected("Incomplete header");
 
-  uint32_t msgSize = ntohl(static_cast<uint8_t>(header[0]));
-  if (msgSize > MAX_MSG_SIZE) {
-    return std::unexpected("Too large message");
+  auto in = zpp::bits::in(header);
+  uint32_t msgSize = 0;
+  if (in(msgSize) != zpp::bits::errc{}) {
+    return std::unexpected("Failed to read size");
   }
+  msgSize = ntohl(msgSize);
 
   // чтение данных
   binary_t content(msgSize);

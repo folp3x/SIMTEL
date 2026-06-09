@@ -10,7 +10,7 @@ socketMessageHeaderFromBinary(const binary_t &binary) {
 
   zpp::bits::in in(binary);
 
-  if (in(header.protocol, header.msgSize, header.msgType) !=
+  if (in(header.msgSize, header.protocol, header.msgType) !=
       zpp::bits::errc{}) {
     return std::unexpected("Failed to deserialize header");
   }
@@ -25,7 +25,7 @@ socketMessageHeaderToBinary(const SocketMessageHeader &header) {
 
   uint32_t msgSize = htonl(header.msgSize);
 
-  if (out(header.protocol, msgSize, header.msgType) != zpp::bits::errc{}) {
+  if (out(msgSize, header.protocol, header.msgType) != zpp::bits::errc{}) {
     return std::unexpected("Failed to serialize header");
   }
 

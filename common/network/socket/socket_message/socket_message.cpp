@@ -11,13 +11,15 @@ socketMessageFromBinary(const binary_t &binary) {
   }
   message.header = *headerResult;
 
-  if (binary.size() < sizeof(SocketMessageHeader) + message.header.msgSize) {
+  if (binary.size() <
+      constants::SOCKET_MESSAGE_HEADER_BYTES + message.header.msgSize) {
     return std::unexpected("Failed to deserialize content");
   }
 
-  message.content.assign(binary.begin() + sizeof(SocketMessageHeader),
-                         binary.begin() + sizeof(SocketMessageHeader) +
-                             message.header.msgSize);
+  message.content.assign(
+      binary.begin() + constants::SOCKET_MESSAGE_HEADER_BYTES,
+      binary.begin() + constants::SOCKET_MESSAGE_HEADER_BYTES +
+          message.header.msgSize);
 
   return message;
 }

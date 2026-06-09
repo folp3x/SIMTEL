@@ -5,6 +5,9 @@
 #include "common/network/socket/socket_message/socket_message.h"
 #include "common/types.h"
 
+#include "common/utils/network/network.h"
+#include <iostream>
+
 namespace client {
 UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
     : serverAddr(serverAddr_) {}
@@ -35,15 +38,17 @@ UeExchange::sendLocationUpdate(common::Protocol protocol,
   uint8_t requestTypeBinary =
       static_cast<uint8_t>(common::RequestType::Location_Update);
 
-  common::SocketMessage msg{{*convertResult,
-                             static_cast<uint32_t>(serializeResult->size()),
-                             requestTypeBinary},
+  common::SocketMessage msg{{static_cast<uint32_t>(serializeResult->size()),
+                             *convertResult, requestTypeBinary},
                             *serializeResult};
 
   auto msgSerializeResult = common::socketMessagetoBinary(msg);
   if (!msgSerializeResult) {
     return msgSerializeResult.error();
   }
+
+  std::cout << "Sent binary: " << common::toStr(*msgSerializeResult)
+            << std::endl;
 
   return sock.sendMessage(*msgSerializeResult);
 }

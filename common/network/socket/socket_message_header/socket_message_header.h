@@ -8,8 +8,8 @@
 
 namespace common {
 struct SocketMessageHeader {
-  uint8_t protocol;
   uint32_t msgSize;
+  uint8_t protocol;
   uint8_t msgType;
 };
 

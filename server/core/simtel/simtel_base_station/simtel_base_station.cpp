@@ -1,17 +1,14 @@
 #include "simtel_base_station.h"
 
-#include <iostream>
-
 #include "common/core/request/request_serializer/request_serializer.h"
 #include "common/core/request/request_type/request_type.h"
 #include "common/network/socket/socket_message/socket_message.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
-namespace server {
-void SimtelBaseStation::addBs() {
-  baseStations.emplace(1, std::make_unique<SimtelBaseStation>());
-}
+#include "common/utils/network/network.h"
+#include <iostream>
 
+namespace server {
 std::queue<std::shared_ptr<SimtelUeContext>>
     SimtelBaseStation::connectionRequests = {};
 
@@ -20,9 +17,15 @@ std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
 
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
+  baseStations.clear();
+  baseStations.emplace(1, std::make_unique<SimtelBaseStation>());
+
   for (const auto &[id, bs] : baseStations) {
     ctx->setBs(bs.get());
     ctx->receiveLocationUpdate();
+
+    std::cout << "Received binary: " << common::toStr(bs->getBuf())
+              << std::endl;
 
     auto msgParseResult = common::socketMessageFromBinary(bs->getBuf());
     if (!msgParseResult) {
@@ -33,7 +36,10 @@ void SimtelBaseStation::handleConnectionRequest(
     auto clientReqParseResult =
         common::RequestSerializer::positionRequestFromBinary(
             clientMsg.header.protocol, clientMsg.content);
+
     if (!clientReqParseResult) {
+      std::cout << "clientReqParseResult: " << clientReqParseResult.error()
+                << std::endl;
       continue;
     }
     auto clientReq = std::move(*clientReqParseResult);
@@ -53,9 +59,8 @@ void SimtelBaseStation::handleConnectionRequest(
     auto serializeResult = common::RequestSerializer::positionRequestToBinary(
         *protocolConvertResult, req);
 
-    common::SocketMessage msg{{clientMsg.header.protocol,
-                               static_cast<uint32_t>(serializeResult->size()),
-                               requestTypeBinary},
+    common::SocketMessage msg{{static_cast<uint32_t>(serializeResult->size()),
+                               clientMsg.header.protocol, requestTypeBinary},
                               *serializeResult};
 
     auto msgSerializeResult = common::socketMessagetoBinary(msg);

@@ -27,8 +27,6 @@ private:
   static std::queue<std::shared_ptr<SimtelUeContext>> connectionRequests;
 
 public:
-  static void addBs();
-
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 
   common::binary_t getBuf() const;

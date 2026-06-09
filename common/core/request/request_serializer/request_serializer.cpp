@@ -10,23 +10,31 @@ RequestSerializer::positionRequestToBinary(Protocol protocol,
   }
   uint8_t protocolId = *protocolConvertResult;
 
-  auto imeiSerializeResult = BinarySerializer::imeiToBinary(req.imei);
-  if (!imeiSerializeResult) {
-    return std::unexpected("IMEI serialize error");
-  }
-
   binary_t content;
   switch (protocol) {
   case Protocol::BINARY: {
-    auto serializeResult = req.loc.toBinary();
-    if (!serializeResult) {
-      return std::unexpected(serializeResult.error());
+    auto locSerializeResult = req.loc.toBinary();
+    if (!locSerializeResult) {
+      return std::unexpected(locSerializeResult.error());
     }
-    content = std::move(*serializeResult);
+
+    auto imeiSerializeResult = BinarySerializer::imeiToBinary(req.imei);
+    if (!imeiSerializeResult) {
+      return std::unexpected("IMEI serialize error");
+    }
+
+    content.reserve(imeiSerializeResult->size() + locSerializeResult->size());
+    content.insert(content.end(), imeiSerializeResult->begin(),
+                   imeiSerializeResult->end());
+    content.insert(content.end(), locSerializeResult->begin(),
+                   locSerializeResult->end());
     break;
   }
   case Protocol::JSON: {
-    std::string jsonStr = req.loc.toJson().dump();
+    nlohmann::json jsonObj = req.loc.toJson();
+    jsonObj["imei"] = req.imei;
+
+    std::string jsonStr = jsonObj.dump();
     content = BinarySerializer::strToBinary(jsonStr);
     break;
   }
@@ -36,15 +44,7 @@ RequestSerializer::positionRequestToBinary(Protocol protocol,
     return std::unexpected("Unsupported protocol");
   }
 
-  binary_t result{};
-  size_t binarySize = imeiSerializeResult->size() + content.size();
-
-  result.reserve(binarySize);
-  result.insert(result.end(), imeiSerializeResult->begin(),
-                imeiSerializeResult->end());
-  result.insert(result.end(), content.begin(), content.end());
-
-  return result;
+  return content;
 }
 
 std::expected<PositionRequest, std::string>
@@ -55,7 +55,6 @@ RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
     throw std::unexpected("Unsupported protocol");
   }
 
-  PositionRequest req{};
   switch (*protocolSearchResult) {
   case Protocol::BINARY: {
     size_t offset = 0;
@@ -74,7 +73,7 @@ RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
     if (!locParseResult) {
       return std::unexpected(locParseResult.error());
     }
-    return req;
+    return PositionRequest{*imeiParseResult, *locParseResult};
   }
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
