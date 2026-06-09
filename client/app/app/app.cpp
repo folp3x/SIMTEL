@@ -37,14 +37,19 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
   return common::MenuMessage{content};
 }
 
-std::expected<float, std::string> App::fetchDistance() {
-  auto sendError = exchange.sendLocationUpdate(ctx.getProtocol(), ctx.getImsi(),
-                                               ctx.getLocation());
-  if (sendError) {
-    return std::unexpected("Error sending location to server: " + *sendError);
-  }
+void App::handleLocationUpdate() {
+  auto req = std::make_unique<common::PositionRequest>(ctx.getImsi(),
+                                                       ctx.getLocation());
 
-  return 0;
+  exchange.addRequest(
+      ctx.getProtocol(), common::RequestType::Location_Update, std::move(req),
+      [this](const std::optional<common::Request> &result,
+             const std::string &error) {
+        if (!error.empty()) {
+          messages.push({"Error sending location to server: " + error,
+                         common::MenuMessageType::ERR});
+        }
+      });
 }
 
 void App::handleActiveCommand(const MenuItemActive &cmd) {
@@ -61,15 +66,8 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
     }
 
     ctx.setInActive(newActive);
-
     if (ctx.isInActive()) {
-      auto fetchResult = fetchDistance();
-      if (fetchResult) {
-        std::lock_guard lock(distanceMtx);
-        ctx.setDistance(*fetchResult);
-      } else {
-        messages.push({fetchResult.error(), common::MenuMessageType::ERR});
-      }
+      handleLocationUpdate();
     }
   }
 
@@ -87,16 +85,7 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   try {
     if (locationChanged) {
       ctx.updateLocation(coords);
-
-      if (ctx.isInActive()) {
-        auto fetchResult = fetchDistance();
-        if (fetchResult) {
-          std::lock_guard lock(distanceMtx);
-          ctx.setDistance(*fetchResult);
-        } else {
-          messages.push({fetchResult.error(), common::MenuMessageType::ERR});
-        }
-      }
+      handleLocationUpdate();
     }
 
     messages.push(formChangeMessage("Location", ctx.getLocation().toStr(),
@@ -193,20 +182,6 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   }
 }
 
-void App::updateDistance(int updateFreqSec) {
-  while (true) {
-    if (ctx.isInActive()) {
-      auto fetchResult = fetchDistance();
-      if (fetchResult) {
-        std::lock_guard lock(distanceMtx);
-        ctx.setDistance(*fetchResult);
-        continue;
-      }
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(updateFreqSec));
-  }
-}
-
 std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
   auto it = addressBook.find(num);
   if (it == addressBook.end()) {
@@ -226,12 +201,14 @@ void App::run() {
   messages = {};
   isRunning = true;
 
+  std::thread requestsHandler{[this]() { exchange.handleRequests(); }};
+
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
     menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
     menu.showMenuHeaderLine();
-    menu.showSignalInfo(ctx.getLocation(), ctx.getDistance());
+    menu.showSignalInfo(ctx.getLocation(), exchange.getSignalLevel());
     menu.showMenuHeaderLine();
     menu.showAddressBook(addressBook);
     menu.showMenuHeaderLine();
@@ -254,6 +231,9 @@ void App::run() {
       std::cout << std::endl;
     }
   }
+
+  requestsHandler.join();
+
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }
 

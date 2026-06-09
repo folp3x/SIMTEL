@@ -2,7 +2,6 @@
 
 #include <array>
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <unordered_map>
 
@@ -23,7 +22,6 @@ private:
   common::Location<> location{};
   const float radius = 0;
 
-  std::mutex connectionRequestsMtx{};
   static std::queue<std::shared_ptr<SimtelUeContext>> connectionRequests;
 
 public:

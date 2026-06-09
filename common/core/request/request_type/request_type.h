@@ -4,6 +4,7 @@
 
 namespace common {
 enum class RequestType : uint8_t {
+  Unknown,
   Location_Update,
   Measurement_Control,
   SM_Transfer,

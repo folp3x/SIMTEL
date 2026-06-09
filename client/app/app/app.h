@@ -2,7 +2,6 @@
 
 #include "common/app/app/app.h"
 
-#include <mutex>
 #include <optional>
 #include <queue>
 
@@ -15,13 +14,13 @@
 #include "client/core/ue/ue_active/ue_active.h"
 #include "client/core/ue/ue_context/ue_context.h"
 #include "client/core/ue/ue_exchange/ue_exchange.h"
+#include "common/core/request/position_request/position_request.h"
 
 namespace client {
 class App : common::App<Config> {
 private:
-  std::mutex distanceMtx{};
+  static constexpr unsigned int HANDOVER_SIGNAL_THRESHOLD = 40;
   UeContext ctx;
-
   UeExchange exchange;
 
   Menu menu;
@@ -38,7 +37,7 @@ private:
                                         const std::string &valueStr,
                                         bool changed = true) const;
 
-  std::expected<float, std::string> fetchDistance();
+  void handleLocationUpdate();
 
   void handleActiveCommand(const MenuItemActive &cmd);
   void handleMoveCommand(const MenuItemMove<> &cmd);
@@ -47,8 +46,6 @@ private:
 
   virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                              bool &exit);
-
-  void updateDistance(int updateFreqSec);
 
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 

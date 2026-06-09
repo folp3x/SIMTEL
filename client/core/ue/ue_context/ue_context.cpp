@@ -31,9 +31,4 @@ common::Protocol UeContext::getProtocol() const { return protocol; }
 void UeContext::setProtocol(common::Protocol protocol_) {
   protocol = protocol_;
 }
-
-std::optional<float> UeContext::getDistance() const { return distance; }
-
-void UeContext::setDistance(float distance_) { distance = distance_; }
-
 } // namespace client

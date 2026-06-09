@@ -10,9 +10,7 @@ class SimtelBaseStation;
 
 class SimtelUeContext {
 private:
-  const common::imsi_t UNKNOWN_IMSI = "";
-
-  common::imsi_t imsi = UNKNOWN_IMSI;
+  common::imsi_t imsi = "";
 
   std::unique_ptr<Socket> sock;
 

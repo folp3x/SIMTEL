@@ -3,11 +3,8 @@
 #include <csignal>
 #include <thread>
 
-#include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
-#include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/logging/logger/logger.h"
-#include "server/app/menu/menu/menu.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 
 namespace server {
@@ -33,7 +30,6 @@ App::App(const common::NetworkAddress &addr)
 }
 
 void App::run() {
-  Menu menu;
   messages = {};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");

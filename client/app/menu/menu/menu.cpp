@@ -42,10 +42,11 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
 }
 
 void Menu::showSignalInfo(const common::Location<> &location,
-                          std::optional<float> distance) const {
-  std::string distStr = distance ? common::toStr(*distance) : "unknown";
-  std::cout << "Location: " << location.toStr()
-            << ", distance to BS: " << distStr << std::endl;
+                          unsigned int signalLevel) const {
+  std::string levelStr =
+      (signalLevel > 0) ? std::to_string(signalLevel) : "no signal";
+  std::cout << "Location: " << location.toStr() << ", signal: " << levelStr
+            << std::endl;
 }
 
 void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {

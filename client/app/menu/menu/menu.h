@@ -25,7 +25,7 @@ public:
                   common::Protocol protocol) const;
 
   void showSignalInfo(const common::Location<> &location,
-                      std::optional<float> distance) const;
+                      unsigned int signalLevel) const;
 
   void showAddressBook(const std::map<char, common::msisdn_t> &book) const;
 };

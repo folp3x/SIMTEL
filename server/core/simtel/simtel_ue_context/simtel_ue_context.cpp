@@ -9,6 +9,8 @@ namespace server {
 SimtelUeContext::SimtelUeContext(std::unique_ptr<Socket> sock_)
     : sock(std::move(sock_)) {}
 
+common::imsi_t SimtelUeContext::getImsi() const { return imsi; }
+
 void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
