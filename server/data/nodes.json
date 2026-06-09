@@ -4,8 +4,6 @@
         "loc": [-100],
         "mmeId": "1",
         "networkGeneration": "LTE",
-        "eirp_DbmW": 46.0,
-        "beamWidth_deg": 65.0,
         "maxConnections": 10,
         "connectionBuf_bytes": 512
     },
@@ -14,8 +12,6 @@
         "loc": [100],
         "mmeId": "1",
         "networkGeneration": "LTE",
-        "eirp_DbmW": 46.0,
-        "beamWidth_deg": 65.0,
         "maxConnections": 10,
         "connectionBuf_bytes": 512
     }

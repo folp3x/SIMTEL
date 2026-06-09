@@ -3,9 +3,6 @@
 #include "client/constants.h"
 
 namespace client {
-AddressBookParser::AddressBookParser(const common::msisdn_t &curMsisdn_)
-    : curMsisdn(curMsisdn_) {}
-
 void AddressBookParser::initFields() {
   addParsedVector<common::msisdn_t>(
       "",
@@ -20,14 +17,11 @@ void AddressBookParser::initFields() {
           records[speedDialNum] = subscribers[i];
         }
       },
-      nlohmann::json::value_t::string,
-      [this](const common::msisdn_t &msisdn) { return msisdn != curMsisdn; });
+      nlohmann::json::value_t::string);
 }
 
-std::unique_ptr<AddressBookParser>
-AddressBookParser::create(const common::msisdn_t &curMsisdn) {
-  auto parser =
-      std::unique_ptr<AddressBookParser>(new AddressBookParser(curMsisdn));
+std::unique_ptr<AddressBookParser> AddressBookParser::create() {
+  auto parser = std::unique_ptr<AddressBookParser>(new AddressBookParser());
   parser->initFields();
   return parser;
 }

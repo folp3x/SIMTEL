@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    auto addressBookParser = client::AddressBookParser::create("");
+    auto addressBookParser = client::AddressBookParser::create();
     auto addressBookParseResult =
         addressBookParser->parse(config.getAddressBookFilePath());
 

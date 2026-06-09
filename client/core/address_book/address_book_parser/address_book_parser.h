@@ -11,10 +11,7 @@ namespace client {
 class AddressBookParser
     : public common::JsonParser<std::map<char, common::msisdn_t>> {
 private:
-  common::msisdn_t curMsisdn = "";
   std::map<char, common::msisdn_t> records{};
-
-  explicit AddressBookParser(const common::msisdn_t &curMsisdn_);
 
   virtual void initFields() override;
 
@@ -22,7 +19,6 @@ private:
   parseJson(const nlohmann::json &json) override;
 
 public:
-  static std::unique_ptr<AddressBookParser>
-  create(const common::msisdn_t &curMsisdn);
+  static std::unique_ptr<AddressBookParser> create();
 };
 } // namespace client

@@ -6,11 +6,10 @@ JsonVectorInfo<T>::JsonVectorInfo(
     const std::string &name,
     const std::function<void(const std::vector<T> &)> &successCallback,
     nlohmann::json::value_t elemType_,
-    const std::function<bool(const T &)> &filterFn_,
     const std::function<std::string(const std::vector<T> &)> &checkFn)
     : JsonFieldInfo<std::vector<T>>(name, successCallback,
                                     nlohmann::json::value_t::array, checkFn),
-      elemType(elemType_), filterFn(filterFn_) {}
+      elemType(elemType_) {}
 
 template <typename T>
 std::optional<std::string> JsonVectorInfo<T>::parse(const nlohmann::json &json,
@@ -33,10 +32,7 @@ std::optional<std::string> JsonVectorInfo<T>::parse(const nlohmann::json &json,
              jsonTypeToStr(elemType) + "'";
     }
     T elem = elemJson.template get<T>();
-    if (!(filterFn && !filterFn(elem))) {
-      // если прошел фильтрацию
-      field.push_back(elem);
-    }
+    field.push_back(elem);
   }
 
   if (finalParse) {

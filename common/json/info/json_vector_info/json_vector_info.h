@@ -10,14 +10,12 @@ template <typename T>
 class JsonVectorInfo : public JsonFieldInfo<std::vector<T>> {
 private:
   const nlohmann::json::value_t elemType;
-  const std::function<bool(const T &)> &filterFn;
 
 public:
   JsonVectorInfo(
       const std::string &name,
       const std::function<void(const std::vector<T> &)> &successCallback,
       nlohmann::json::value_t elemType_,
-      const std::function<bool(const T &)> &filterFn_ = nullptr,
       const std::function<std::string(const std::vector<T> &)> &checkFn =
           nullptr);
 

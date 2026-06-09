@@ -35,7 +35,6 @@ protected:
       const std::string &name,
       const std::function<void(const std::vector<E> &)> &successCallback,
       nlohmann::json::value_t elemType,
-      const std::function<bool(const E &)> &filterFn = nullptr,
       const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 

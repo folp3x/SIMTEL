@@ -52,10 +52,9 @@ void JsonParser<T>::addParsedVector(
     const std::string &name,
     const std::function<void(const std::vector<E> &)> &successCallback,
     nlohmann::json::value_t elemType,
-    const std::function<bool(const E &)> &filterFn,
     const std::function<std::string(const std::vector<E> &)> &checkFn) {
   auto info = std::make_unique<JsonVectorInfo<E>>(name, successCallback,
-                                                  elemType, filterFn, checkFn);
+                                                  elemType, checkFn);
   fieldsInfo.push_back(std::move(info));
 }
 
