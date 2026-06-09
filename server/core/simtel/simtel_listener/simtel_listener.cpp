@@ -1,5 +1,7 @@
 #include "simtel_listener.h"
 
+#include <iostream>
+
 #include "common/logging/logger/logger.h"
 
 namespace server {
@@ -26,7 +28,11 @@ void SimtelListener::handleClients() {
       continue;
     }
 
+    std::cout << "Client connected: " << (*acceptResult)->getAddrStr()
+              << std::endl;
+
     if (activeThreads >= MAX_CLIENT_THREADS) {
+      std::cout << "Too many threads. Client ignored" << std::endl;
       continue;
     }
 

@@ -6,6 +6,8 @@
 #include <unordered_map>
 
 #include "common/core/location/location/location.h"
+#include "common/core/request/position_request/position_request.h"
+#include "common/network/protocol/protocol.h"
 #include "common/types.h"
 
 namespace server {
@@ -22,7 +24,9 @@ private:
   common::Location<> location{};
   const float radius = 0;
 
-  static std::queue<common::RequestInfo> requests{};
+  std::queue<common::Request> requests{};
+
+  unsigned int measureSignal(const common::Location<> &targetLoc) const;
 
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
@@ -32,5 +36,9 @@ public:
   void clearBuf();
 
   common::Location<> getLocation() const;
+
+  void handleLocationUpdate(common::Protocol clientProtocol,
+                            const common::PositionRequest &clientReq,
+                            std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

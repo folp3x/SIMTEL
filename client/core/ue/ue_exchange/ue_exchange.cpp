@@ -5,9 +5,6 @@
 #include "common/network/socket/socket_message/socket_message.h"
 #include "common/types.h"
 
-#include "common/utils/network/network.h"
-#include <iostream>
-
 namespace client {
 UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
     : serverAddr(serverAddr_) {}
@@ -77,9 +74,6 @@ UeExchange::sendLocationUpdate(common::Protocol protocol,
   if (!msgSerializeResult) {
     return msgSerializeResult.error();
   }
-
-  std::cout << "Sent binary: " << common::toStr(*msgSerializeResult)
-            << std::endl;
 
   return sock.sendMessage(*msgSerializeResult);
 }
