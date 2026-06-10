@@ -39,6 +39,10 @@ void UeExchange::handleRequests() {
               info.callback(std::nullopt, "BS search error: " + req.error());
             }
           } else {
+            if (req->imei != posReq->imei) {
+              continue;
+            }
+
             if (req->signal > bestSignal) {
               bestSignal = req->signal;
               bestBsId = req->bsId;

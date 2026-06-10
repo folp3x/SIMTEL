@@ -192,8 +192,8 @@ RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
 
     imei_t imei;
-    unsigned int signal = 0;
-    unsigned int bsId = 0;
+    unsigned int signal;
+    unsigned int bsId;
 
     auto imeiInfo = std::make_unique<JsonFieldInfo<imei_t>>(
         "imei", [&](const imei_t &imei_) { imei = imei_; },
