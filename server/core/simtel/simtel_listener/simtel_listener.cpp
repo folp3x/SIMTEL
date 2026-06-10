@@ -28,11 +28,10 @@ void SimtelListener::handleClients() {
       continue;
     }
 
-    std::cout << "Client connected: " << (*acceptResult)->getAddrStr()
-              << std::endl;
+    std::cout << "UE connected: " << (*acceptResult)->getAddrStr() << std::endl;
 
     if (activeThreads >= MAX_CLIENT_THREADS) {
-      std::cout << "Too many threads. Client ignored" << std::endl;
+      std::cout << "Too many threads. UE ignored" << std::endl;
       continue;
     }
 

@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "common/core/location/location/location.h"
+#include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
@@ -36,6 +37,12 @@ private:
   std::expected<common::RrcConnectionRequest, std::string>
   receiveLocation(std::shared_ptr<SimtelUeContext> ctx);
 
+  std::expected<common::MeasurementReportRequest, std::string>
+  receiveChosenBsId(std::shared_ptr<SimtelUeContext> ctx);
+
+  std::optional<std::string> sendBsKeep(const common::imei_t &imei,
+                                        std::shared_ptr<SimtelUeContext> ctx);
+
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 
@@ -44,6 +51,8 @@ public:
   void clearBuf();
 
   common::Location<> getLocation() const;
+
+  unsigned int getId() const;
 
   void handleLocationUpdate(const common::RrcConnectionRequest &req,
                             std::shared_ptr<SimtelUeContext> ctx);

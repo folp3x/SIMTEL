@@ -269,8 +269,8 @@ RequestSerializer::measurementReportToBytes(
 }
 
 std::expected<MeasurementReportRequest, std::string>
-RequestSerializer::measurementReportFromBytes(const binary_t &bytes) {
-  Protocol protocol;
+RequestSerializer::measurementReportFromBytes(const binary_t &bytes,
+                                              Protocol &protocol) {
   auto msg =
       requestMsgFromBytes(RequestType::Measurement_Report, bytes, protocol);
   if (!msg) {

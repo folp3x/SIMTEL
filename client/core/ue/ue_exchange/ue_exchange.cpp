@@ -23,33 +23,28 @@ void UeExchange::handleRequests() {
       requests.pop();
     }
 
-    curProtocol = info.protocol;
+    curProtocol = info.ctx->getProtocol();
 
-    std::string error;
-    if (info.type == common::RequestType::Rrc_Connection) {
-      if (auto *req =
-              dynamic_cast<common::RrcConnectionRequest *>(info.req.get())) {
-        auto result = handleLocationUpdate(*req);
-        if (!result) {
-          info.callback(nullptr, result.error());
-        }
-      } else {
-        error = "Invalid request type";
+    switch (info.type) {
+    case common::RequestType::Rrc_Connection: {
+      auto error = handleLocationUpdate(info);
+      if (error) {
+        info.callback(nullptr, *error);
       }
-    } else {
-      error = "Unknown request type";
+      break;
     }
-
-    info.callback(nullptr, error);
+    default:
+      info.callback(nullptr, "Unknown request type");
+    }
   }
 }
 
-void UeExchange::addRequest(common::Protocol protocol, common::RequestType type,
-                            std::unique_ptr<common::Request> req,
+void UeExchange::addRequest(std::shared_ptr<const UeContext> ctx,
+                            common::RequestType type,
                             const CallbackType &callback) {
   {
     std::lock_guard lock(requestsMtx);
-    requests.push({protocol, type, std::move(req), callback});
+    requests.push({ctx, type, callback});
   }
   requestsCv.notify_one();
 }
@@ -103,41 +98,87 @@ UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
-UeExchange::handleLocationUpdate(const common::RrcConnectionRequest &req) {
-  auto error = sendLocationUpdate(req);
-  if (error) {
-    return std::unexpected(*error);
+UeExchange::receiveBsInfo() const {
+  auto bytes = sock.receiveMessage();
+  if (!bytes) {
+    return std::unexpected(bytes.error());
+  }
+  auto msg = common::socketMessageFromBinary(*bytes);
+  if (!msg) {
+    return std::unexpected(msg.error());
   }
 
-  unsigned int bestSignal = 0;
-  unsigned int bestBsId = 0;
+  auto reqType = static_cast<common::RequestType>(msg->header.msgType);
+  if (reqType == common::RequestType::Rrc_Reconfiguration_Keep) {
+    auto req =
+        common::RequestSerializer::rrcReconfigurationKeepFromBytes(*bytes);
+    if (!req) {
+      return std::unexpected(req.error());
+    }
 
+    return std::make_unique<common::RrcReconfigurationKeepRequest>(*req);
+  }
+
+  return std::unexpected("Unexpected request type");
+}
+
+std::optional<std::string>
+UeExchange::handleLocationUpdate(const RequestInfo &info) {
+  common::RrcConnectionRequest locationReq{info.ctx->getImei(),
+                                           info.ctx->getLocation()};
+  auto locationSendError = sendLocationUpdate(locationReq);
+  if (locationSendError) {
+    return "Failed to send location - " + *locationSendError;
+  }
+
+  common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
     auto signalResponse = receiveSignalLevel();
     if (!signalResponse) {
       bsLeft = false;
-      if (bestSignal == 0) {
-        return std::unexpected("BS not found");
+      if (bestSignalResponse.signal == 0) {
+        return "BS not found";
       }
     } else {
-      if (signalResponse->imei != req.imei) {
+      if (signalResponse->imei != info.ctx->getImei()) {
         continue;
       }
 
-      if (signalResponse->signal > bestSignal) {
-        bestSignal = signalResponse->signal;
-        bestBsId = signalResponse->bsId;
+      if (signalResponse->signal > bestSignalResponse.signal) {
+        bestSignalResponse = std::move(*signalResponse);
       }
     }
   }
 
-  {
-    std::lock_guard lock(signalLevelMtx);
-    signalLevel = bestSignal;
+  common::MeasurementReportRequest chosenBsReq{
+      info.ctx->getImei(), info.ctx->getImsi(), bestSignalResponse.bsId};
+  auto bsIdSendError = sendChosenBsId(chosenBsReq);
+  if (bsIdSendError) {
+    return "Failed to send chosen BS id - " + *bsIdSendError;
   }
 
-  return nullptr;
+  auto bsInfoResponse = receiveBsInfo();
+  if (!bsInfoResponse) {
+    return "Failed to receive BS info - " + bsInfoResponse.error();
+  }
+  auto response = std::move(*bsInfoResponse);
+
+  if (auto *bsKeepResponse =
+          dynamic_cast<common::RrcReconfigurationKeepRequest *>(
+              response.get())) {
+    if (bsKeepResponse->bsId == bestSignalResponse.bsId) {
+      signalLevel = bestSignalResponse.signal;
+      curBsId = bsKeepResponse->bsId;
+    } else {
+      return "Unexpected BS id in info: " +
+             std::to_string(bsKeepResponse->bsId);
+    }
+  } else {
+    return "Unexpected response type";
+  }
+
+  return std::nullopt;
 }
 
 void UeExchange::closeConnection() {
@@ -145,10 +186,7 @@ void UeExchange::closeConnection() {
   connected = false;
 }
 
-unsigned int UeExchange::getSignalLevel() const {
-  std::lock_guard lock(signalLevelMtx);
-  return signalLevel;
-}
+unsigned int UeExchange::getSignalLevel() const { return signalLevel; }
 
 void UeExchange::stop() {
   running = false;

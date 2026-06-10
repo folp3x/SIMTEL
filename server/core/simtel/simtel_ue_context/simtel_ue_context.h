@@ -24,12 +24,13 @@ public:
   common::imsi_t getImsi() const;
   void setImsi(const common::imsi_t &imsi_);
 
+  std::optional<unsigned int> getBsId() const;
   void setBs(SimtelBaseStation *bs_);
 
   common::Protocol getProtocol() const;
   void setProtocol(common::Protocol protocol_);
 
-  void translateToBs();
+  std::optional<std::string> translateToBs();
   void translateToUe(const common::binary_t &binary) const;
 };
 } // namespace server

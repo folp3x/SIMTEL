@@ -15,6 +15,13 @@ common::imsi_t SimtelUeContext::getImsi() const { return imsi; }
 
 void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
+std::optional<unsigned int> SimtelUeContext::getBsId() const {
+  if (bs) {
+    return bs->getId();
+  }
+  return std::nullopt;
+}
+
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
 
 common::Protocol SimtelUeContext::getProtocol() const { return protocol; }
@@ -23,12 +30,13 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
   protocol = protocol_;
 }
 
-void SimtelUeContext::translateToBs() {
+std::optional<std::string> SimtelUeContext::translateToBs() {
   auto binary = sock->receiveMessage();
   if (!binary) {
-    std::cout << "Error receiving message: " << binary.error();
+    return binary.error();
   } else {
     bs->setBuf(*binary);
+    return std::nullopt;
   }
 }
 

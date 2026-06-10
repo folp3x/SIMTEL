@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <mutex>
 #include <queue>
 
 #include "client/core/ue/ue_context/ue_context.h"
@@ -17,9 +16,8 @@ private:
                                           const std::string &)>;
 
   struct RequestInfo {
-    common::Protocol protocol;
+    std::shared_ptr<const UeContext> ctx;
     common::RequestType type;
-    std::unique_ptr<common::Request> req{};
     CallbackType callback{};
   };
 
@@ -31,7 +29,6 @@ private:
 
   common::Protocol curProtocol;
 
-  mutable std::mutex signalLevelMtx;
   unsigned int signalLevel = 0;
 
   Socket sock{};
@@ -52,16 +49,17 @@ private:
   sendChosenBsId(const common::MeasurementReportRequest &req) const;
 
   std::expected<std::unique_ptr<common::Request>, std::string>
-  handleLocationUpdate(const common::RrcConnectionRequest &req);
+  receiveBsInfo() const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);
 
+  std::optional<std::string> handleLocationUpdate(const RequestInfo &info);
+
   void handleRequests();
 
-  void addRequest(common::Protocol protocol, common::RequestType type,
-                  std::unique_ptr<common::Request> req,
-                  const CallbackType &callback);
+  void addRequest(std::shared_ptr<const UeContext> ctx,
+                  common::RequestType type, const CallbackType &callback);
 
   std::optional<std::string> updateConnection(bool ueActive);
 

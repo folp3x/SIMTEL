@@ -44,7 +44,7 @@ public:
                            const MeasurementReportRequest &req);
 
   static std::expected<MeasurementReportRequest, std::string>
-  measurementReportFromBytes(const binary_t &bytes);
+  measurementReportFromBytes(const binary_t &bytes, Protocol &protocol);
 
   static std::expected<binary_t, std::string>
   rrcReconfigurationKeepToBytes(Protocol protocol,
