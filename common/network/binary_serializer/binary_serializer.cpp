@@ -48,4 +48,31 @@ std::optional<imei_t> BinarySerializer::imeiFromBinary(const binary_t &binary) {
 
   return imei;
 }
+
+std::optional<binary_t> BinarySerializer::imsiToBinary(const imsi_t &imsi) {
+  auto imsiNum = fromString<uint64_t>(imsi);
+  if (!imsiNum) {
+    return std::nullopt;
+  }
+  return toBinary<>(*imsiNum);
+}
+
+std::optional<imsi_t> BinarySerializer::imsiFromBinary(const binary_t &binary) {
+  auto deserialized = fromBinary<uint64_t>(binary);
+  if (!deserialized) {
+    return std::nullopt;
+  }
+
+  imsi_t imsi = std::to_string(*deserialized);
+  size_t lenDiff = IMSI_DEFAULT_LEGNTH - imsi.length();
+  if (lenDiff > 0) {
+    imsi = std::string(lenDiff, '0') + imsi;
+  }
+
+  if (!Validator::isCorrectIMSI(imsi).empty()) {
+    return std::nullopt;
+  }
+
+  return imsi;
+}
 } // namespace common

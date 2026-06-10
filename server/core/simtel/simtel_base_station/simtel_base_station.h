@@ -19,8 +19,8 @@ private:
       baseStations;
 
   common::binary_t buf = {};
-  std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>> ueInfo =
-      {};
+  std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>>
+      connectedUe = {};
   common::Location<> location{};
   const float radius = 0;
   const unsigned int id = 0;

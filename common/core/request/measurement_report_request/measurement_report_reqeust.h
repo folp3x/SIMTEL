@@ -5,10 +5,10 @@
 
 namespace common {
 struct MeasurementReportRequest : Request {
-  imei_t imei = "";
+  imei_t imsi = "";
   unsigned int bsId = 0;
 
-  MeasurementReportRequest(const imei_t &imei_, unsigned int bsId_)
-      : imei(imei_), bsId(bsId_) {}
+  MeasurementReportRequest(const imsi_t &imsi_, unsigned int bsId_)
+      : imsi(imsi_), bsId(bsId_) {}
 };
 } // namespace common

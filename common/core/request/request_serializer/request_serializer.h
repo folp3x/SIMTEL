@@ -12,6 +12,7 @@ namespace common {
 class RequestSerializer {
 private:
   static constexpr size_t IMEI_BINARY_BYTES = 8;
+  static constexpr size_t IMSI_BINARY_BYTES = 8;
 
 public:
   static std::expected<binary_t, std::string>

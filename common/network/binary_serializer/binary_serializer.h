@@ -9,6 +9,7 @@ namespace common {
 class BinarySerializer {
 private:
   static constexpr size_t IMEI_DEFAULT_LEGNTH = 15;
+  static constexpr size_t IMSI_DEFAULT_LEGNTH = 15;
 
 public:
   template <typename T>
@@ -31,6 +32,9 @@ public:
 
   static std::optional<binary_t> imeiToBinary(const imei_t &imei);
   static std::optional<imei_t> imeiFromBinary(const binary_t &binary);
+
+  static std::optional<binary_t> imsiToBinary(const imsi_t &imsi);
+  static std::optional<imsi_t> imsiFromBinary(const binary_t &binary);
 };
 } // namespace common
 
