@@ -4,12 +4,13 @@
 #include "common/types.h"
 
 namespace common {
-struct SignalRequest : Request {
+struct MeasurementControlRequest : Request {
   imei_t imei = "";
   unsigned int signal = 0;
   unsigned int bsId = 0;
 
-  SignalRequest(const imei_t &imei_, unsigned int signal_, unsigned int bsId_)
+  MeasurementControlRequest(const imei_t &imei_, unsigned int signal_,
+                            unsigned int bsId_)
       : imei(imei_), signal(signal_), bsId(bsId_) {}
 };
 } // namespace common

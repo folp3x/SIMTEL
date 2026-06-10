@@ -36,12 +36,12 @@ void SimtelBaseStation::handleConnectionRequest(
   ctx->setProtocol(*protocol);
 
   auto reqType = static_cast<common::RequestType>(msg->header.msgType);
-  if (reqType != common::RequestType::Location_Update) {
+  if (reqType != common::RequestType::Rrc_Connection) {
     std::cout << "Location_Update message expected" << std::endl;
     return;
   }
 
-  auto req = common::RequestSerializer::positionRequestFromBinary(
+  auto req = common::RequestSerializer::rrcConnectionFromBytes(
       msg->header.protocol, msg->content);
   if (!req) {
     std::cout << "Error parsing request: " << req.error() << std::endl;
@@ -82,9 +82,9 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
     return "Unknown protocol";
   }
 
-  common::SignalRequest req{imei, signalLevel, id};
-  auto serializedReq =
-      common::RequestSerializer::signalRequestToBinary(ctx->getProtocol(), req);
+  common::MeasurementControlRequest req{imei, signalLevel, id};
+  auto serializedReq = common::RequestSerializer::measurementControlToBytes(
+      ctx->getProtocol(), req);
   if (!serializedReq) {
     return "Error serializing request: " + serializedReq.error();
   }
@@ -106,13 +106,13 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
 }
 
 void SimtelBaseStation::handleLocationUpdate(
-    const common::PositionRequest &clientReq,
+    const common::RrcConnectionRequest &req,
     std::shared_ptr<SimtelUeContext> ctx) {
-  unsigned int signalLevel = measureSignal(clientReq.loc);
-  std::cout << "Signal level to IMSI" << clientReq.imei << ": " << signalLevel
+  unsigned int signalLevel = measureSignal(req.loc);
+  std::cout << "Signal level to IMSI" << req.imei << ": " << signalLevel
             << std::endl;
 
-  auto error = sendSignalLevel(clientReq.imei, signalLevel, ctx);
+  auto error = sendSignalLevel(req.imei, signalLevel, ctx);
   if (error) {
     std::cout << *error << std::endl;
     return;

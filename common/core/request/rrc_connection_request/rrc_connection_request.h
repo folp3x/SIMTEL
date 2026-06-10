@@ -5,11 +5,11 @@
 #include "common/types.h"
 
 namespace common {
-struct PositionRequest : Request {
+struct RrcConnectionRequest : Request {
   imei_t imei = "";
   Location<> loc{};
 
-  PositionRequest(const imei_t &imei_, const Location<> &loc_)
+  RrcConnectionRequest(const imei_t &imei_, const Location<> &loc_)
       : imei(imei_), loc(loc_) {}
 };
 } // namespace common

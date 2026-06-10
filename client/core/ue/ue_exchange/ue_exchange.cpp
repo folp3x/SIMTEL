@@ -21,10 +21,10 @@ void UeExchange::handleRequests() {
     curProtocol = info.protocol;
 
     std::string error;
-    if (info.type == common::RequestType::Location_Update) {
-      if (auto *posReq =
-              dynamic_cast<common::PositionRequest *>(info.req.get())) {
-        handleLocationUpdateRequest(*posReq);
+    if (info.type == common::RequestType::Rrc_Connection) {
+      if (auto *req =
+              dynamic_cast<common::RrcConnectionRequest *>(info.req.get())) {
+        handleLocationUpdate(*req);
       } else {
         error = "Invalid request type";
       }
@@ -60,9 +60,9 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 }
 
 std::optional<std::string>
-UeExchange::sendLocationUpdate(const common::PositionRequest &req) const {
+UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
   auto serializedReq =
-      common::RequestSerializer::positionRequestToBinary(curProtocol, req);
+      common::RequestSerializer::rrcConnectionToBytes(curProtocol, req);
   if (!serializedReq) {
     return "Error serizliaing request: " + serializedReq.error();
   }
@@ -73,7 +73,7 @@ UeExchange::sendLocationUpdate(const common::PositionRequest &req) const {
   }
 
   uint8_t requestTypeBinary =
-      static_cast<uint8_t>(common::RequestType::Location_Update);
+      static_cast<uint8_t>(common::RequestType::Rrc_Connection);
   common::SocketMessage msg{{static_cast<uint32_t>(serializedReq->size()),
                              *protocolId, requestTypeBinary},
                             *serializedReq};
@@ -86,7 +86,7 @@ UeExchange::sendLocationUpdate(const common::PositionRequest &req) const {
   return sock.sendMessage(*serializedMsg);
 }
 
-std::expected<common::SignalRequest, std::string>
+std::expected<common::MeasurementControlRequest, std::string>
 UeExchange::receiveSignalLevel() const {
   auto binary = sock.receiveMessage();
   if (!binary) {
@@ -108,7 +108,7 @@ UeExchange::receiveSignalLevel() const {
     return std::unexpected("Location_Update message expected");
   }
 
-  auto req = common::RequestSerializer::signalRequestFromBinary(
+  auto req = common::RequestSerializer::measurementControlFromBytes(
       msg->header.protocol, msg->content);
   if (!req) {
     return std::unexpected("Error parsing request: " + req.error());
@@ -118,7 +118,7 @@ UeExchange::receiveSignalLevel() const {
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
-UeExchange::handleLocationUpdateRequest(const common::PositionRequest &req) {
+UeExchange::handleLocationUpdate(const common::RrcConnectionRequest &req) {
   auto error = sendLocationUpdate(req);
   if (error) {
     return std::unexpected(*error);

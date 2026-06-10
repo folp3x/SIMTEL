@@ -2,8 +2,8 @@
 
 namespace common {
 std::expected<binary_t, std::string>
-RequestSerializer::positionRequestToBinary(Protocol protocol,
-                                           const PositionRequest &req) {
+RequestSerializer::rrcConnectionToBytes(Protocol protocol,
+                                        const RrcConnectionRequest &req) {
   binary_t content;
   switch (protocol) {
   case Protocol::BINARY: {
@@ -39,9 +39,9 @@ RequestSerializer::positionRequestToBinary(Protocol protocol,
   return content;
 }
 
-std::expected<PositionRequest, std::string>
-RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
-                                             const binary_t &binary) {
+std::expected<RrcConnectionRequest, std::string>
+RequestSerializer::rrcConnectionFromBytes(uint8_t protocolId,
+                                          const binary_t &binary) {
   auto protocol = protocolFromNetworkId(protocolId);
   if (!protocol) {
     throw std::unexpected("Unsupported protocol");
@@ -65,7 +65,7 @@ RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
       return std::unexpected(loc.error());
     }
 
-    return PositionRequest{*imei, *loc};
+    return RrcConnectionRequest{*imei, *loc};
   }
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
@@ -86,7 +86,7 @@ RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
       return std::unexpected(loc.error());
     }
 
-    return PositionRequest{imei, *loc};
+    return RrcConnectionRequest{imei, *loc};
   }
   }
 
@@ -94,8 +94,8 @@ RequestSerializer::positionRequestFromBinary(uint8_t protocolId,
 }
 
 std::expected<binary_t, std::string>
-RequestSerializer::signalRequestToBinary(Protocol protocol,
-                                         const SignalRequest &req) {
+RequestSerializer::measurementControlToBytes(
+    Protocol protocol, const MeasurementControlRequest &req) {
   binary_t content;
   switch (protocol) {
   case Protocol::BINARY: {
@@ -139,9 +139,9 @@ RequestSerializer::signalRequestToBinary(Protocol protocol,
   return content;
 }
 
-std::expected<SignalRequest, std::string>
-RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
-                                           const binary_t &binary) {
+std::expected<MeasurementControlRequest, std::string>
+RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
+                                               const binary_t &binary) {
   auto foundProtocol = protocolFromNetworkId(protocolId);
   if (!foundProtocol) {
     return std::unexpected("Unsupported protocol");
@@ -163,7 +163,7 @@ RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
     }
     offset += IMEI_BINARY_BYTES;
 
-    size_t signalSize = sizeof(decltype(SignalRequest::signal));
+    size_t signalSize = sizeof(decltype(MeasurementControlRequest::signal));
     if (binary.size() < offset + signalSize) {
       return std::unexpected("Binary too short for signal");
     }
@@ -175,7 +175,7 @@ RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
     }
     offset += signalSize;
 
-    size_t bsIdSize = sizeof(decltype(SignalRequest::bsId));
+    size_t bsIdSize = sizeof(decltype(MeasurementControlRequest::bsId));
     if (binary.size() < offset + bsIdSize) {
       return std::unexpected("Binary too short for bsId");
     }
@@ -186,7 +186,7 @@ RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
       return std::unexpected("BS id deserialize error");
     }
 
-    return SignalRequest{*imei, *signal, *bsId};
+    return MeasurementControlRequest{*imei, *signal, *bsId};
   }
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
@@ -225,7 +225,7 @@ RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
       return std::unexpected(*bsIdParseError);
     }
 
-    return SignalRequest{imei, signal, bsId};
+    return MeasurementControlRequest{imei, signal, bsId};
   }
   }
 
@@ -233,7 +233,8 @@ RequestSerializer::signalRequestFromBinary(uint8_t protocolId,
 }
 
 std::expected<binary_t, std::string>
-RequestSerializer::bsRequestToBinary(Protocol protocol, const BsRequest &req) {
+RequestSerializer::measurementReportToBytes(
+    Protocol protocol, const MeasurementReportRequest &req) {
   binary_t content;
   switch (protocol) {
   case Protocol::BINARY: {
@@ -270,9 +271,9 @@ RequestSerializer::bsRequestToBinary(Protocol protocol, const BsRequest &req) {
   return content;
 }
 
-std::expected<BsRequest, std::string>
-RequestSerializer::bsRequestFromBinary(uint8_t protocolId,
-                                       const binary_t &binary) {
+std::expected<MeasurementReportRequest, std::string>
+RequestSerializer::measurementReportFromBytes(uint8_t protocolId,
+                                              const binary_t &binary) {
   auto foundProtocol = protocolFromNetworkId(protocolId);
   if (!foundProtocol) {
     return std::unexpected("Unsupported protocol");
@@ -300,7 +301,7 @@ RequestSerializer::bsRequestFromBinary(uint8_t protocolId,
       return std::unexpected("BS id deserialize error");
     }
 
-    return BsRequest{*imei, *bsId};
+    return MeasurementReportRequest{*imei, *bsId};
   }
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
@@ -328,7 +329,7 @@ RequestSerializer::bsRequestFromBinary(uint8_t protocolId,
       return std::unexpected(*bsIdParseError);
     }
 
-    return BsRequest{imei, bsId};
+    return MeasurementReportRequest{imei, bsId};
   }
   }
 

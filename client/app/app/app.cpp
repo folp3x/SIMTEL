@@ -38,11 +38,11 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
 }
 
 void App::handleLocationUpdate() {
-  auto req = std::make_unique<common::PositionRequest>(ctx.getImsi(),
-                                                       ctx.getLocation());
+  auto req = std::make_unique<common::RrcConnectionRequest>(ctx.getImsi(),
+                                                            ctx.getLocation());
 
   exchange.addRequest(
-      ctx.getProtocol(), common::RequestType::Location_Update, std::move(req),
+      ctx.getProtocol(), common::RequestType::Rrc_Connection, std::move(req),
       [this](std::unique_ptr<common::Request> reqponse,
              const std::string &error) {
         if (!error.empty()) {

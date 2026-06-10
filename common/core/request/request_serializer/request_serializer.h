@@ -2,9 +2,9 @@
 
 #include <optional>
 
-#include "common/core/request/bs_request/bs_request.h"
-#include "common/core/request/position_request/position_request.h"
-#include "common/core/request/signal_request/signal_request.h"
+#include "common/core/request/measurement_control_request/measurement_control_request.h"
+#include "common/core/request/measurement_report_request/measurement_report_reqeust.h"
+#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
 
@@ -15,21 +15,23 @@ private:
 
 public:
   static std::expected<binary_t, std::string>
-  positionRequestToBinary(Protocol protocol, const PositionRequest &req);
+  rrcConnectionToBytes(Protocol protocol, const RrcConnectionRequest &req);
 
-  static std::expected<PositionRequest, std::string>
-  positionRequestFromBinary(uint8_t protocolId, const binary_t &binary);
-
-  static std::expected<binary_t, std::string>
-  signalRequestToBinary(Protocol protocol, const SignalRequest &req);
-
-  static std::expected<SignalRequest, std::string>
-  signalRequestFromBinary(uint8_t protocolId, const binary_t &binary);
+  static std::expected<RrcConnectionRequest, std::string>
+  rrcConnectionFromBytes(uint8_t protocolId, const binary_t &binary);
 
   static std::expected<binary_t, std::string>
-  bsRequestToBinary(Protocol protocol, const BsRequest &req);
+  measurementControlToBytes(Protocol protocol,
+                            const MeasurementControlRequest &req);
 
-  static std::expected<BsRequest, std::string>
-  bsRequestFromBinary(uint8_t protocolId, const binary_t &binary);
+  static std::expected<MeasurementControlRequest, std::string>
+  measurementControlFromBytes(uint8_t protocolId, const binary_t &binary);
+
+  static std::expected<binary_t, std::string>
+  measurementReportToBytes(Protocol protocol,
+                           const MeasurementReportRequest &req);
+
+  static std::expected<MeasurementReportRequest, std::string>
+  measurementReportFromBytes(uint8_t protocolId, const binary_t &binary);
 };
 } // namespace common

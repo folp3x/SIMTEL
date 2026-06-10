@@ -6,8 +6,8 @@
 
 #include "client/core/ue/ue_context/ue_context.h"
 #include "client/network/socket/socket.h"
-#include "common/core/request/position_request/position_request.h"
-#include "common/core/request/signal_request/signal_request.h"
+#include "common/core/request/measurement_control_request/measurement_control_request.h"
+#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 
 namespace client {
 class UeExchange {
@@ -36,12 +36,13 @@ private:
   std::queue<RequestInfo> requests = {};
 
   std::optional<std::string>
-  sendLocationUpdate(const common::PositionRequest &req) const;
+  sendLocationUpdate(const common::RrcConnectionRequest &req) const;
 
-  std::expected<common::SignalRequest, std::string> receiveSignalLevel() const;
+  std::expected<common::MeasurementControlRequest, std::string>
+  receiveSignalLevel() const;
 
   std::expected<std::unique_ptr<common::Request>, std::string>
-  handleLocationUpdateRequest(const common::PositionRequest &req);
+  handleLocationUpdate(const common::RrcConnectionRequest &req);
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);

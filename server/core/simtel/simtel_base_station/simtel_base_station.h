@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "common/core/location/location/location.h"
-#include "common/core/request/position_request/position_request.h"
+#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
 
@@ -42,7 +42,7 @@ public:
 
   common::Location<> getLocation() const;
 
-  void handleLocationUpdate(const common::PositionRequest &clientReq,
+  void handleLocationUpdate(const common::RrcConnectionRequest &req,
                             std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

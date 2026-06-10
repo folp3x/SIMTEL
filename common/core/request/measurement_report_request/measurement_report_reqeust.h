@@ -4,11 +4,11 @@
 #include "common/types.h"
 
 namespace common {
-struct BsRequest : Request {
+struct MeasurementReportRequest : Request {
   imei_t imei = "";
   unsigned int bsId = 0;
 
-  BsRequest(const imei_t &imei_, unsigned int bsId_)
+  MeasurementReportRequest(const imei_t &imei_, unsigned int bsId_)
       : imei(imei_), bsId(bsId_) {}
 };
 } // namespace common

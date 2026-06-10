@@ -14,7 +14,7 @@
 #include "client/core/ue/ue_active/ue_active.h"
 #include "client/core/ue/ue_context/ue_context.h"
 #include "client/core/ue/ue_exchange/ue_exchange.h"
-#include "common/core/request/position_request/position_request.h"
+#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 
 namespace client {
 class App : common::App<Config> {
