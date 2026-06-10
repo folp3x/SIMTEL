@@ -111,6 +111,7 @@ UeExchange::handleLocationUpdate(const common::RrcConnectionRequest &req) {
 
   unsigned int bestSignal = 0;
   unsigned int bestBsId = 0;
+
   bool bsLeft = true;
   while (bsLeft) {
     auto signalResponse = receiveSignalLevel();

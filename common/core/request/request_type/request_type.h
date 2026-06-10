@@ -8,6 +8,8 @@ enum class RequestType : uint8_t {
   Rrc_Connection,
   Measurement_Control,
   Measurement_Report,
+  Rrc_Reconfiguration_Keep,
+  Rrc_Reconfiguration_Handover,
   SM_Transfer,
   SM_Submit,
   MO_Forward_SM,

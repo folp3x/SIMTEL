@@ -24,6 +24,7 @@ private:
 
   static constexpr size_t MSISDN_LENGTH = 11;
   static constexpr char ANY_DIGIT = 'x';
+
   static const std::string MSISDN_FORMAT_STR;
 
   static bool isCorrectJsonPath(std::string_view filePath);

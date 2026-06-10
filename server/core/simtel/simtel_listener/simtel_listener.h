@@ -8,11 +8,11 @@
 namespace server {
 class SimtelListener {
 private:
+  static constexpr int MAX_CLIENT_THREADS = 20;
+
   bool listening = true;
 
   std::unique_ptr<Socket> sock;
-
-  static constexpr int MAX_CLIENT_THREADS = 20;
 
   std::atomic<int> activeThreads{0};
 

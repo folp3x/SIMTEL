@@ -20,6 +20,7 @@ namespace client {
 class App : common::App<Config> {
 private:
   static constexpr unsigned int HANDOVER_SIGNAL_THRESHOLD = 40;
+
   UeContext ctx;
   UeExchange exchange;
 

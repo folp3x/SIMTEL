@@ -49,6 +49,7 @@ std::string toStr(const binary_t &binary) {
   }
 
   constexpr int ONE_BYTE_CHARS = 3;
+
   std::string str;
   str.reserve(binary.size() * ONE_BYTE_CHARS);
   char buf[ONE_BYTE_CHARS];

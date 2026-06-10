@@ -23,7 +23,11 @@ private:
     CallbackType callback{};
   };
 
+  static constexpr unsigned int UNKNOWN_BS_ID = 0;
+
   bool running = true;
+
+  unsigned int curBsId = UNKNOWN_BS_ID;
 
   common::Protocol curProtocol;
 
