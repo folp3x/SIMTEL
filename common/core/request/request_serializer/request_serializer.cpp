@@ -6,15 +6,17 @@
 namespace common {
 std::expected<SocketMessage, std::string>
 RequestSerializer::requestMsgFromBytes(RequestType expectedType,
-                                       const binary_t &binary) {
+                                       const binary_t &binary,
+                                       Protocol &protocol) {
   auto msg = common::socketMessageFromBinary(binary);
   if (!msg) {
     return msg;
   }
-  auto protocol = common::protocolFromNetworkId(msg->header.protocol);
-  if (!protocol) {
+  auto parsedProtocol = common::protocolFromNetworkId(msg->header.protocol);
+  if (!parsedProtocol) {
     return std::unexpected("Unknown protocol");
   }
+  protocol = *parsedProtocol;
   auto reqType = static_cast<common::RequestType>(msg->header.msgType);
   if (reqType != expectedType) {
     return std::unexpected("Location_Update message expected");
@@ -78,26 +80,26 @@ RequestSerializer::rrcConnectionToBytes(Protocol protocol,
 }
 
 std::expected<RrcConnectionRequest, std::string>
-RequestSerializer::rrcConnectionFromBytes(uint8_t protocolId,
-                                          const binary_t &binary) {
-  auto protocol = protocolFromNetworkId(protocolId);
-  if (!protocol) {
-    throw std::unexpected("Unsupported protocol");
+RequestSerializer::rrcConnectionFromBytes(const binary_t &bytes,
+                                          Protocol &protocol) {
+  auto msg = requestMsgFromBytes(RequestType::Rrc_Connection, bytes, protocol);
+  if (!msg) {
+    return std::unexpected(msg.error());
   }
 
-  switch (*protocol) {
+  switch (protocol) {
   case Protocol::BINARY: {
     size_t offset = 0;
-    binary_t imeiBinary(binary.begin() + offset,
-                        binary.begin() + offset + IMEI_BINARY_BYTES);
+    binary_t imeiBinary(msg->content.begin() + offset,
+                        msg->content.begin() + offset + IMEI_BINARY_BYTES);
     auto imei = BinarySerializer::imeiFromBinary(imeiBinary);
     if (!imei) {
       return std::unexpected("IMEI deserialize error");
     }
     offset += IMEI_BINARY_BYTES;
 
-    auto loc =
-        Location<>::fromBinary(binary_t{binary.begin() + offset, binary.end()});
+    auto loc = Location<>::fromBinary(
+        binary_t{msg->content.begin() + offset, msg->content.end()});
     if (!loc) {
       return std::unexpected(loc.error());
     }
@@ -105,7 +107,7 @@ RequestSerializer::rrcConnectionFromBytes(uint8_t protocolId,
     return RrcConnectionRequest{*imei, *loc};
   }
   case Protocol::JSON: {
-    std::string jsonStr = BinarySerializer::strFromBinary(binary);
+    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
 
     auto imei = JsonDeserializer::imeiFromJsonStr(jsonStr);
     if (!imei) {
@@ -167,22 +169,22 @@ RequestSerializer::measurementControlToBytes(
 }
 
 std::expected<MeasurementControlRequest, std::string>
-RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
-                                               const binary_t &binary) {
-  auto foundProtocol = protocolFromNetworkId(protocolId);
-  if (!foundProtocol) {
-    return std::unexpected("Unsupported protocol");
+RequestSerializer::measurementControlFromBytes(const binary_t &bytes) {
+  Protocol protocol;
+  auto msg = requestMsgFromBytes(RequestType::Rrc_Connection, bytes, protocol);
+  if (!msg) {
+    return std::unexpected(msg.error());
   }
 
-  switch (*foundProtocol) {
+  switch (protocol) {
   case Protocol::BINARY: {
     size_t offset = 0;
 
-    if (binary.size() < offset + IMEI_BINARY_BYTES) {
+    if (msg->content.size() < offset + IMEI_BINARY_BYTES) {
       return std::unexpected("Binary too short for IMEI");
     }
-    binary_t imeiBinary(binary.begin() + offset,
-                        binary.begin() + offset + IMEI_BINARY_BYTES);
+    binary_t imeiBinary(msg->content.begin() + offset,
+                        msg->content.begin() + offset + IMEI_BINARY_BYTES);
     auto imei = BinarySerializer::imeiFromBinary(imeiBinary);
     if (!imei) {
       return std::unexpected("IMEI deserialize error");
@@ -190,11 +192,11 @@ RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
     offset += IMEI_BINARY_BYTES;
 
     size_t signalSize = sizeof(decltype(MeasurementControlRequest::signal));
-    if (binary.size() < offset + signalSize) {
+    if (msg->content.size() < offset + signalSize) {
       return std::unexpected("Binary too short for signal");
     }
-    binary_t signalBinary(binary.begin() + offset,
-                          binary.begin() + offset + signalSize);
+    binary_t signalBinary(msg->content.begin() + offset,
+                          msg->content.begin() + offset + signalSize);
     auto signal = BinarySerializer::fromBinary<unsigned int>(signalBinary);
     if (!signal) {
       return std::unexpected("Signal deserialize error");
@@ -202,11 +204,11 @@ RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
     offset += signalSize;
 
     size_t bsIdSize = sizeof(decltype(MeasurementControlRequest::bsId));
-    if (binary.size() < offset + bsIdSize) {
+    if (msg->content.size() < offset + bsIdSize) {
       return std::unexpected("Binary too short for bsId");
     }
-    binary_t bsIdBinary(binary.begin() + offset,
-                        binary.begin() + offset + bsIdSize);
+    binary_t bsIdBinary(msg->content.begin() + offset,
+                        msg->content.begin() + offset + bsIdSize);
     auto bsId = BinarySerializer::fromBinary<unsigned int>(bsIdBinary);
     if (!bsId) {
       return std::unexpected("BS id deserialize error");
@@ -215,7 +217,7 @@ RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
     return MeasurementControlRequest{*imei, *signal, *bsId};
   }
   case Protocol::JSON: {
-    std::string jsonStr = BinarySerializer::strFromBinary(binary);
+    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
 
     auto imei = JsonDeserializer::imeiFromJsonStr(jsonStr);
     if (!imei) {
@@ -280,40 +282,40 @@ RequestSerializer::measurementReportToBytes(
 }
 
 std::expected<MeasurementReportRequest, std::string>
-RequestSerializer::measurementReportFromBytes(uint8_t protocolId,
-                                              const binary_t &binary) {
-  auto foundProtocol = protocolFromNetworkId(protocolId);
-  if (!foundProtocol) {
-    return std::unexpected("Unsupported protocol");
+RequestSerializer::measurementReportFromBytes(const binary_t &bytes) {
+  Protocol protocol;
+  auto msg = requestMsgFromBytes(RequestType::Rrc_Connection, bytes, protocol);
+  if (!msg) {
+    return std::unexpected(msg.error());
   }
 
-  switch (*foundProtocol) {
+  switch (protocol) {
   case Protocol::BINARY: {
     size_t offset = 0;
 
-    if (binary.size() < offset + IMEI_BINARY_BYTES) {
+    if (msg->content.size() < offset + IMEI_BINARY_BYTES) {
       return std::unexpected("Binary too short for IMEI");
     }
-    binary_t imeiBinary(binary.begin() + offset,
-                        binary.begin() + offset + IMEI_BINARY_BYTES);
+    binary_t imeiBinary(msg->content.begin() + offset,
+                        msg->content.begin() + offset + IMEI_BINARY_BYTES);
     auto imei = BinarySerializer::imsiFromBinary(imeiBinary);
     if (!imei) {
       return std::unexpected("IMEI deserialize error");
     }
     offset += IMEI_BINARY_BYTES;
 
-    if (binary.size() < offset + IMSI_BINARY_BYTES) {
+    if (msg->content.size() < offset + IMSI_BINARY_BYTES) {
       return std::unexpected("Binary too short for IMSI");
     }
-    binary_t imsiBinary(binary.begin() + offset,
-                        binary.begin() + offset + IMSI_BINARY_BYTES);
+    binary_t imsiBinary(msg->content.begin() + offset,
+                        msg->content.begin() + offset + IMSI_BINARY_BYTES);
     auto imsi = BinarySerializer::imsiFromBinary(imsiBinary);
     if (!imsi) {
       return std::unexpected("IMSI deserialize error");
     }
     offset += IMSI_BINARY_BYTES;
 
-    binary_t bsIdBinary(binary.begin() + offset, binary.end());
+    binary_t bsIdBinary(msg->content.begin() + offset, msg->content.end());
     auto bsId = BinarySerializer::fromBinary<unsigned int>(bsIdBinary);
     if (!bsId) {
       return std::unexpected("BS id deserialize error");
@@ -322,7 +324,7 @@ RequestSerializer::measurementReportFromBytes(uint8_t protocolId,
     return MeasurementReportRequest{*imei, *imsi, *bsId};
   }
   case Protocol::JSON: {
-    std::string jsonStr = BinarySerializer::strFromBinary(binary);
+    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
 
     auto imei = JsonDeserializer::imeiFromJsonStr(jsonStr);
     if (!imei) {

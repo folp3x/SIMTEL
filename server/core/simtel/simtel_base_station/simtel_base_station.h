@@ -22,7 +22,7 @@ private:
   std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>>
       connectedUe = {};
   common::Location<> location{};
-  const float radius = 0;
+  const float radius = 80;
   const unsigned int id = 0;
 
   std::queue<common::Request> requests{};

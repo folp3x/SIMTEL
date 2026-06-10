@@ -21,31 +21,13 @@ void SimtelBaseStation::handleConnectionRequest(
   ctx->setBs(firstBs);
   ctx->translateMessage();
 
-  auto msg = common::socketMessageFromBinary(firstBs->getBuf());
-  firstBs->clearBuf();
-  if (!msg) {
-    std::cout << msg.error() << std::endl;
-    return;
-  }
-
-  auto protocol = common::protocolFromNetworkId(msg->header.protocol);
-  if (!protocol) {
-    std::cout << "Unsupported protocol" << std::endl;
-    return;
-  }
-  ctx->setProtocol(*protocol);
-
-  auto reqType = static_cast<common::RequestType>(msg->header.msgType);
-  if (reqType != common::RequestType::Rrc_Connection) {
-    std::cout << "Location_Update message expected" << std::endl;
-    return;
-  }
-
+  common::Protocol protocol;
   auto req = common::RequestSerializer::rrcConnectionFromBytes(
-      msg->header.protocol, msg->content);
+      firstBs->getBuf(), protocol);
   if (!req) {
     std::cout << req.error() << std::endl;
   }
+  ctx->setProtocol(protocol);
 
   std::cout << "Location received: " << req->loc.toStr() << std::endl;
 

@@ -79,28 +79,12 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
 
 std::expected<common::MeasurementControlRequest, std::string>
 UeExchange::receiveSignalLevel() const {
-  auto binary = sock.receiveMessage();
-  if (!binary) {
-    return std::unexpected(binary.error());
+  auto bytes = sock.receiveMessage();
+  if (!bytes) {
+    return std::unexpected(bytes.error());
   }
 
-  auto msg = common::socketMessageFromBinary(*binary);
-  if (!msg) {
-    return std::unexpected(msg.error());
-  }
-
-  auto protocol = common::protocolFromNetworkId(msg->header.protocol);
-  if (!protocol) {
-    return std::unexpected("Unknown protocol");
-  }
-
-  auto reqType = static_cast<common::RequestType>(msg->header.msgType);
-  if (reqType != common::RequestType::Measurement_Control) {
-    return std::unexpected("Location_Update message expected");
-  }
-
-  auto req = common::RequestSerializer::measurementControlFromBytes(
-      msg->header.protocol, msg->content);
+  auto req = common::RequestSerializer::measurementControlFromBytes(*bytes);
   if (!req) {
     return std::unexpected(req.error());
   }

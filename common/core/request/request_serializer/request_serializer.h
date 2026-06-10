@@ -20,27 +20,28 @@ private:
                     const binary_t &content);
 
   static std::expected<SocketMessage, std::string>
-  requestMsgFromBytes(RequestType expectedType, const binary_t &binary);
+  requestMsgFromBytes(RequestType expectedType, const binary_t &binary,
+                      Protocol &protocol);
 
 public:
   static std::expected<binary_t, std::string>
   rrcConnectionToBytes(Protocol protocol, const RrcConnectionRequest &req);
 
   static std::expected<RrcConnectionRequest, std::string>
-  rrcConnectionFromBytes(uint8_t protocolId, const binary_t &binary);
+  rrcConnectionFromBytes(const binary_t &bytes, Protocol &protocol);
 
   static std::expected<binary_t, std::string>
   measurementControlToBytes(Protocol protocol,
                             const MeasurementControlRequest &req);
 
   static std::expected<MeasurementControlRequest, std::string>
-  measurementControlFromBytes(uint8_t protocolId, const binary_t &binary);
+  measurementControlFromBytes(const binary_t &bytes);
 
   static std::expected<binary_t, std::string>
   measurementReportToBytes(Protocol protocol,
                            const MeasurementReportRequest &req);
 
   static std::expected<MeasurementReportRequest, std::string>
-  measurementReportFromBytes(uint8_t protocolId, const binary_t &binary);
+  measurementReportFromBytes(const binary_t &bytes);
 };
 } // namespace common
