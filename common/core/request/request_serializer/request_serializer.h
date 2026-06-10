@@ -37,7 +37,7 @@ public:
                             const MeasurementControlRequest &req);
 
   static std::expected<MeasurementControlRequest, std::string>
-  measurementControlFromBytes(const binary_t &bytes);
+  measurementControlFromBytes(const binary_t &bytes, Protocol expectedProtocol);
 
   static std::expected<binary_t, std::string>
   measurementReportToBytes(Protocol protocol,

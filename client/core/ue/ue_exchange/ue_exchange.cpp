@@ -73,13 +73,14 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
 }
 
 std::expected<common::MeasurementControlRequest, std::string>
-UeExchange::receiveSignalLevel() const {
+UeExchange::receiveSignalLevel(common::Protocol protocol) const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
     return std::unexpected(bytes.error());
   }
 
-  auto req = common::RequestSerializer::measurementControlFromBytes(*bytes);
+  auto req =
+      common::RequestSerializer::measurementControlFromBytes(*bytes, protocol);
   if (!req) {
     return std::unexpected(req.error());
   }
@@ -98,7 +99,7 @@ UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
-UeExchange::receiveBsInfo() const {
+UeExchange::receiveBsInfo(common::Protocol protocol) const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
     return std::unexpected(bytes.error());
@@ -106,6 +107,10 @@ UeExchange::receiveBsInfo() const {
   auto msg = common::socketMessageFromBinary(*bytes);
   if (!msg) {
     return std::unexpected(msg.error());
+  }
+  auto parsedProtocol = common::protocolFromNetworkId(msg->header.protocol);
+  if (!parsedProtocol || *parsedProtocol != protocol) {
+    return std::unexpected("Invalid protocol");
   }
 
   auto reqType = static_cast<common::RequestType>(msg->header.msgType);
@@ -134,7 +139,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
   common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
-    auto signalResponse = receiveSignalLevel();
+    auto signalResponse = receiveSignalLevel(info.ctx->getProtocol());
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.signal == 0) {
@@ -158,7 +163,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     return "Failed to send chosen BS id - " + *bsIdSendError;
   }
 
-  auto bsInfoResponse = receiveBsInfo();
+  auto bsInfoResponse = receiveBsInfo(info.ctx->getProtocol());
   if (!bsInfoResponse) {
     return "Failed to receive BS info - " + bsInfoResponse.error();
   }
@@ -175,7 +180,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
              std::to_string(bsKeepResponse->bsId);
     }
   } else {
-    return "Unexpected response type";
+    return "BS rejected connection";
   }
 
   return std::nullopt;

@@ -43,13 +43,13 @@ private:
   sendLocationUpdate(const common::RrcConnectionRequest &req) const;
 
   std::expected<common::MeasurementControlRequest, std::string>
-  receiveSignalLevel() const;
+  receiveSignalLevel(common::Protocol protocol) const;
 
   std::optional<std::string>
   sendChosenBsId(const common::MeasurementReportRequest &req) const;
 
   std::expected<std::unique_ptr<common::Request>, std::string>
-  receiveBsInfo() const;
+  receiveBsInfo(common::Protocol protocol) const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);

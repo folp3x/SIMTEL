@@ -163,12 +163,16 @@ RequestSerializer::measurementControlToBytes(
 }
 
 std::expected<MeasurementControlRequest, std::string>
-RequestSerializer::measurementControlFromBytes(const binary_t &bytes) {
+RequestSerializer::measurementControlFromBytes(const binary_t &bytes,
+                                               Protocol expectedProtocol) {
   Protocol protocol;
   auto msg =
       requestMsgFromBytes(RequestType::Measurement_Control, bytes, protocol);
   if (!msg) {
     return std::unexpected(msg.error());
+  }
+  if (protocol != expectedProtocol) {
+    return std::unexpected("Invalid protocol");
   }
 
   switch (protocol) {
