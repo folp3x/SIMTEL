@@ -33,6 +33,9 @@ private:
   sendSignalLevel(const common::imei_t &imei, unsigned int signalLevel,
                   std::shared_ptr<SimtelUeContext> ctx);
 
+  std::expected<common::RrcConnectionRequest, std::string>
+  receiveLocation(std::shared_ptr<SimtelUeContext> ctx);
+
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 

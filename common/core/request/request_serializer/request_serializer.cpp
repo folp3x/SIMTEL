@@ -8,16 +8,16 @@ std::expected<SocketMessage, std::string>
 RequestSerializer::requestMsgFromBytes(RequestType expectedType,
                                        const binary_t &binary,
                                        Protocol &protocol) {
-  auto msg = common::socketMessageFromBinary(binary);
+  auto msg = socketMessageFromBinary(binary);
   if (!msg) {
     return msg;
   }
-  auto parsedProtocol = common::protocolFromNetworkId(msg->header.protocol);
+  auto parsedProtocol = protocolFromNetworkId(msg->header.protocol);
   if (!parsedProtocol) {
     return std::unexpected("Unknown protocol");
   }
   protocol = *parsedProtocol;
-  auto reqType = static_cast<common::RequestType>(msg->header.msgType);
+  auto reqType = static_cast<RequestType>(msg->header.msgType);
   if (reqType != expectedType) {
     return std::unexpected("Location_Update message expected");
   }

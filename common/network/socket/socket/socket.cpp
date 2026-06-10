@@ -89,7 +89,7 @@ std::optional<std::string> Socket::sendMessage(const binary_t &data) const {
   }
 
   if (data.size() > MAX_MSG_SIZE) {
-    return "Too large message " +
+    return "Message cant be larger than " +
            std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB";
   }
 

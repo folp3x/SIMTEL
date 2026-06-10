@@ -29,9 +29,7 @@ public:
   common::Protocol getProtocol() const;
   void setProtocol(common::Protocol protocol_);
 
-  void translateMessage();
-
-  void resendToUe(const common::binary_t &binary) const;
-  void resendToBs(const common::binary_t &binary) const;
+  void translateToBs();
+  void translateToUe(const common::binary_t &binary) const;
 };
 } // namespace server

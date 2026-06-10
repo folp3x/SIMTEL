@@ -19,15 +19,12 @@ void SimtelBaseStation::handleConnectionRequest(
   // начальное получение данных через 1ую вышку
   auto *firstBs = baseStations.begin()->second.get();
   ctx->setBs(firstBs);
-  ctx->translateMessage();
+  ctx->translateToBs();
 
-  common::Protocol protocol;
-  auto req = common::RequestSerializer::rrcConnectionFromBytes(
-      firstBs->getBuf(), protocol);
+  auto req = firstBs->receiveLocation(ctx);
   if (!req) {
     std::cout << req.error() << std::endl;
   }
-  ctx->setProtocol(protocol);
 
   std::cout << "Location received: " << req->loc.toStr() << std::endl;
 
@@ -63,10 +60,22 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
   }
 
   setBuf(*bytes);
-  ctx->resendToUe(getBuf());
+  ctx->translateToUe(getBuf());
   clearBuf();
 
   return std::nullopt;
+}
+
+std::expected<common::RrcConnectionRequest, std::string>
+SimtelBaseStation::receiveLocation(std::shared_ptr<SimtelUeContext> ctx) {
+  common::Protocol protocol;
+  auto req = common::RequestSerializer::rrcConnectionFromBytes(buf, protocol);
+  clearBuf();
+  if (req) {
+    ctx->setProtocol(protocol);
+  }
+
+  return req;
 }
 
 void SimtelBaseStation::handleLocationUpdate(
