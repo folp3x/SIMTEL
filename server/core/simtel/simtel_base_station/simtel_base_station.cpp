@@ -33,6 +33,7 @@ void SimtelBaseStation::handleConnectionRequest(
     std::cout << "Unsupported protocol" << std::endl;
     return;
   }
+  ctx->setProtocol(*protocol);
 
   auto reqType = static_cast<common::RequestType>(msg->header.msgType);
   if (reqType != common::RequestType::Location_Update) {
@@ -50,7 +51,7 @@ void SimtelBaseStation::handleConnectionRequest(
             << std::endl;
 
   for (const auto &[id, bs] : baseStations) {
-    bs->handleLocationUpdate(*protocol, *req, ctx);
+    bs->handleLocationUpdate(*req, ctx);
   }
 }
 
@@ -69,20 +70,21 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
   return (coef < 0) ? 0 : std::round(coef * 100);
 }
 
-std::optional<std::string> SimtelBaseStation::sendSignalLevel(
-    common::Protocol clientProtocol, const common::imei_t &imei,
-    unsigned int signalLevel, std::shared_ptr<SimtelUeContext> ctx) {
+std::optional<std::string>
+SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
+                                   unsigned int signalLevel,
+                                   std::shared_ptr<SimtelUeContext> ctx) {
   uint8_t requestTypeBinary =
       static_cast<uint8_t>(common::RequestType::Measurement_Control);
 
-  auto protocolId = common::protocolToNetworkId(clientProtocol);
+  auto protocolId = common::protocolToNetworkId(ctx->getProtocol());
   if (!protocolId) {
     return "Unknown protocol";
   }
 
   common::SignalRequest req{imei, signalLevel, id};
   auto serializedReq =
-      common::RequestSerializer::signalRequestToBinary(clientProtocol, req);
+      common::RequestSerializer::signalRequestToBinary(ctx->getProtocol(), req);
   if (!serializedReq) {
     return "Error serializing request: " + serializedReq.error();
   }
@@ -104,14 +106,13 @@ std::optional<std::string> SimtelBaseStation::sendSignalLevel(
 }
 
 void SimtelBaseStation::handleLocationUpdate(
-    common::Protocol clientProtocol, const common::PositionRequest &clientReq,
+    const common::PositionRequest &clientReq,
     std::shared_ptr<SimtelUeContext> ctx) {
   unsigned int signalLevel = measureSignal(clientReq.loc);
   std::cout << "Signal level to IMSI" << clientReq.imei << ": " << signalLevel
             << std::endl;
 
-  auto error =
-      sendSignalLevel(clientProtocol, clientReq.imei, signalLevel, ctx);
+  auto error = sendSignalLevel(clientReq.imei, signalLevel, ctx);
   if (error) {
     std::cout << *error << std::endl;
     return;

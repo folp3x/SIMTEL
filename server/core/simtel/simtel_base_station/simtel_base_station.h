@@ -30,8 +30,7 @@ private:
   unsigned int measureSignal(const common::Location<> &targetLoc) const;
 
   std::optional<std::string>
-  sendSignalLevel(common::Protocol clientProtocol, const common::imei_t &imei,
-                  unsigned int signalLevel,
+  sendSignalLevel(const common::imei_t &imei, unsigned int signalLevel,
                   std::shared_ptr<SimtelUeContext> ctx);
 
 public:
@@ -43,8 +42,7 @@ public:
 
   common::Location<> getLocation() const;
 
-  void handleLocationUpdate(common::Protocol clientProtocol,
-                            const common::PositionRequest &clientReq,
+  void handleLocationUpdate(const common::PositionRequest &clientReq,
                             std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

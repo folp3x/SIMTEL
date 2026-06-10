@@ -26,6 +26,9 @@ public:
 
   void setBs(SimtelBaseStation *bs_);
 
+  common::Protocol getProtocol() const;
+  void setProtocol(common::Protocol protocol_);
+
   void translateMessage();
 
   void resendToUe(const common::binary_t &binary) const;

@@ -15,6 +15,12 @@ void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
 
+common::Protocol SimtelUeContext::getProtocol() const { return protocol; }
+
+void SimtelUeContext::setProtocol(common::Protocol protocol_) {
+  protocol = protocol_;
+}
+
 void SimtelUeContext::translateMessage() {
   auto binary = sock->receiveMessage();
   if (binary) {
