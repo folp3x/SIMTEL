@@ -20,7 +20,6 @@ protected:
 
   // опции для получения параметров конфигурации
   CLI::Option *portOpt = nullptr;
-  CLI::Option *locOpt = nullptr;
 
   std::vector<CLI::Option *> configOpts = {};
 
@@ -28,9 +27,8 @@ protected:
 
   explicit CLIParser(const std::string &appTitle);
 
-  void initPortOption();
-  void initLocOption();
-  void initConfigFileOption();
+  void initPortOpt();
+  void initConfigFileOpt();
 
   virtual void initOptions();
 

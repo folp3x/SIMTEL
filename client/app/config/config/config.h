@@ -13,6 +13,9 @@ private:
 
   std::string addressBookFilePath = "";
 
+  common::coords_t<> loc = {0};
+  bool locationSet = false;
+
 public:
   virtual bool isInitialized() const override;
 
@@ -27,5 +30,8 @@ public:
 
   std::string getAddressBookFilePath() const;
   void setAddressBookFilePath(const std::string &addressBookFilePath_);
+
+  common::coords_t<> getLoc() const;
+  void setLoc(const common::coords_t<> &loc_);
 };
 } // namespace client

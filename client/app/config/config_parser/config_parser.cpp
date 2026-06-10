@@ -32,12 +32,20 @@ void ConfigParser::initAddressBookFilePathField() {
       client::Validator::isCorrectAddressBookFilePath);
 }
 
+void ConfigParser::initLocField() {
+  this->template addParsedArray<float,
+                                common::constants::LOCATION_COORDS_COUNT>(
+      "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); },
+      nlohmann::json::value_t::number_float);
+}
+
 void ConfigParser::initFields() {
   common::ConfigParser<Config>::initFields();
   initImeiField();
   initImsiField();
   initIpField();
   initAddressBookFilePathField();
+  initLocField();
 }
 
 std::unique_ptr<ConfigParser> ConfigParser::create() {

@@ -16,7 +16,6 @@ protected:
   ConfigParser() = default;
 
   void initPortField();
-  void initLocField();
 
   virtual void initFields() override;
 

@@ -3,7 +3,7 @@
 namespace client {
 bool Config::isInitialized() const {
   return common::Config::isInitialized() && !imei.empty() && !imsi.empty() &&
-         !ip.empty();
+         !ip.empty() && locationSet;
 }
 
 std::string Config::getImei() const { return imei; }
@@ -24,5 +24,12 @@ std::string Config::getAddressBookFilePath() const {
 
 void Config::setAddressBookFilePath(const std::string &addressBookFilePath_) {
   addressBookFilePath = addressBookFilePath_;
+}
+
+common::coords_t<> Config::getLoc() const { return loc; }
+
+void Config::setLoc(const common::coords_t<> &loc_) {
+  loc = loc_;
+  locationSet = true;
 }
 } // namespace client

@@ -13,6 +13,7 @@ private:
   void initImsiField();
   void initIpField();
   void initAddressBookFilePathField();
+  void initLocField();
 
   virtual void initFields() override;
 

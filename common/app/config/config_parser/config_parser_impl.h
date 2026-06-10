@@ -9,15 +9,8 @@ template <std::derived_from<Config> T> void ConfigParser<T>::initPortField() {
       nlohmann::json::value_t::number_unsigned, Validator::isCorrectPort);
 }
 
-template <std::derived_from<Config> T> void ConfigParser<T>::initLocField() {
-  this->template addParsedArray<float, constants::LOCATION_COORDS_COUNT>(
-      "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); },
-      nlohmann::json::value_t::number_float);
-}
-
 template <std::derived_from<Config> T> void ConfigParser<T>::initFields() {
   initPortField();
-  initLocField();
 }
 
 template <std::derived_from<Config> T>
