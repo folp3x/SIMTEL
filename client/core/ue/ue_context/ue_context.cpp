@@ -4,17 +4,18 @@ namespace client {
 UeContext::UeContext(common::Location<> &location_, const common::imsi_t &imsi_,
                      const common::imei_t &imei_,
                      const common::NetworkAddress &serverAddr_)
-    : location(location_), imsi(imsi_), imei(imei_), serverAddr(serverAddr_) {}
+    : location(location_), imsi(imsi_), imei(imei_), mTimsi(imsi_),
+      serverAddr(serverAddr_) {}
 
 common::imsi_t UeContext::getImsi() const { return imsi; }
 
 common::imei_t UeContext::getImei() const { return imei; }
 
-common::imsi_t UeContext::getMtimsi() const { return mtimsi; }
+common::imsi_t UeContext::getMTimsi() const { return mTimsi; }
 
-void UeContext::setMtmsi(const std::string &mtmsi_) {
-  if (!mtimsi.empty()) {
-    mtimsi = mtmsi_;
+void UeContext::setMTimsi(const std::string &mTmsi_) {
+  if (!mTimsi.empty()) {
+    mTimsi = mTmsi_;
   }
 }
 

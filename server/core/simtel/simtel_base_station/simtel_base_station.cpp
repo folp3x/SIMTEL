@@ -120,6 +120,23 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
   return std::nullopt;
 }
 
+std::optional<std::string>
+SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
+                                  std::shared_ptr<SimtelUeContext> ctx) {
+  common::RrcReconfigurationHandoverRequest req{mTmsi, ttl, id};
+  auto bytes = common::RequestSerializer::rrcReconfigurationHandoverToBytes(
+      ctx->getProtocol(), req);
+  if (!bytes) {
+    return bytes.error();
+  }
+
+  setBuf(*bytes);
+  ctx->translateToUe(getBuf());
+  clearBuf();
+
+  return std::nullopt;
+}
+
 void SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &req,
     std::shared_ptr<SimtelUeContext> ctx) {
@@ -150,17 +167,18 @@ void SimtelBaseStation::handleLocationUpdate(
   std::cout << "imei_" << ueImei << " chose BS: " << chosenBsReq->bsId
             << std::endl;
 
-  std::cout << 1 << std::endl;
-
-  auto curBsId = ctx->getBsId();
-  if (curBsId && chosenBsReq->bsId == *curBsId) {
-    std::cout << 2 << std::endl;
+  auto curBs = ctx->getBs();
+  if (curBs && curBs->getId() == chosenBsReq->bsId &&
+      curBs->ueConnected(chosenBsReq->imsi)) {
     auto bsKeepSendError = sendBsKeep(ueImei, ctx);
     if (bsKeepSendError) {
       std::cout << "Error sending BS keep info: " << *bsKeepSendError
                 << std::endl;
     }
-    std::cout << 3 << std::endl;
   }
+}
+
+bool SimtelBaseStation::ueConnected(const common::imsi_t &imsi) {
+  return connectedUe.find(imsi) != connectedUe.end();
 }
 } // namespace server

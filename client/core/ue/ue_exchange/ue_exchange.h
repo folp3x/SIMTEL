@@ -21,11 +21,7 @@ private:
     CallbackType callback{};
   };
 
-  static constexpr unsigned int UNKNOWN_BS_ID = 0;
-
   bool running = true;
-
-  unsigned int curBsId = UNKNOWN_BS_ID;
 
   common::Protocol curProtocol;
 
@@ -54,7 +50,8 @@ private:
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);
 
-  std::optional<std::string> handleLocationUpdate(const RequestInfo &info);
+  std::expected<std::unique_ptr<common::Request>, std::string>
+  handleLocationUpdate(const RequestInfo &info);
 
   void handleRequests();
 

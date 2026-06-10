@@ -13,6 +13,8 @@
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
+#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
+#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/utils/str/str.h"
 
 namespace client {
@@ -45,6 +47,14 @@ void App::handleLocationUpdate() {
              const std::string &error) {
         if (!error.empty()) {
           messages.push({"Error: " + error, common::MenuMessageType::ERR});
+          return;
+        }
+
+        if (auto *bsHandoverResponse =
+                dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
+                    response.get())) {
+          ctx->setMTimsi(bsHandoverResponse->mTimsi);
+          messages.push({"Handover. m-timsi set: " + ctx->getMTimsi()});
         }
       });
 }

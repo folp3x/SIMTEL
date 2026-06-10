@@ -15,7 +15,7 @@ private:
 
   common::Location<> location;
 
-  common::imsi_t mtimsi = "";
+  common::imsi_t mTimsi = "";
 
   bool inActive = false;
   common::Protocol protocol = common::Protocol::JSON;
@@ -29,8 +29,8 @@ public:
 
   common::imei_t getImei() const;
 
-  common::imsi_t getMtimsi() const;
-  void setMtmsi(const std::string &mtmsi_);
+  common::imsi_t getMTimsi() const;
+  void setMTimsi(const std::string &mtmsi_);
 
   common::Location<> getLocation() const;
   template <typename T> void updateLocation(const std::vector<T> &coords);

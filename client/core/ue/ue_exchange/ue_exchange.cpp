@@ -27,9 +27,11 @@ void UeExchange::handleRequests() {
 
     switch (info.type) {
     case common::RequestType::Rrc_Connection: {
-      auto error = handleLocationUpdate(info);
-      if (error) {
-        info.callback(nullptr, *error);
+      auto result = handleLocationUpdate(info);
+      if (!result) {
+        info.callback(nullptr, result.error());
+      } else {
+        info.callback(std::move(*result), "");
       }
       break;
     }
@@ -122,18 +124,24 @@ UeExchange::receiveBsInfo(common::Protocol protocol) const {
     }
 
     return std::make_unique<common::RrcReconfigurationKeepRequest>(*req);
+  } else if (reqType == common::RequestType::Rrc_Reconfiguration_Handover) {
+    auto req =
+        common::RequestSerializer::rrcReconfigurationHandoverFromBytes(*bytes);
+    if (!req) {
+      return std::unexpected(req.error());
+    }
   }
 
   return std::unexpected("Unexpected request type");
 }
 
-std::optional<std::string>
+std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
   common::RrcConnectionRequest locationReq{info.ctx->getImei(),
                                            info.ctx->getLocation()};
   auto locationSendError = sendLocationUpdate(locationReq);
   if (locationSendError) {
-    return "Failed to send location - " + *locationSendError;
+    return std::unexpected("Failed to send location - " + *locationSendError);
   }
 
   common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
@@ -143,7 +151,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.signal == 0) {
-        return "BS not found";
+        return std::unexpected("BS not found");
       }
     } else {
       if (signalResponse->imei != info.ctx->getImei()) {
@@ -160,12 +168,13 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
       info.ctx->getImei(), info.ctx->getImsi(), bestSignalResponse.bsId};
   auto bsIdSendError = sendChosenBsId(chosenBsReq);
   if (bsIdSendError) {
-    return "Failed to send chosen BS id - " + *bsIdSendError;
+    return std::unexpected("Failed to send chosen BS id - " + *bsIdSendError);
   }
 
   auto bsInfoResponse = receiveBsInfo(info.ctx->getProtocol());
   if (!bsInfoResponse) {
-    return "Failed to receive BS info - " + bsInfoResponse.error();
+    return std::unexpected("Failed to receive BS info - " +
+                           bsInfoResponse.error());
   }
   auto response = std::move(*bsInfoResponse);
 
@@ -174,16 +183,24 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
               response.get())) {
     if (bsKeepResponse->bsId == bestSignalResponse.bsId) {
       signalLevel = bestSignalResponse.signal;
-      curBsId = bsKeepResponse->bsId;
     } else {
-      return "Unexpected BS id in info: " +
-             std::to_string(bsKeepResponse->bsId);
+      return std::unexpected("Unexpected BS id in info: " +
+                             std::to_string(bsKeepResponse->bsId));
+    }
+  } else if (auto *bsHandoverResponse =
+                 dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
+                     response.get())) {
+    if (bsKeepResponse->bsId == bestSignalResponse.bsId) {
+      signalLevel = bestSignalResponse.signal;
+    } else {
+      return std::unexpected("Unexpected BS id in info: " +
+                             std::to_string(bsKeepResponse->bsId));
     }
   } else {
-    return "BS rejected connection";
+    return std::unexpected("BS rejected connection");
   }
 
-  return std::nullopt;
+  return response;
 }
 
 void UeExchange::closeConnection() {

@@ -15,12 +15,7 @@ common::imsi_t SimtelUeContext::getImsi() const { return imsi; }
 
 void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
-std::optional<unsigned int> SimtelUeContext::getBsId() const {
-  if (bs) {
-    return bs->getId();
-  }
-  return std::nullopt;
-}
+SimtelBaseStation *SimtelUeContext::getBs() const { return bs; }
 
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
 

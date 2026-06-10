@@ -24,7 +24,7 @@ public:
   common::imsi_t getImsi() const;
   void setImsi(const common::imsi_t &imsi_);
 
-  std::optional<unsigned int> getBsId() const;
+  SimtelBaseStation *getBs() const;
   void setBs(SimtelBaseStation *bs_);
 
   common::Protocol getProtocol() const;

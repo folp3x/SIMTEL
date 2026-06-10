@@ -19,12 +19,14 @@ private:
   static std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
       baseStations;
 
+  const unsigned int ttl = 30;
+  const float radius = 80;
+  const unsigned int id = 0;
+
   common::binary_t buf = {};
   std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>>
       connectedUe = {};
   common::Location<> location{};
-  const float radius = 80;
-  const unsigned int id = 0;
 
   std::queue<common::Request> requests{};
 
@@ -43,6 +45,10 @@ private:
   std::optional<std::string> sendBsKeep(const common::imei_t &imei,
                                         std::shared_ptr<SimtelUeContext> ctx);
 
+  std::optional<std::string>
+  sendBsHandover(const common::imei_t &mTmsi,
+                 std::shared_ptr<SimtelUeContext> ctx);
+
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 
@@ -56,5 +62,7 @@ public:
 
   void handleLocationUpdate(const common::RrcConnectionRequest &req,
                             std::shared_ptr<SimtelUeContext> ctx);
+
+  bool ueConnected(const common::imsi_t &imsi);
 };
 } // namespace server
