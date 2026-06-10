@@ -43,7 +43,7 @@ void App::handleLocationUpdate() {
 
   exchange.addRequest(
       ctx.getProtocol(), common::RequestType::Location_Update, std::move(req),
-      [this](const std::optional<common::Request> &result,
+      [this](std::unique_ptr<common::Request> reqponse,
              const std::string &error) {
         if (!error.empty()) {
           messages.push({"Error sending location to server: " + error,

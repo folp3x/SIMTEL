@@ -18,48 +18,21 @@ void UeExchange::handleRequests() {
       info = std::move(requests.front());
       requests.pop();
     }
+    curProtocol = info.protocol;
 
+    std::string error;
     if (info.type == common::RequestType::Location_Update) {
       if (auto *posReq =
               dynamic_cast<common::PositionRequest *>(info.req.get())) {
-        auto error = sendLocationUpdate(info.protocol, *posReq);
-        if (error) {
-          info.callback(std::nullopt, *error);
-          continue;
-        }
-
-        unsigned int bestSignal = 0;
-        unsigned int bestBsId = 0;
-        bool bsLeft = true;
-        while (bsLeft) {
-          auto req = receiveSignalLevel();
-          if (!req) {
-            bsLeft = false;
-            if (bestSignal == 0) {
-              info.callback(std::nullopt, "BS search error: " + req.error());
-            }
-          } else {
-            if (req->imei != posReq->imei) {
-              continue;
-            }
-
-            if (req->signal > bestSignal) {
-              bestSignal = req->signal;
-              bestBsId = req->bsId;
-            }
-          }
-        }
-
-        {
-          std::lock_guard lock(signalLevelMtx);
-          signalLevel = bestSignal;
-        }
-
-        info.callback(std::nullopt, "");
+        handleLocationUpdateRequest(*posReq);
+      } else {
+        error = "Invalid request type";
       }
     } else {
-      info.callback(std::nullopt, "Unknown request type");
+      info.callback(nullptr, "Unknown request type");
     }
+
+    info.callback(nullptr, error);
   }
 }
 
@@ -87,15 +60,14 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 }
 
 std::optional<std::string>
-UeExchange::sendLocationUpdate(common::Protocol protocol,
-                               const common::PositionRequest &req) const {
+UeExchange::sendLocationUpdate(const common::PositionRequest &req) const {
   auto serializedReq =
-      common::RequestSerializer::positionRequestToBinary(protocol, req);
+      common::RequestSerializer::positionRequestToBinary(curProtocol, req);
   if (!serializedReq) {
     return "Error serizliaing request: " + serializedReq.error();
   }
 
-  auto protocolId = protocolToNetworkId(protocol);
+  auto protocolId = protocolToNetworkId(curProtocol);
   if (!protocolId) {
     return "Unsupported protocol";
   }
@@ -143,6 +115,43 @@ UeExchange::receiveSignalLevel() const {
   }
 
   return *req;
+}
+
+std::expected<std::unique_ptr<common::Request>, std::string>
+UeExchange::handleLocationUpdateRequest(const common::PositionRequest &req) {
+  auto error = sendLocationUpdate(req);
+  if (error) {
+    return std::unexpected(*error);
+  }
+
+  unsigned int bestSignal = 0;
+  unsigned int bestBsId = 0;
+  bool bsLeft = true;
+  while (bsLeft) {
+    auto signalResponse = receiveSignalLevel();
+    if (!signalResponse) {
+      bsLeft = false;
+      if (bestSignal == 0) {
+        return std::unexpected("BS search error: " + signalResponse.error());
+      }
+    } else {
+      if (signalResponse->imei != signalResponse->imei) {
+        continue;
+      }
+
+      if (signalResponse->signal > bestSignal) {
+        bestSignal = signalResponse->signal;
+        bestBsId = signalResponse->bsId;
+      }
+    }
+  }
+
+  {
+    std::lock_guard lock(signalLevelMtx);
+    signalLevel = bestSignal;
+  }
+
+  return nullptr;
 }
 
 void UeExchange::closeConnection() {
