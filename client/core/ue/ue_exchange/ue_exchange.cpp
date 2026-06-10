@@ -1,9 +1,7 @@
 #include "ue_exchange.h"
 
 #include "common/core/request/request_serializer/request_serializer.h"
-#include "common/core/request/request_type/request_type.h"
 #include "common/network/socket/socket_message/socket_message.h"
-#include "common/types.h"
 
 namespace client {
 UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
@@ -71,29 +69,12 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 
 std::optional<std::string>
 UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
-  auto serializedReq =
+  auto bytes =
       common::RequestSerializer::rrcConnectionToBytes(curProtocol, req);
-  if (!serializedReq) {
-    return serializedReq.error();
+  if (!bytes) {
+    return bytes.error();
   }
-
-  auto protocolId = protocolToNetworkId(curProtocol);
-  if (!protocolId) {
-    return "Unsupported protocol";
-  }
-
-  uint8_t requestTypeBinary =
-      static_cast<uint8_t>(common::RequestType::Rrc_Connection);
-  common::SocketMessage msg{{static_cast<uint32_t>(serializedReq->size()),
-                             *protocolId, requestTypeBinary},
-                            *serializedReq};
-
-  auto serializedMsg = common::socketMessagetoBinary(msg);
-  if (!serializedMsg) {
-    return serializedMsg.error();
-  }
-
-  return sock.sendMessage(*serializedMsg);
+  return sock.sendMessage(*bytes);
 }
 
 std::expected<common::MeasurementControlRequest, std::string>
@@ -129,29 +110,12 @@ UeExchange::receiveSignalLevel() const {
 
 std::optional<std::string>
 UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
-  auto serializedReq =
+  auto bytes =
       common::RequestSerializer::measurementReportToBytes(curProtocol, req);
-  if (!serializedReq) {
-    return serializedReq.error();
+  if (!bytes) {
+    return bytes.error();
   }
-
-  auto protocolId = protocolToNetworkId(curProtocol);
-  if (!protocolId) {
-    return "Unsupported protocol";
-  }
-
-  uint8_t requestTypeBinary =
-      static_cast<uint8_t>(common::RequestType::Measurement_Report);
-  common::SocketMessage msg{{static_cast<uint32_t>(serializedReq->size()),
-                             *protocolId, requestTypeBinary},
-                            *serializedReq};
-
-  auto serializedMsg = common::socketMessagetoBinary(msg);
-  if (!serializedMsg) {
-    return serializedMsg.error();
-  }
-
-  return sock.sendMessage(*serializedMsg);
+  return sock.sendMessage(*bytes);
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>

@@ -73,31 +73,14 @@ std::optional<std::string>
 SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
                                    unsigned int signalLevel,
                                    std::shared_ptr<SimtelUeContext> ctx) {
-  uint8_t requestTypeBinary =
-      static_cast<uint8_t>(common::RequestType::Measurement_Control);
-
-  auto protocolId = common::protocolToNetworkId(ctx->getProtocol());
-  if (!protocolId) {
-    return "Unknown protocol";
-  }
-
   common::MeasurementControlRequest req{imei, signalLevel, id};
-  auto serializedReq = common::RequestSerializer::measurementControlToBytes(
+  auto bytes = common::RequestSerializer::measurementControlToBytes(
       ctx->getProtocol(), req);
-  if (!serializedReq) {
-    return serializedReq.error();
+  if (!bytes) {
+    return bytes.error();
   }
 
-  common::SocketMessage msg{{static_cast<uint32_t>(serializedReq->size()),
-                             *protocolId, requestTypeBinary},
-                            *serializedReq};
-
-  auto serializedMsg = common::socketMessagetoBinary(msg);
-  if (!serializedMsg) {
-    return serializedMsg.error();
-  }
-
-  setBuf(*serializedMsg);
+  setBuf(*bytes);
   ctx->resendToUe(getBuf());
   clearBuf();
 

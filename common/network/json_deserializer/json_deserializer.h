@@ -15,10 +15,10 @@ private:
                    const std::string &jsonStr);
 
 public:
-  static std::expected<common::imei_t, std::string>
+  static std::expected<imei_t, std::string>
   imeiFromJsonStr(const std::string &str);
 
-  static std::expected<common::imsi_t, std::string>
+  static std::expected<imsi_t, std::string>
   imsiFromJsonStr(const std::string &str);
 
   static std::expected<unsigned int, std::string>

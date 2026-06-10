@@ -1,8 +1,44 @@
 #include "request_serializer.h"
 
 #include "common/network/json_deserializer/json_deserializer.h"
+#include "common/network/socket/socket_message/socket_message.h"
 
 namespace common {
+std::expected<SocketMessage, std::string>
+RequestSerializer::requestMsgFromBytes(RequestType expectedType,
+                                       const binary_t &binary) {
+  auto msg = common::socketMessageFromBinary(binary);
+  if (!msg) {
+    return msg;
+  }
+  auto protocol = common::protocolFromNetworkId(msg->header.protocol);
+  if (!protocol) {
+    return std::unexpected("Unknown protocol");
+  }
+  auto reqType = static_cast<common::RequestType>(msg->header.msgType);
+  if (reqType != expectedType) {
+    return std::unexpected("Location_Update message expected");
+  }
+
+  return msg;
+}
+
+std::expected<binary_t, std::string>
+RequestSerializer::requestToMsgBytes(Protocol protocol, RequestType reqType,
+                                     const binary_t &content) {
+  auto protocolId = protocolToNetworkId(protocol);
+  if (!protocolId) {
+    return std::unexpected("Unsupported protocol");
+  }
+
+  uint8_t requestTypeBinary = static_cast<uint8_t>(RequestType::Rrc_Connection);
+  SocketMessage msg{
+      {static_cast<uint32_t>(content.size()), *protocolId, requestTypeBinary},
+      content};
+
+  return socketMessagetoBinary(msg);
+}
+
 std::expected<binary_t, std::string>
 RequestSerializer::rrcConnectionToBytes(Protocol protocol,
                                         const RrcConnectionRequest &req) {
@@ -38,7 +74,7 @@ RequestSerializer::rrcConnectionToBytes(Protocol protocol,
     return std::unexpected("Unsupported protocol");
   }
 
-  return content;
+  return requestToMsgBytes(protocol, RequestType::Rrc_Connection, content);
 }
 
 std::expected<RrcConnectionRequest, std::string>
@@ -114,10 +150,8 @@ RequestSerializer::measurementControlToBytes(
     break;
   }
   case Protocol::JSON: {
-    nlohmann::json jsonObj;
-    jsonObj["imei"] = req.imei;
-    jsonObj["signal"] = req.signal;
-    jsonObj["bsId"] = req.bsId;
+    nlohmann::json jsonObj = nlohmann::json{
+        {"imei", req.imei}, {"signal", req.signal}, {"bsId", req.bsId}};
 
     std::string jsonStr = jsonObj.dump();
     content = BinarySerializer::strToBinary(jsonStr);
@@ -129,7 +163,7 @@ RequestSerializer::measurementControlToBytes(
     return std::unexpected("Unsupported protocol");
   }
 
-  return content;
+  return requestToMsgBytes(protocol, RequestType::Measurement_Control, content);
 }
 
 std::expected<MeasurementControlRequest, std::string>
@@ -229,10 +263,8 @@ RequestSerializer::measurementReportToBytes(
     break;
   }
   case Protocol::JSON: {
-    nlohmann::json jsonObj;
-    jsonObj["imsi"] = req.imei;
-    jsonObj["imsi"] = req.imsi;
-    jsonObj["bsId"] = req.bsId;
+    nlohmann::json jsonObj = nlohmann::json{
+        {"imei", req.imei}, {"imsi", req.imei}, {"bsId", req.bsId}};
 
     std::string jsonStr = jsonObj.dump();
     content = BinarySerializer::strToBinary(jsonStr);
@@ -244,7 +276,7 @@ RequestSerializer::measurementReportToBytes(
     return std::unexpected("Unsupported protocol");
   }
 
-  return content;
+  return requestToMsgBytes(protocol, RequestType::Measurement_Report, content);
 }
 
 std::expected<MeasurementReportRequest, std::string>

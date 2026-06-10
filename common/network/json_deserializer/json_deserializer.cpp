@@ -1,16 +1,14 @@
 #include "json_deserializer.h"
 
 namespace common {
-std::expected<common::imei_t, std::string>
+std::expected<imei_t, std::string>
 JsonDeserializer::imeiFromJsonStr(const std::string &str) {
-  return deserializeValue<common::imei_t>("imei",
-                                          nlohmann::json::value_t::string, str);
+  return deserializeValue<imei_t>("imei", nlohmann::json::value_t::string, str);
 }
 
-std::expected<common::imsi_t, std::string>
+std::expected<imsi_t, std::string>
 JsonDeserializer::imsiFromJsonStr(const std::string &str) {
-  return deserializeValue<common::imsi_t>("imsi",
-                                          nlohmann::json::value_t::string, str);
+  return deserializeValue<imsi_t>("imsi", nlohmann::json::value_t::string, str);
 }
 
 std::expected<unsigned int, std::string>

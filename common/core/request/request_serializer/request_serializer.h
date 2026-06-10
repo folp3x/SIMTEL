@@ -6,6 +6,7 @@
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
+#include "common/network/socket/socket_message/socket_message.h"
 #include "common/types.h"
 
 namespace common {
@@ -13,6 +14,13 @@ class RequestSerializer {
 private:
   static constexpr size_t IMEI_BINARY_BYTES = 8;
   static constexpr size_t IMSI_BINARY_BYTES = 8;
+
+  static std::expected<binary_t, std::string>
+  requestToMsgBytes(Protocol protocol, RequestType reqType,
+                    const binary_t &content);
+
+  static std::expected<SocketMessage, std::string>
+  requestMsgFromBytes(RequestType expectedType, const binary_t &binary);
 
 public:
   static std::expected<binary_t, std::string>
