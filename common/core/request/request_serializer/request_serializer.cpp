@@ -1,5 +1,7 @@
 #include "request_serializer.h"
 
+#include "common/network/json_deserializer/json_deserializer.h"
+
 namespace common {
 std::expected<binary_t, std::string>
 RequestSerializer::rrcConnectionToBytes(Protocol protocol,
@@ -52,7 +54,6 @@ RequestSerializer::rrcConnectionFromBytes(uint8_t protocolId,
     size_t offset = 0;
     binary_t imeiBinary(binary.begin() + offset,
                         binary.begin() + offset + IMEI_BINARY_BYTES);
-
     auto imei = BinarySerializer::imeiFromBinary(imeiBinary);
     if (!imei) {
       return std::unexpected("IMEI deserialize error");
@@ -70,15 +71,9 @@ RequestSerializer::rrcConnectionFromBytes(uint8_t protocolId,
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
 
-    imei_t imei;
-    auto imeiInfo = std::make_unique<JsonFieldInfo<imei_t>>(
-        "imei", [&](const imei_t &imei_) { imei = imei_; },
-        nlohmann::json::value_t::string);
-
-    auto imeiParseError =
-        JsonParser<imei_t>::parseField(std::move(imeiInfo), jsonStr);
-    if (imeiParseError) {
-      return std::unexpected(*imeiParseError);
+    auto imei = JsonDeserializer::imeiFromJsonStr(jsonStr);
+    if (!imei) {
+      return std::unexpected(imei.error());
     }
 
     auto loc = Location<>::fromJsonStr(jsonStr);
@@ -86,7 +81,7 @@ RequestSerializer::rrcConnectionFromBytes(uint8_t protocolId,
       return std::unexpected(loc.error());
     }
 
-    return RrcConnectionRequest{imei, *loc};
+    return RrcConnectionRequest{*imei, *loc};
   }
   }
 
@@ -103,12 +98,10 @@ RequestSerializer::measurementControlToBytes(
     if (!imei) {
       return std::unexpected("IMEI serialize error");
     }
-
     auto signal = BinarySerializer::toBinary(req.signal);
     if (!signal) {
       return std::unexpected("Signal serialize error");
     }
-
     auto bsId = BinarySerializer::toBinary(req.bsId);
     if (!bsId) {
       return std::unexpected("BS id serialize error");
@@ -154,7 +147,6 @@ RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
     if (binary.size() < offset + IMEI_BINARY_BYTES) {
       return std::unexpected("Binary too short for IMEI");
     }
-
     binary_t imeiBinary(binary.begin() + offset,
                         binary.begin() + offset + IMEI_BINARY_BYTES);
     auto imei = BinarySerializer::imeiFromBinary(imeiBinary);
@@ -191,41 +183,20 @@ RequestSerializer::measurementControlFromBytes(uint8_t protocolId,
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
 
-    imei_t imei;
-    unsigned int signal;
-    unsigned int bsId;
-
-    auto imeiInfo = std::make_unique<JsonFieldInfo<imei_t>>(
-        "imei", [&](const imei_t &imei_) { imei = imei_; },
-        nlohmann::json::value_t::string);
-
-    auto imeiParseError =
-        JsonParser<imei_t>::parseField(std::move(imeiInfo), jsonStr);
-    if (imeiParseError) {
-      return std::unexpected(*imeiParseError);
+    auto imei = JsonDeserializer::imeiFromJsonStr(jsonStr);
+    if (!imei) {
+      return std::unexpected(imei.error());
+    }
+    auto signal = JsonDeserializer::signalFromJsonStr(jsonStr);
+    if (!signal) {
+      return std::unexpected(signal.error());
+    }
+    auto bsId = JsonDeserializer::bsIdFromJsonStr(jsonStr);
+    if (!bsId) {
+      return std::unexpected(bsId.error());
     }
 
-    auto signalInfo = std::make_unique<JsonFieldInfo<unsigned int>>(
-        "signal", [&](const unsigned int &signal_) { signal = signal_; },
-        nlohmann::json::value_t::number_unsigned);
-
-    auto signalParseError =
-        JsonParser<unsigned int>::parseField(std::move(signalInfo), jsonStr);
-    if (signalParseError) {
-      return std::unexpected(*signalParseError);
-    }
-
-    auto bsIdInfo = std::make_unique<JsonFieldInfo<unsigned int>>(
-        "bsId", [&](const unsigned int &bsId_) { bsId = bsId_; },
-        nlohmann::json::value_t::number_unsigned);
-
-    auto bsIdParseError =
-        JsonParser<unsigned int>::parseField(std::move(bsIdInfo), jsonStr);
-    if (bsIdParseError) {
-      return std::unexpected(*bsIdParseError);
-    }
-
-    return MeasurementControlRequest{imei, signal, bsId};
+    return MeasurementControlRequest{*imei, *signal, *bsId};
   }
   }
 
@@ -238,23 +209,28 @@ RequestSerializer::measurementReportToBytes(
   binary_t content;
   switch (protocol) {
   case Protocol::BINARY: {
+    auto imei = BinarySerializer::imeiToBinary(req.imei);
+    if (!imei) {
+      return std::unexpected("IMEI serialize error");
+    }
     auto imsi = BinarySerializer::imsiToBinary(req.imsi);
     if (!imsi) {
       return std::unexpected("IMEI serialize error");
     }
-
     auto bsId = BinarySerializer::toBinary(req.bsId);
     if (!bsId) {
       return std::unexpected("BS id serialize error");
     }
 
     content.reserve(imsi->size() + bsId->size());
+    content.insert(content.end(), imei->begin(), imei->end());
     content.insert(content.end(), imsi->begin(), imsi->end());
     content.insert(content.end(), bsId->begin(), bsId->end());
     break;
   }
   case Protocol::JSON: {
     nlohmann::json jsonObj;
+    jsonObj["imsi"] = req.imei;
     jsonObj["imsi"] = req.imsi;
     jsonObj["bsId"] = req.bsId;
 
@@ -283,15 +259,25 @@ RequestSerializer::measurementReportFromBytes(uint8_t protocolId,
   case Protocol::BINARY: {
     size_t offset = 0;
 
+    if (binary.size() < offset + IMEI_BINARY_BYTES) {
+      return std::unexpected("Binary too short for IMEI");
+    }
+    binary_t imeiBinary(binary.begin() + offset,
+                        binary.begin() + offset + IMEI_BINARY_BYTES);
+    auto imei = BinarySerializer::imsiFromBinary(imeiBinary);
+    if (!imei) {
+      return std::unexpected("IMEI deserialize error");
+    }
+    offset += IMEI_BINARY_BYTES;
+
     if (binary.size() < offset + IMSI_BINARY_BYTES) {
       return std::unexpected("Binary too short for IMSI");
     }
-
     binary_t imsiBinary(binary.begin() + offset,
-                        binary.begin() + offset + IMEI_BINARY_BYTES);
+                        binary.begin() + offset + IMSI_BINARY_BYTES);
     auto imsi = BinarySerializer::imsiFromBinary(imsiBinary);
     if (!imsi) {
-      return std::unexpected("IMEI deserialize error");
+      return std::unexpected("IMSI deserialize error");
     }
     offset += IMSI_BINARY_BYTES;
 
@@ -301,35 +287,25 @@ RequestSerializer::measurementReportFromBytes(uint8_t protocolId,
       return std::unexpected("BS id deserialize error");
     }
 
-    return MeasurementReportRequest{*imsi, *bsId};
+    return MeasurementReportRequest{*imei, *imsi, *bsId};
   }
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(binary);
 
-    imsi_t imsi;
-    unsigned int bsId = 0;
-
-    auto imeiInfo = std::make_unique<JsonFieldInfo<imei_t>>(
-        "imsi", [&](const imsi_t &imsi_) { imsi = imsi_; },
-        nlohmann::json::value_t::string);
-
-    auto imsiParseError =
-        JsonParser<imsi_t>::parseField(std::move(imeiInfo), jsonStr);
-    if (imsiParseError) {
-      return std::unexpected(*imsiParseError);
+    auto imei = JsonDeserializer::imeiFromJsonStr(jsonStr);
+    if (!imei) {
+      return std::unexpected(imei.error());
+    }
+    auto imsi = JsonDeserializer::imsiFromJsonStr(jsonStr);
+    if (!imsi) {
+      return std::unexpected(imsi.error());
+    }
+    auto bsId = JsonDeserializer::bsIdFromJsonStr(jsonStr);
+    if (!bsId) {
+      return std::unexpected(bsId.error());
     }
 
-    auto bsIdInfo = std::make_unique<JsonFieldInfo<unsigned int>>(
-        "bsId", [&](const unsigned int &bsId_) { bsId = bsId_; },
-        nlohmann::json::value_t::number_unsigned);
-
-    auto bsIdParseError =
-        JsonParser<unsigned int>::parseField(std::move(bsIdInfo), jsonStr);
-    if (bsIdParseError) {
-      return std::unexpected(*bsIdParseError);
-    }
-
-    return MeasurementReportRequest{imsi, bsId};
+    return MeasurementReportRequest{*imei, *imsi, *bsId};
   }
   }
 

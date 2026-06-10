@@ -1,7 +1,6 @@
 #pragma once
 
 #include <queue>
-#include <string>
 
 #include "common/app/menu/menu_message/menu_message.h"
 

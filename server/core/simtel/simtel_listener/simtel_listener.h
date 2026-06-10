@@ -25,6 +25,6 @@ public:
 
   void handleClients();
 
-  void stopListening();
+  void stop();
 };
 } // namespace server

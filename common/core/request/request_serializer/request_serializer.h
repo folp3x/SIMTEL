@@ -3,7 +3,7 @@
 #include <optional>
 
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
-#include "common/core/request/measurement_report_request/measurement_report_reqeust.h"
+#include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"

@@ -10,7 +10,7 @@
 namespace server {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
-    listener.stopListening();
+    listener.stop();
 
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
@@ -30,21 +30,10 @@ App::App(const common::NetworkAddress &addr)
 }
 
 void App::run() {
-  messages = {};
-
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
 
-  std::thread clientsHandler{[this]() { listener.handleClients(); }};
-
-  menu.showMenuHeaderLine();
   menu.showStatus();
-  menu.showMenuHeaderLine();
-
-  while (true) {
-    menu.showMessages(messages);
-  }
-
-  clientsHandler.join();
+  listener.handleClients();
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }

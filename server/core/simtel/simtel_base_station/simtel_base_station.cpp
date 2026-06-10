@@ -24,7 +24,7 @@ void SimtelBaseStation::handleConnectionRequest(
   auto msg = common::socketMessageFromBinary(firstBs->getBuf());
   firstBs->clearBuf();
   if (!msg) {
-    std::cout << "Error parsing message: " << msg.error() << std::endl;
+    std::cout << msg.error() << std::endl;
     return;
   }
 
@@ -44,11 +44,10 @@ void SimtelBaseStation::handleConnectionRequest(
   auto req = common::RequestSerializer::rrcConnectionFromBytes(
       msg->header.protocol, msg->content);
   if (!req) {
-    std::cout << "Error parsing request: " << req.error() << std::endl;
+    std::cout << req.error() << std::endl;
   }
 
-  std::cout << "Location received from client: " << req->loc.toStr()
-            << std::endl;
+  std::cout << "Location received: " << req->loc.toStr() << std::endl;
 
   for (const auto &[id, bs] : baseStations) {
     bs->handleLocationUpdate(*req, ctx);
@@ -86,7 +85,7 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
   auto serializedReq = common::RequestSerializer::measurementControlToBytes(
       ctx->getProtocol(), req);
   if (!serializedReq) {
-    return "Error serializing request: " + serializedReq.error();
+    return serializedReq.error();
   }
 
   common::SocketMessage msg{{static_cast<uint32_t>(serializedReq->size()),
@@ -95,7 +94,7 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
 
   auto serializedMsg = common::socketMessagetoBinary(msg);
   if (!serializedMsg) {
-    return "Error serializing message" + serializedMsg.error();
+    return serializedMsg.error();
   }
 
   setBuf(*serializedMsg);
@@ -109,7 +108,7 @@ void SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &req,
     std::shared_ptr<SimtelUeContext> ctx) {
   unsigned int signalLevel = measureSignal(req.loc);
-  std::cout << "Signal level to IMSI" << req.imei << ": " << signalLevel
+  std::cout << "Signal level to IMEI" << req.imei << ": " << signalLevel
             << std::endl;
 
   auto error = sendSignalLevel(req.imei, signalLevel, ctx);

@@ -10,26 +10,36 @@ UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
     : serverAddr(serverAddr_) {}
 
 void UeExchange::handleRequests() {
-  while (true) {
+  while (running) {
     RequestInfo info{};
     {
       std::unique_lock lock(requestsMtx);
-      requestsCv.wait(lock, [this] { return !requests.empty() && connected; });
+      requestsCv.wait(
+          lock, [this] { return !requests.empty() && connected || !running; });
+
+      if (!running) {
+        break;
+      }
+
       info = std::move(requests.front());
       requests.pop();
     }
+
     curProtocol = info.protocol;
 
     std::string error;
     if (info.type == common::RequestType::Rrc_Connection) {
       if (auto *req =
               dynamic_cast<common::RrcConnectionRequest *>(info.req.get())) {
-        handleLocationUpdate(*req);
+        auto result = handleLocationUpdate(*req);
+        if (!result) {
+          info.callback(nullptr, result.error());
+        }
       } else {
         error = "Invalid request type";
       }
     } else {
-      info.callback(nullptr, "Unknown request type");
+      error = "Unknown request type";
     }
 
     info.callback(nullptr, error);
@@ -64,7 +74,7 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
   auto serializedReq =
       common::RequestSerializer::rrcConnectionToBytes(curProtocol, req);
   if (!serializedReq) {
-    return "Error serizliaing request: " + serializedReq.error();
+    return serializedReq.error();
   }
 
   auto protocolId = protocolToNetworkId(curProtocol);
@@ -80,7 +90,7 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
 
   auto serializedMsg = common::socketMessagetoBinary(msg);
   if (!serializedMsg) {
-    return "Error serializing message: " + serializedMsg.error();
+    return serializedMsg.error();
   }
 
   return sock.sendMessage(*serializedMsg);
@@ -95,7 +105,7 @@ UeExchange::receiveSignalLevel() const {
 
   auto msg = common::socketMessageFromBinary(*binary);
   if (!msg) {
-    return std::unexpected("Error parsing message: " + msg.error());
+    return std::unexpected(msg.error());
   }
 
   auto protocol = common::protocolFromNetworkId(msg->header.protocol);
@@ -111,10 +121,37 @@ UeExchange::receiveSignalLevel() const {
   auto req = common::RequestSerializer::measurementControlFromBytes(
       msg->header.protocol, msg->content);
   if (!req) {
-    return std::unexpected("Error parsing request: " + req.error());
+    return std::unexpected(req.error());
   }
 
   return *req;
+}
+
+std::optional<std::string>
+UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
+  auto serializedReq =
+      common::RequestSerializer::measurementReportToBytes(curProtocol, req);
+  if (!serializedReq) {
+    return serializedReq.error();
+  }
+
+  auto protocolId = protocolToNetworkId(curProtocol);
+  if (!protocolId) {
+    return "Unsupported protocol";
+  }
+
+  uint8_t requestTypeBinary =
+      static_cast<uint8_t>(common::RequestType::Measurement_Report);
+  common::SocketMessage msg{{static_cast<uint32_t>(serializedReq->size()),
+                             *protocolId, requestTypeBinary},
+                            *serializedReq};
+
+  auto serializedMsg = common::socketMessagetoBinary(msg);
+  if (!serializedMsg) {
+    return serializedMsg.error();
+  }
+
+  return sock.sendMessage(*serializedMsg);
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
@@ -132,10 +169,10 @@ UeExchange::handleLocationUpdate(const common::RrcConnectionRequest &req) {
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignal == 0) {
-        return std::unexpected("BS search error: " + signalResponse.error());
+        return std::unexpected("BS not found");
       }
     } else {
-      if (signalResponse->imei != signalResponse->imei) {
+      if (signalResponse->imei != req.imei) {
         continue;
       }
 
@@ -162,5 +199,11 @@ void UeExchange::closeConnection() {
 unsigned int UeExchange::getSignalLevel() const {
   std::lock_guard lock(signalLevelMtx);
   return signalLevel;
+}
+
+void UeExchange::stop() {
+  running = false;
+  requestsCv.notify_all();
+  closeConnection();
 }
 } // namespace client

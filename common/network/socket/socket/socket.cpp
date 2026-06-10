@@ -14,10 +14,14 @@ std::optional<std::string> Socket::sendAll(const void *data,
 
   while (size > 0) {
     ssize_t sent = send(sock, ptr, size, MSG_NOSIGNAL);
-    if (sent < 0)
+    if (sent < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        return "Send timeout";
+      }
       return getLastError();
-    if (sent == 0)
+    } else if (sent == 0) {
       return "Connection closed";
+    }
 
     ptr += sent;
     size -= sent;
@@ -104,12 +108,16 @@ std::expected<binary_t, std::string> Socket::receiveMessage() const {
   // чтение заголовка
   ssize_t received =
       recv(sock, header.data(), header.size(), MSG_WAITALL | MSG_NOSIGNAL);
-  if (received < 0)
+  if (received < 0) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return std::unexpected("Receive timeout");
+    }
     return std::unexpected(getLastError());
-  if (received == 0)
+  } else if (received == 0) {
     return std::unexpected("Connection closed");
-  if (received != header.size())
+  } else if (received != header.size()) {
     return std::unexpected("Incomplete header");
+  }
 
   auto in = zpp::bits::in(header);
   uint32_t msgSize = 0;

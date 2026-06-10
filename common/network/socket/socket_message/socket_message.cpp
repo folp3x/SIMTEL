@@ -27,7 +27,7 @@ socketMessageFromBinary(const binary_t &binary) {
 std::expected<binary_t, std::string>
 socketMessagetoBinary(const SocketMessage &msg) {
   auto parsedHeader = socketMessageHeaderToBinary(msg.header);
-  if (parsedHeader) {
+  if (!parsedHeader) {
     return std::unexpected(parsedHeader.error());
   }
   binary_t result = std::move(*parsedHeader);

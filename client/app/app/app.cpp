@@ -17,7 +17,7 @@
 namespace client {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
-    exchange.closeConnection();
+    exchange.stop();
 
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
@@ -234,6 +234,7 @@ void App::run() {
     }
   }
 
+  exchange.stop();
   requestsHandler.join();
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");

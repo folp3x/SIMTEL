@@ -4,6 +4,6 @@
 
 namespace server {
 void Menu::showStatus() const {
-  common::printColored("Processing clients...", rang::fg::cyan);
+  common::printColored("Server started", rang::fg::cyan);
 }
 } // namespace server

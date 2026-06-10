@@ -46,7 +46,7 @@ void SimtelListener::handleClients() {
   }
 }
 
-void SimtelListener::stopListening() {
+void SimtelListener::stop() {
   listening = false;
   sock->closeSock();
 }

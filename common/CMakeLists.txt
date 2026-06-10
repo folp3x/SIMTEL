@@ -19,6 +19,7 @@ set(SOURCES_LIST
 	"network/binary_serializer/binary_serializer.cpp"
 	"network/socket/socket_message_header/socker_message_header.cpp"
 	"network/socket/socket_message/socket_message.cpp"
+	"network/json_deserializer/json_deserializer.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
