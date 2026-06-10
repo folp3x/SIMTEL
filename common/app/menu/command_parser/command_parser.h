@@ -18,9 +18,6 @@ protected:
 
   virtual ArgsParsersMap getArgsParsers() const = 0;
 
-  static std::unique_ptr<MenuItem>
-  parseExitArgs(const std::vector<std::string> &args, std::string &extraMsg);
-
 public:
   virtual ~CommandParser() = default;
 

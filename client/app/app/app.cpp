@@ -7,9 +7,10 @@
 #include <thread>
 
 #include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
+#include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "client/network/socket/socket.h"
-#include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
+#include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/utils/str/str.h"
@@ -158,7 +159,7 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
     messages.push(
         {"Error! " + invalidCmd->getError(), common::MenuMessageType::ERR});
     isCorrectCommand = false;
-  } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
     logCommandProcess(cmdNameUpper);
     messages.push({"Exiting app..."});
     exit = true;
@@ -176,6 +177,9 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
     messages.push({"RECEIVED"});
   } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
     messages.push({"DIALOG"});
+  } else if (auto *emptyCmd =
+                 dynamic_cast<common::MenuItemEmpty *>(cmd.get())) {
+    return;
   }
 
   if (isCorrectCommand) {

@@ -3,6 +3,7 @@
 #include "common/app/menu/command_parser/command_parser.h"
 
 #include "client/app/menu/command_info/command_info.h"
+#include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "client/app/menu/menu_item/menu_item_received/menu_item_received.h"
 #include "client/app/menu/menu_item/menu_item_sent/menu_item_sent.h"
 
@@ -10,7 +11,7 @@ namespace client {
 class CommandParser : public common::CommandParser {
 private:
   const CommandParser::ArgsParsersMap argsParsers = {
-      {"exit", common::CommandParser::parseExitArgs},
+      {"exit", parseExitArgs},
       {"active", parseActiveArgs},
       {"move", parseMoveArgs<>},
       {"protocol", parseProtocolArgs},
@@ -20,6 +21,9 @@ private:
       {"dialog", parseDialogArgs}};
 
   virtual CommandParser::ArgsParsersMap getArgsParsers() const override;
+
+  static std::unique_ptr<common::MenuItem>
+  parseExitArgs(const std::vector<std::string> &args, std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
   parseActiveArgs(const std::vector<std::string> &args, std::string &extraMsg);

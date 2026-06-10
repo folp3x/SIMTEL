@@ -16,6 +16,16 @@ CommandParser::ArgsParsersMap CommandParser::getArgsParsers() const {
 }
 
 std::unique_ptr<common::MenuItem>
+CommandParser::parseExitArgs(const std::vector<std::string> &args,
+                             std::string &extraMsg) {
+  if (args.size() > MenuItemExit::getArgsCount()) {
+    extraMsg = "Extra arguments ignored";
+  }
+
+  return std::make_unique<MenuItemExit>();
+}
+
+std::unique_ptr<common::MenuItem>
 CommandParser::parseActiveArgs(const std::vector<std::string> &args,
                                std::string &extraMsg) {
   if (args.empty()) {

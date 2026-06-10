@@ -9,7 +9,7 @@ set(SOURCES_LIST
 	"utils/network/network.cpp"
 	"network/network_address/network_address.cpp"
 	"app/config/config/config.cpp"
-	"app/menu/menu_item/menu_item_exit/menu_item_exit.cpp"
+	"app/menu/menu_item/menu_item_empty/menu_item_empty.cpp"
 	"app/menu/menu_item/menu_item_invalid/menu_item_invalid.cpp"
 	"app/menu/command_parser/command_parser.cpp"
 	"network/socket/socket/socket.cpp"
@@ -20,6 +20,7 @@ set(SOURCES_LIST
 	"network/socket/socket_message_header/socker_message_header.cpp"
 	"network/socket/socket_message/socket_message.cpp"
 	"network/json_deserializer/json_deserializer.cpp"
+	"app/menu/menu_item/menu_item_empty/menu_item_empty.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
