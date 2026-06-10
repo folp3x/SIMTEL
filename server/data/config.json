@@ -3,16 +3,13 @@
   "loc": [ 1 ],
   "bsFilePath": "nodes.json",
   "epcFilePath": "eps.json",
-  "mmeConfig": [
-    {
-      "id": "1",
+  "mmeConfig": {
       "tmsiGeneration": {
         "type": "autoincrement",
         "reuseStrategy": "fifo"
       },
       "maxVlrSize": 20
-    }
-  ],
+  },
   "smscConfig": {
     "smsSegment_bytes": 140,
     "buf_bytes": 1024,
