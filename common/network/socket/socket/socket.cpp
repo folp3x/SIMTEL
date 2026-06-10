@@ -31,7 +31,7 @@ std::string Socket::getLastError() {
   return error.message();
 }
 
-sockaddr_in Socket::toSockAddr(const common::NetworkAddress &address) {
+sockaddr_in Socket::toSockAddr(const NetworkAddress &address) {
   sockaddr_in sockAddr;
   sockAddr.sin_family = PF_INET;
   sockAddr.sin_port = htons(address.getPort());

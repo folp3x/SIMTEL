@@ -12,14 +12,14 @@ namespace common {
 template <typename T = float, size_t S = constants::LOCATION_COORDS_COUNT>
 class Location {
 private:
-  common::coords_t<T, S> coords = {0};
+  coords_t<T, S> coords = {0};
 
   void logOperation(const std::string &operationName,
-                    const common::coords_t<T, S> &coords) const;
+                    const coords_t<T, S> &coords) const;
 
 public:
   Location() = default;
-  explicit Location(const common::coords_t<T, S> &coords_);
+  explicit Location(const coords_t<T, S> &coords_);
   Location(const Location &other);
   Location &operator=(const Location &other);
   Location(Location &&other) noexcept;
@@ -34,7 +34,7 @@ public:
 
   bool coordsEqual(const std::vector<T> &otherCoords) const;
 
-  common::coords_t<T, S> getCoords() const;
+  coords_t<T, S> getCoords() const;
 
   size_t getCoordsCount() const;
 

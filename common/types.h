@@ -12,8 +12,7 @@ using imei_t = std::string;
 using imsi_t = std::string;
 using msisdn_t = std::string;
 
-template <typename T = float,
-          size_t S = common::constants::LOCATION_COORDS_COUNT>
+template <typename T = float, size_t S = constants::LOCATION_COORDS_COUNT>
   requires std::is_arithmetic_v<T>
 using coords_t = std::array<T, S>;
 

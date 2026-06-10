@@ -3,7 +3,7 @@
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
 
 namespace common {
-class MenuItemInvalid : public common::MenuItem {
+class MenuItemInvalid : public MenuItem {
 private:
   const std::string error = "";
 

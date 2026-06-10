@@ -11,15 +11,14 @@
 namespace common {
 template <typename T, size_t S>
 void Location<T, S>::logOperation(const std::string &operationName,
-                                  const common::coords_t<T, S> &coords) const {
-  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+                                  const coords_t<T, S> &coords) const {
+  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
                       "common::Location {} called: coords={}", operationName,
                       common::toStr(coords.begin(), coords.end()));
 }
 
 template <typename T, size_t S>
-Location<T, S>::Location(const common::coords_t<T, S> &coords_)
-    : coords(coords_) {}
+Location<T, S>::Location(const coords_t<T, S> &coords_) : coords(coords_) {}
 
 template <typename T, size_t S>
 Location<T, S>::Location(const Location &other) : coords(other.coords) {
@@ -67,7 +66,7 @@ void Location<T, S>::move(const Container &newCoords) {
 }
 
 template <typename T, size_t S> std::string Location<T, S>::toStr() const {
-  int precision = 4;
+  constexpr unsigned int precision = 4;
   return common::toStr(coords.begin(), coords.end(), precision, '(', ')');
 }
 
@@ -85,7 +84,7 @@ bool Location<T, S>::coordsEqual(const std::vector<T> &otherCoords) const {
 }
 
 template <typename T, size_t S>
-common::coords_t<T, S> Location<T, S>::getCoords() const {
+coords_t<T, S> Location<T, S>::getCoords() const {
   return coords;
 }
 
@@ -103,7 +102,7 @@ Location<T, S>::fromJsonStr(const std::string &str) {
   Location<T, S> loc{};
   auto locInfo =
       std::make_unique<JsonArrayInfo<float, constants::LOCATION_COORDS_COUNT>>(
-          "loc", [&](const common::coords_t<> &coords) { loc.move(coords); },
+          "loc", [&](const coords_t<> &coords) { loc.move(coords); },
           nlohmann::json::value_t::number_float);
 
   auto error = JsonParser<coords_t<>>::parseField(std::move(locInfo), str);

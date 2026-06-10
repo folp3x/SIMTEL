@@ -6,7 +6,7 @@ void JsonFieldInfo<T>::logConstructor(const std::string &constructorType,
                                       const std::string &name,
                                       nlohmann::json::value_t type) const {
   SPDLOG_LOGGER_DEBUG(
-      common::Logger::instance().getInner(),
+      Logger::instance().getInner(),
       "common::JsonFieldInfo {} constructor called: name={}, type={}",
       constructorType, name, jsonTypeToStr(type));
 }

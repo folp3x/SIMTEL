@@ -47,7 +47,7 @@ std::string toStr(Iterator begin, Iterator end,
 
   for (auto it = begin; it != end; ++it) {
     if constexpr (std::is_floating_point_v<U>) {
-      str += common::toStr<U>(*it, precision);
+      str += toStr<U>(*it, precision);
     } else {
       str += std::to_string(*it);
     }

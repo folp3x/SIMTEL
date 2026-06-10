@@ -24,7 +24,7 @@ protected:
 
   static std::string getLastError();
 
-  static sockaddr_in toSockAddr(const common::NetworkAddress &address);
+  static sockaddr_in toSockAddr(const NetworkAddress &address);
 
   static std::expected<int, std::string> initSock();
 

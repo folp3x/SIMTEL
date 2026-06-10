@@ -6,7 +6,7 @@ void JsonArrayInfo<T, S>::logConstructor(
     const std::string &constructorType, const std::string &name,
     nlohmann::json::value_t elemType) const {
   SPDLOG_LOGGER_DEBUG(
-      common::Logger::instance().getInner(),
+      Logger::instance().getInner(),
       "common::JsonArrayInfo {} constructor called: name={}, type={}",
       constructorType, name, jsonTypeToStr(elemType));
 }

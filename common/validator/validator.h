@@ -42,10 +42,10 @@ public:
   static std::string isCorrectIpStr(const std::string &ipStr);
   static std::string isCorrectPort(int port);
   static std::string isCorrectPortStr(const std::string &portStr);
-  static std::string isCorrectIMEI(const common::imei_t &imei);
-  static std::string isCorrectIMSI(const common::imsi_t &imsi);
+  static std::string isCorrectIMEI(const imei_t &imei);
+  static std::string isCorrectIMSI(const imsi_t &imsi);
   static std::string isCorrectConfigPath(const std::string &filePath);
-  static std::string isCorrectMsisdn(const common::msisdn_t &msisdn);
+  static std::string isCorrectMsisdn(const msisdn_t &msisdn);
   static std::string
   isCorrectSpeedDialNumStr(const std::string &speedDialNumStr);
 };

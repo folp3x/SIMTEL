@@ -17,7 +17,7 @@ public:
   inline void showMenuHeaderLine() const;
 
   inline void showMessage(const MenuMessage &msg) const;
-  void showMessages(std::priority_queue<common::MenuMessage> &messages) const;
+  void showMessages(std::priority_queue<MenuMessage> &messages) const;
 };
 } // namespace common
 

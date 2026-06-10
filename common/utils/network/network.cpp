@@ -25,7 +25,7 @@ std::expected<uint64_t, std::string> parseIP(const std::string &str) {
 }
 
 std::expected<uint16_t, std::string> parsePort(const std::string &str) {
-  auto portParseResult = common::fromString<float>(str);
+  auto portParseResult = fromString<float>(str);
 
   if (portParseResult) {
     double port = *portParseResult;
