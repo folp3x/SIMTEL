@@ -66,3 +66,5 @@ std::string toStr(const binary_t &binary) {
   return str;
 }
 } // namespace common
+
+#include "network_impl.h"

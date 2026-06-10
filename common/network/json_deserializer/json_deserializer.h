@@ -16,16 +16,19 @@ private:
 
 public:
   static std::expected<imei_t, std::string>
-  imeiFromJsonStr(const std::string &str);
+  imeiFromJsonStr(const std::string &str, const std::string &name = "imei");
 
   static std::expected<imsi_t, std::string>
-  imsiFromJsonStr(const std::string &str);
+  imsiFromJsonStr(const std::string &str, const std::string &name = "imsi");
 
   static std::expected<unsigned int, std::string>
-  signalFromJsonStr(const std::string &str);
+  signalFromJsonStr(const std::string &str, const std::string &name = "signal");
 
   static std::expected<unsigned int, std::string>
-  bsIdFromJsonStr(const std::string &str);
+  bsIdFromJsonStr(const std::string &str, const std::string &name = "bsId");
+
+  static std::expected<unsigned int, std::string>
+  ttlFromJsonStr(const std::string &str, const std::string &name = "ttl");
 };
 } // namespace common
 
