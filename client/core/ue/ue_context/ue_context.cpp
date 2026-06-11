@@ -1,25 +1,24 @@
 #include "ue_context.h"
 
 namespace client {
-UeContext::UeContext(common::Location<> &location_, const common::imsi_t &imsi_,
-                     const common::imei_t &imei_,
+UeContext::UeContext(const common::imsi_t &imsi, const common::imei_t &imei,
+                     common::Location<> &location,
                      const common::NetworkAddress &serverAddr_)
-    : location(location_), imsi(imsi_), imei(imei_), mTimsi(imsi_),
-      serverAddr(serverAddr_) {}
+    : state(imsi, imei, location), serverAddr(serverAddr_) {}
 
-common::imsi_t UeContext::getImsi() const { return imsi; }
+common::imsi_t UeContext::getImsi() const { return state.imsi; }
 
-common::imei_t UeContext::getImei() const { return imei; }
+common::imei_t UeContext::getImei() const { return state.imei; }
 
-common::imsi_t UeContext::getMTimsi() const { return mTimsi; }
+common::imsi_t UeContext::getMTimsi() const { return state.mTimsi; }
 
 void UeContext::setMTimsi(const std::string &mTmsi_) {
-  if (!mTimsi.empty()) {
-    mTimsi = mTmsi_;
+  if (!state.mTimsi.empty()) {
+    state.mTimsi = mTmsi_;
   }
 }
 
-common::Location<> UeContext::getLocation() const { return location; }
+common::Location<> UeContext::getLocation() const { return state.location; }
 
 common::NetworkAddress UeContext::getServerAddr() const { return serverAddr; }
 
@@ -27,9 +26,11 @@ bool UeContext::isInActive() const { return inActive; }
 
 void UeContext::setInActive(bool inActive_) { inActive = inActive_; }
 
-common::Protocol UeContext::getProtocol() const { return protocol; }
+common::Protocol UeContext::getProtocol() const { return state.protocol; }
 
 void UeContext::setProtocol(common::Protocol protocol_) {
-  protocol = protocol_;
+  state.protocol = protocol_;
 }
+
+UeState UeContext::getState() const { return state; }
 } // namespace client

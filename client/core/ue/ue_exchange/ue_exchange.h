@@ -3,7 +3,7 @@
 #include <functional>
 #include <queue>
 
-#include "client/core/ue/ue_context/ue_context.h"
+#include "client/core/ue/ue_state/ue_state.h"
 #include "client/network/socket/socket.h"
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
@@ -16,8 +16,8 @@ private:
                                           const std::string &)>;
 
   struct RequestInfo {
-    std::shared_ptr<const UeContext> ctx;
-    common::RequestType type;
+    UeState state;
+    common::RequestType type = common::RequestType::Unknown;
     CallbackType callback{};
   };
 
@@ -39,13 +39,13 @@ private:
   sendLocationUpdate(const common::RrcConnectionRequest &req) const;
 
   std::expected<common::MeasurementControlRequest, std::string>
-  receiveSignalLevel(common::Protocol protocol) const;
+  receiveSignalLevel() const;
 
   std::optional<std::string>
   sendChosenBsId(const common::MeasurementReportRequest &req) const;
 
   std::expected<std::unique_ptr<common::Request>, std::string>
-  receiveBsInfo(common::Protocol protocol) const;
+  receiveBsInfo() const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);
@@ -55,8 +55,8 @@ public:
 
   void handleRequests();
 
-  void addRequest(std::shared_ptr<const UeContext> ctx,
-                  common::RequestType type, const CallbackType &callback);
+  void addRequest(const UeState &state, common::RequestType type,
+                  const CallbackType &callback);
 
   std::optional<std::string> updateConnection(bool ueActive);
 

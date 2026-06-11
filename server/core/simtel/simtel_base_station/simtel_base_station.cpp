@@ -62,10 +62,9 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
   }
 
   setBuf(*bytes);
-  ctx->translateToUe(getBuf());
-  clearBuf();
+  auto translateError = ctx->translateToUe();
 
-  return std::nullopt;
+  return translateError;
 }
 
 std::expected<common::RrcConnectionRequest, std::string>
@@ -114,8 +113,7 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
   }
 
   setBuf(*bytes);
-  ctx->translateToUe(getBuf());
-  clearBuf();
+  auto translateError = ctx->translateToUe();
 
   return std::nullopt;
 }
@@ -131,10 +129,9 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
   }
 
   setBuf(*bytes);
-  ctx->translateToUe(getBuf());
-  clearBuf();
+  auto translateError = ctx->translateToUe();
 
-  return std::nullopt;
+  return translateError;
 }
 
 void SimtelBaseStation::handleLocationUpdate(

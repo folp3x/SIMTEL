@@ -3,6 +3,6 @@
 namespace client {
 template <typename T>
 void UeContext::updateLocation(const std::vector<T> &coords) {
-  location.move(coords);
+  state.location.move(coords);
 }
 } // namespace client

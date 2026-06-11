@@ -1,28 +1,19 @@
 #pragma once
 
-#include "common/core/location/location/location.h"
-#include "common/network/network_address/network_address.h"
-#include "common/network/protocol/protocol.h"
-#include "common/types.h"
+#include "client/core/ue/ue_state/ue_state.h"
 
 namespace client {
 class UeContext {
 private:
-  const common::imsi_t imsi = "";
-  const common::imei_t imei = "";
+  UeState state;
 
   const common::NetworkAddress serverAddr;
 
-  common::Location<> location;
-
-  common::imsi_t mTimsi = "";
-
   bool inActive = false;
-  common::Protocol protocol = common::Protocol::JSON;
 
 public:
-  UeContext(common::Location<> &location_, const common::imsi_t &imsi_,
-            const common::imei_t &imei_,
+  UeContext(const common::imsi_t &imsi, const common::imei_t &imei,
+            common::Location<> &location,
             const common::NetworkAddress &serverAddr_);
 
   common::imsi_t getImsi() const;
@@ -42,6 +33,8 @@ public:
 
   common::Protocol getProtocol() const;
   void setProtocol(common::Protocol protocol_);
+
+  UeState getState() const;
 };
 } // namespace client
 

@@ -31,6 +31,6 @@ public:
   void setProtocol(common::Protocol protocol_);
 
   std::optional<std::string> translateToBs();
-  void translateToUe(const common::binary_t &binary) const;
+  std::optional<std::string> translateToUe() const;
 };
 } // namespace server

@@ -9,21 +9,19 @@ UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
 
 void UeExchange::handleRequests() {
   while (running) {
-    RequestInfo info{};
-    {
-      std::unique_lock lock(requestsMtx);
-      requestsCv.wait(
-          lock, [this] { return !requests.empty() && connected || !running; });
+    std::unique_lock lock(requestsMtx);
+    requestsCv.wait(
+        lock, [this] { return !requests.empty() && connected || !running; });
 
-      if (!running) {
-        break;
-      }
-
-      info = std::move(requests.front());
-      requests.pop();
+    if (!running) {
+      break;
     }
 
-    curProtocol = info.ctx->getProtocol();
+    RequestInfo info = requests.front();
+    requests.pop();
+    lock.unlock();
+
+    curProtocol = info.state.protocol;
 
     switch (info.type) {
     case common::RequestType::Rrc_Connection: {
@@ -41,12 +39,11 @@ void UeExchange::handleRequests() {
   }
 }
 
-void UeExchange::addRequest(std::shared_ptr<const UeContext> ctx,
-                            common::RequestType type,
+void UeExchange::addRequest(const UeState &state, common::RequestType type,
                             const CallbackType &callback) {
   {
     std::lock_guard lock(requestsMtx);
-    requests.push({ctx, type, callback});
+    requests.push({state, type, callback});
   }
   requestsCv.notify_one();
 }
@@ -75,14 +72,14 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
 }
 
 std::expected<common::MeasurementControlRequest, std::string>
-UeExchange::receiveSignalLevel(common::Protocol protocol) const {
+UeExchange::receiveSignalLevel() const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
     return std::unexpected(bytes.error());
   }
 
-  auto req =
-      common::RequestSerializer::measurementControlFromBytes(*bytes, protocol);
+  auto req = common::RequestSerializer::measurementControlFromBytes(
+      *bytes, curProtocol);
   if (!req) {
     return std::unexpected(req.error());
   }
@@ -101,7 +98,7 @@ UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
-UeExchange::receiveBsInfo(common::Protocol protocol) const {
+UeExchange::receiveBsInfo() const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
     return std::unexpected(bytes.error());
@@ -111,7 +108,7 @@ UeExchange::receiveBsInfo(common::Protocol protocol) const {
     return std::unexpected(msg.error());
   }
   auto parsedProtocol = common::protocolFromNetworkId(msg->header.protocol);
-  if (!parsedProtocol || *parsedProtocol != protocol) {
+  if (!parsedProtocol || *parsedProtocol != curProtocol) {
     return std::unexpected("Invalid protocol");
   }
 
@@ -137,8 +134,8 @@ UeExchange::receiveBsInfo(common::Protocol protocol) const {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
-  common::RrcConnectionRequest locationReq{info.ctx->getImei(),
-                                           info.ctx->getLocation()};
+  common::RrcConnectionRequest locationReq{info.state.imei,
+                                           info.state.location};
   auto locationSendError = sendLocationUpdate(locationReq);
   if (locationSendError) {
     return std::unexpected("Failed to send location - " + *locationSendError);
@@ -147,14 +144,14 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
   common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
-    auto signalResponse = receiveSignalLevel(info.ctx->getProtocol());
+    auto signalResponse = receiveSignalLevel();
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.signal == 0) {
         return std::unexpected("BS not found");
       }
     } else {
-      if (signalResponse->imei != info.ctx->getImei()) {
+      if (signalResponse->imei != info.state.imei) {
         continue;
       }
 
@@ -164,14 +161,14 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     }
   }
 
-  common::MeasurementReportRequest chosenBsReq{
-      info.ctx->getImei(), info.ctx->getImsi(), bestSignalResponse.bsId};
+  common::MeasurementReportRequest chosenBsReq{info.state.imei, info.state.imsi,
+                                               bestSignalResponse.bsId};
   auto bsIdSendError = sendChosenBsId(chosenBsReq);
   if (bsIdSendError) {
     return std::unexpected("Failed to send chosen BS id - " + *bsIdSendError);
   }
 
-  auto bsInfoResponse = receiveBsInfo(info.ctx->getProtocol());
+  auto bsInfoResponse = receiveBsInfo();
   if (!bsInfoResponse) {
     return std::unexpected("Failed to receive BS info - " +
                            bsInfoResponse.error());

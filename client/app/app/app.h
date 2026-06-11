@@ -21,7 +21,7 @@ class App : common::App<Config> {
 private:
   static constexpr unsigned int HANDOVER_SIGNAL_THRESHOLD = 40;
 
-  std::shared_ptr<UeContext> ctx;
+  UeContext ctx;
   UeExchange exchange;
 
   Menu menu;

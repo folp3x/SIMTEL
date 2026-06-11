@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
     common::Location<> location(config.getLoc());
     common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
 
-    client::UeContext ctx{location, config.getImsi(), config.getImei(),
+    client::UeContext ctx{config.getImsi(), config.getImei(), location,
                           serverAddr};
 
     client::App app{ctx, *addressBook};

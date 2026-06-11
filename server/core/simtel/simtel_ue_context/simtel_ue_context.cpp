@@ -1,7 +1,5 @@
 #include "simtel_ue_context.h"
 
-#include <iostream>
-
 #include "common/core/request/request_serializer/request_serializer.h"
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/utils/network/network.h"
@@ -35,10 +33,9 @@ std::optional<std::string> SimtelUeContext::translateToBs() {
   }
 }
 
-void SimtelUeContext::translateToUe(const common::binary_t &binary) const {
-  auto error = sock->sendMessage(binary);
-  if (error) {
-    std::cout << "Error sending message: " << *error << std::endl;
-  }
+std::optional<std::string> SimtelUeContext::translateToUe() const {
+  auto error = sock->sendMessage(bs->getBuf());
+  bs->clearBuf();
+  return error;
 }
 } // namespace server

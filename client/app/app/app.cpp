@@ -42,7 +42,7 @@ common::MenuMessage App::formChangeMessage(const std::string &paramName,
 
 void App::handleLocationUpdate() {
   exchange.addRequest(
-      ctx, common::RequestType::Rrc_Connection,
+      ctx.getState(), common::RequestType::Rrc_Connection,
       [this](std::unique_ptr<common::Request> response,
              const std::string &error) {
         if (!error.empty()) {
@@ -53,8 +53,8 @@ void App::handleLocationUpdate() {
         if (auto *bsHandoverResponse =
                 dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                     response.get())) {
-          ctx->setMTimsi(bsHandoverResponse->mTimsi);
-          messages.push({"Handover. m-timsi set: " + ctx->getMTimsi()});
+          ctx.setMTimsi(bsHandoverResponse->mTimsi);
+          messages.push({"Handover. m-timsi set: " + ctx.getMTimsi()});
         }
       });
 }
@@ -63,7 +63,7 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
   logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
 
   bool newActive = cmd.getActive();
-  bool stateChanged = newActive != ctx->isInActive();
+  bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
     auto updateError = exchange.updateConnection(newActive);
     if (updateError) {
@@ -72,13 +72,13 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
       return;
     }
 
-    ctx->setInActive(newActive);
-    if (ctx->isInActive()) {
+    ctx.setInActive(newActive);
+    if (ctx.isInActive()) {
       handleLocationUpdate();
     }
   }
 
-  messages.push(formChangeMessage("State", ueActiveToStr(ctx->isInActive()),
+  messages.push(formChangeMessage("State", ueActiveToStr(ctx.isInActive()),
                                   stateChanged));
 }
 
@@ -88,16 +88,16 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
       cmd.getName(),
       fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
 
-  bool locationChanged = !ctx->getLocation().coordsEqual(coords);
+  bool locationChanged = !ctx.getLocation().coordsEqual(coords);
   try {
     if (locationChanged) {
-      ctx->updateLocation(coords);
-      if (ctx->isInActive()) {
+      ctx.updateLocation(coords);
+      if (ctx.isInActive()) {
         handleLocationUpdate();
       }
     }
 
-    messages.push(formChangeMessage("Location", ctx->getLocation().toStr(),
+    messages.push(formChangeMessage("Location", ctx.getLocation().toStr(),
                                     locationChanged));
   } catch (const std::invalid_argument &e) {
     messages.push({"Location coords count is invalid"});
@@ -112,13 +112,13 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   if (parsedProtocol) {
     common::Protocol newProtocol = std::move(*parsedProtocol);
 
-    bool protocolChanged = newProtocol != ctx->getProtocol();
+    bool protocolChanged = newProtocol != ctx.getProtocol();
     if (protocolChanged) {
-      ctx->setProtocol(newProtocol);
+      ctx.setProtocol(newProtocol);
     }
 
     messages.push({formChangeMessage(
-        "Protocol", protocolToStr(ctx->getProtocol()), protocolChanged)});
+        "Protocol", protocolToStr(ctx.getProtocol()), protocolChanged)});
     return;
   }
 
@@ -204,8 +204,7 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
 
 App::App(const UeContext &ctx_,
          const std::map<char, common::msisdn_t> &addressBook_)
-    : ctx(std::make_shared<UeContext>(ctx_)), addressBook(addressBook_),
-      exchange(ctx_.getServerAddr()) {
+    : ctx(ctx_), addressBook(addressBook_), exchange(ctx_.getServerAddr()) {
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }
@@ -219,9 +218,9 @@ void App::run() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
-    menu.showStatus(ctx->isInActive(), ctx->getImsi(), ctx->getProtocol());
+    menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
     menu.showMenuHeaderLine();
-    menu.showSignalInfo(ctx->getLocation(), exchange.getSignalLevel());
+    menu.showSignalInfo(ctx.getLocation(), exchange.getSignalLevel());
     menu.showMenuHeaderLine();
     menu.showAddressBook(addressBook);
     menu.showMenuHeaderLine();

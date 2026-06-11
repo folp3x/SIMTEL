@@ -4,7 +4,7 @@
 
 namespace common {
 enum class RequestType : uint8_t {
-  Any,
+  Unknown,
   Rrc_Connection,
   Measurement_Control,
   Measurement_Report,
