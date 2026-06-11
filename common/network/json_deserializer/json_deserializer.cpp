@@ -26,11 +26,4 @@ JsonDeserializer::bsIdFromJsonStr(const std::string &str,
   return deserializeValue<unsigned int>(
       name, nlohmann::json::value_t::number_unsigned, str);
 }
-
-std::expected<unsigned int, std::string>
-JsonDeserializer::ttlFromJsonStr(const std::string &str,
-                                 const std::string &name) {
-  return deserializeValue<unsigned int>(
-      name, nlohmann::json::value_t::number_unsigned, str);
-}
 } // namespace common

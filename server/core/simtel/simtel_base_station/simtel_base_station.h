@@ -19,7 +19,6 @@ private:
   static std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
       baseStations;
 
-  const unsigned int ttl = 30;
   const float radius = 80;
   const unsigned int id = 0;
 

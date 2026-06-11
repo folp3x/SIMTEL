@@ -134,7 +134,7 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
 std::optional<std::string>
 SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
                                   std::shared_ptr<SimtelUeContext> ctx) {
-  common::RrcReconfigurationHandoverRequest req{mTmsi, ttl, id};
+  common::RrcReconfigurationHandoverRequest req{mTmsi, id};
   auto bytes = common::RequestSerializer::rrcReconfigurationHandoverToBytes(
       ctx->getProtocol(), req);
   if (!bytes) {
