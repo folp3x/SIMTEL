@@ -2,15 +2,11 @@
     {
         "ecgi": "000000000000001",
         "loc": [-100],
-        "mmeId": "1",
-        "networkGeneration": "LTE",
         "maxConnections": 10
     },
     {
         "ecgi": "000000000000002",
         "loc": [100],
-        "mmeId": "1",
-        "networkGeneration": "LTE",
         "maxConnections": 10
     }
 ]

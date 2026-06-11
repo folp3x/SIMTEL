@@ -1,7 +1,5 @@
 {
     "ttl_sec": 120,
-    "hlrStorageType": "JSON",
     "hlrAccessParams": {},
-    "cdrStorageType": "log",
     "cdrAccessParams": {}
 }
