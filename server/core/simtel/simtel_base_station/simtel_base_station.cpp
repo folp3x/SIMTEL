@@ -40,18 +40,6 @@ void SimtelBaseStation::handleConnectionRequest(
   }
 }
 
-common::binary_t SimtelBaseStation::getBuf() const { return buf; }
-
-void SimtelBaseStation::setBuf(const common::binary_t &buf_) {
-  buf = buf_;
-  std::cout << createLogMsg("buf set: " + common::toStr(buf));
-}
-
-void SimtelBaseStation::clearBuf() {
-  buf.clear();
-  std::cout << createLogMsg("buf cleared");
-}
-
 common::Location<> SimtelBaseStation::getLocation() const { return location; }
 
 unsigned int SimtelBaseStation::getId() const { return id; }
@@ -73,23 +61,21 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
   if (!bytes) {
     return bytes.error();
   }
+  ctx->setBuf(*bytes);
 
-  setBuf(*bytes);
-  auto translateError = ctx->translateToUe();
-
-  return translateError;
+  return ctx->sendBufToUe();
 }
 
 std::expected<common::RrcConnectionRequest, std::string>
 SimtelBaseStation::receiveLocation(std::shared_ptr<SimtelUeContext> ctx) {
-  auto translateError = ctx->translateToBs();
-  if (translateError) {
-    return std::unexpected(*translateError);
+  auto receiveError = ctx->receiveData();
+  if (receiveError) {
+    return std::unexpected(*receiveError);
   }
 
   common::Protocol protocol;
-  auto req = common::RequestSerializer::rrcConnectionFromBytes(buf, protocol);
-  clearBuf();
+  auto req = common::RequestSerializer::rrcConnectionFromBytes(ctx->takeBuf(),
+                                                               protocol);
   if (req) {
     ctx->setProtocol(protocol);
   }
@@ -99,15 +85,14 @@ SimtelBaseStation::receiveLocation(std::shared_ptr<SimtelUeContext> ctx) {
 
 std::expected<common::MeasurementReportRequest, std::string>
 SimtelBaseStation::receiveChosenBsId(std::shared_ptr<SimtelUeContext> ctx) {
-  auto translateError = ctx->translateToBs();
-  if (translateError) {
-    return std::unexpected(*translateError);
+  auto receiveError = ctx->receiveData();
+  if (receiveError) {
+    return std::unexpected(*receiveError);
   }
 
   common::Protocol protocol;
-  auto req =
-      common::RequestSerializer::measurementReportFromBytes(buf, protocol);
-  clearBuf();
+  auto req = common::RequestSerializer::measurementReportFromBytes(
+      ctx->takeBuf(), protocol);
   if (req) {
     ctx->setProtocol(protocol);
   }
@@ -124,11 +109,9 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
   if (!bytes) {
     return bytes.error();
   }
+  ctx->setBuf(*bytes);
 
-  setBuf(*bytes);
-  auto translateError = ctx->translateToUe();
-
-  return std::nullopt;
+  return ctx->sendBufToUe();
 }
 
 std::optional<std::string>
@@ -140,11 +123,9 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
   if (!bytes) {
     return bytes.error();
   }
+  ctx->setBuf(*bytes);
 
-  setBuf(*bytes);
-  auto translateError = ctx->translateToUe();
-
-  return translateError;
+  return ctx->sendBufToUe();
 }
 
 void SimtelBaseStation::handleLocationUpdate(

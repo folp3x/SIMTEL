@@ -22,7 +22,6 @@ private:
   const float radius = 80;
   const unsigned int id = 0;
 
-  common::binary_t buf = {};
   std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>>
       connectedUe = {};
   common::Location<> location{};
@@ -52,10 +51,6 @@ private:
 
 public:
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
-
-  common::binary_t getBuf() const;
-  void setBuf(const common::binary_t &buf_);
-  void clearBuf();
 
   common::Location<> getLocation() const;
 

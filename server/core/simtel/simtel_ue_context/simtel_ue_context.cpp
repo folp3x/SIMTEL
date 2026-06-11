@@ -23,19 +23,27 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
   protocol = protocol_;
 }
 
-std::optional<std::string> SimtelUeContext::translateToBs() {
+common::binary_t SimtelUeContext::takeBuf() {
+  auto copy = buf;
+  buf.clear();
+  return buf;
+}
+
+void SimtelUeContext::setBuf(const common::binary_t &buf_) { buf = buf_; }
+
+std::optional<std::string> SimtelUeContext::receiveData() {
   auto binary = sock->receiveMessage();
   if (!binary) {
     return binary.error();
   } else {
-    bs->setBuf(*binary);
+    buf = *binary;
     return std::nullopt;
   }
 }
 
-std::optional<std::string> SimtelUeContext::translateToUe() const {
-  auto error = sock->sendMessage(bs->getBuf());
-  bs->clearBuf();
+std::optional<std::string> SimtelUeContext::sendBufToUe() {
+  auto error = sock->sendMessage(buf);
+  buf.clear();
   return error;
 }
 } // namespace server

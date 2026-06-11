@@ -18,6 +18,8 @@ private:
 
   SimtelBaseStation *bs = nullptr;
 
+  common::binary_t buf = {};
+
 public:
   explicit SimtelUeContext(std::unique_ptr<Socket> sock_);
 
@@ -30,7 +32,10 @@ public:
   common::Protocol getProtocol() const;
   void setProtocol(common::Protocol protocol_);
 
-  std::optional<std::string> translateToBs();
-  std::optional<std::string> translateToUe() const;
+  common::binary_t takeBuf();
+  void setBuf(const common::binary_t &buf_);
+
+  std::optional<std::string> receiveData();
+  std::optional<std::string> sendBufToUe();
 };
 } // namespace server
