@@ -4,6 +4,7 @@
 
 #include "common/core/request/request_serializer/request_serializer.h"
 #include "common/network/socket/socket_message/socket_message.h"
+#include "common/utils/network/network.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
@@ -11,10 +12,15 @@ namespace server {
 std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
 
+std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
+  return "BS_" + std::to_string(id) + ": " + content;
+}
+
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
   baseStations.clear();
   baseStations.emplace(1, std::make_unique<SimtelBaseStation>());
+  baseStations.emplace(2, std::make_unique<SimtelBaseStation>());
 
   // начальное получение данных через 1ую вышку
   auto *firstBs = baseStations.begin()->second.get();
@@ -25,19 +31,26 @@ void SimtelBaseStation::handleConnectionRequest(
     return;
   }
 
-  std::cout << "IMEI_" + req->imei + "sent location: " << req->loc.toStr()
+  std::cout << "imei_" + req->imei + "sent location: " << req->loc.toStr()
             << std::endl;
 
   for (const auto &[id, bs] : baseStations) {
+    ctx->setBs(bs.get());
     bs->handleLocationUpdate(*req, ctx);
   }
 }
 
 common::binary_t SimtelBaseStation::getBuf() const { return buf; }
 
-void SimtelBaseStation::setBuf(const common::binary_t &buf_) { buf = buf_; }
+void SimtelBaseStation::setBuf(const common::binary_t &buf_) {
+  buf = buf_;
+  std::cout << createLogMsg("buf set: " + common::toStr(buf));
+}
 
-void SimtelBaseStation::clearBuf() { buf.clear(); }
+void SimtelBaseStation::clearBuf() {
+  buf.clear();
+  std::cout << createLogMsg("buf cleared");
+}
 
 common::Location<> SimtelBaseStation::getLocation() const { return location; }
 
@@ -137,39 +150,53 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
 void SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &req,
     std::shared_ptr<SimtelUeContext> ctx) {
-
   common::imei_t ueImei = req.imei;
   unsigned int signalLevel = measureSignal(req.loc);
 
+  if (signalLevel == 0) {
+    return;
+  }
+
   auto signalSendError = sendSignalLevel(ueImei, signalLevel, ctx);
   if (signalSendError) {
-    std::cout << "Error sending signal level to imei_" << req.imei << ": "
-              << *signalSendError << std::endl;
+    std::cout << createLogMsg("Error sending signal level to imei_" + req.imei +
+                              ": " + *signalSendError)
+              << std::endl;
     return;
   }
 
   auto chosenBsReq = receiveChosenBsId(ctx);
   if (!chosenBsReq) {
-    std::cout << "Error receiving BS id from imei_" << req.imei << ": "
-              << chosenBsReq.error() << std::endl;
-    return;
-  }
-
-  if (chosenBsReq->imei != ueImei) {
-    std::cout << "Unknown imei received: imei_" << chosenBsReq->imei
+    std::cout << createLogMsg("Error receiving BS id from imei_" + req.imei +
+                              ": " + chosenBsReq.error())
               << std::endl;
     return;
   }
 
-  std::cout << "imei_" << ueImei << " chose BS: " << chosenBsReq->bsId
+  if (chosenBsReq->imei != ueImei) {
+    std::cout << createLogMsg("Unknown imei received: imei_" +
+                              chosenBsReq->imei)
+              << std::endl;
+    return;
+  }
+
+  std::cout << createLogMsg("imei_" + ueImei +
+                            " chose BS: " + std::to_string(chosenBsReq->bsId))
             << std::endl;
 
   auto curBs = ctx->getBs();
   if (curBs && curBs->getId() == chosenBsReq->bsId &&
       curBs->ueConnected(chosenBsReq->imsi)) {
-    auto bsKeepSendError = sendBsKeep(ueImei, ctx);
-    if (bsKeepSendError) {
-      std::cout << "Error sending BS keep info: " << *bsKeepSendError
+    auto keepSendError = sendBsKeep(ueImei, ctx);
+    if (keepSendError) {
+      std::cout << createLogMsg("Error sending BS keep info: " + *keepSendError)
+                << std::endl;
+    }
+  } else {
+    auto handoverSendError = sendBsHandover(ueImei, ctx);
+    if (handoverSendError) {
+      std::cout << createLogMsg("Error sending BS handover info: " +
+                                *handoverSendError)
                 << std::endl;
     }
   }

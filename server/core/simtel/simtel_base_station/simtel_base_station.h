@@ -30,6 +30,8 @@ private:
 
   std::queue<common::Request> requests{};
 
+  std::string createLogMsg(const std::string &content) const;
+
   unsigned int measureSignal(const common::Location<> &targetLoc) const;
 
   std::optional<std::string>
