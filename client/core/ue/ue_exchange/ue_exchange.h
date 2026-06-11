@@ -63,6 +63,7 @@ public:
   void closeConnection();
 
   unsigned int getSignalLevel() const;
+  bool hasSignal() const;
 
   void stop();
 };

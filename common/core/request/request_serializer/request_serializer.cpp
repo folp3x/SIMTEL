@@ -18,7 +18,7 @@ RequestSerializer::requestMsgFromBytes(RequestType expectedType,
     return std::unexpected("Unknown protocol");
   }
   protocol = *parsedProtocol;
-  auto reqType = static_cast<RequestType>(msg->header.msgType);
+  auto reqType = static_cast<RequestType>(msg->header.reqType);
   if (reqType != expectedType) {
     return std::unexpected("Location_Update message expected");
   }
@@ -164,15 +164,11 @@ RequestSerializer::measurementControlToBytes(
 
 std::expected<MeasurementControlRequest, std::string>
 RequestSerializer::measurementControlFromBytes(const binary_t &bytes,
-                                               Protocol expectedProtocol) {
-  Protocol protocol;
+                                               Protocol &protocol) {
   auto msg =
       requestMsgFromBytes(RequestType::Measurement_Control, bytes, protocol);
   if (!msg) {
     return std::unexpected(msg.error());
-  }
-  if (protocol != expectedProtocol) {
-    return std::unexpected("Invalid protocol");
   }
 
   switch (protocol) {
@@ -502,5 +498,20 @@ RequestSerializer::rrcReconfigurationHandoverFromBytes(const binary_t &bytes) {
   default:
     return std::unexpected("Unsupported protocol");
   }
+}
+
+std::expected<RequestType, std::string>
+RequestSerializer::parseRequestType(const binary_t &bytes, Protocol &protocol) {
+  auto msg = common::socketMessageFromBinary(bytes);
+  if (!msg) {
+    return std::unexpected(msg.error());
+  }
+  auto parsedProtocol = common::protocolFromNetworkId(msg->header.protocol);
+  if (!parsedProtocol) {
+    return std::unexpected("Invalid protocol");
+  }
+  protocol = *parsedProtocol;
+
+  return static_cast<common::RequestType>(msg->header.reqType);
 }
 } // namespace common

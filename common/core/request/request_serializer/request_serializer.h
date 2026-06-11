@@ -37,7 +37,7 @@ public:
                             const MeasurementControlRequest &req);
 
   static std::expected<MeasurementControlRequest, std::string>
-  measurementControlFromBytes(const binary_t &bytes, Protocol expectedProtocol);
+  measurementControlFromBytes(const binary_t &bytes, Protocol &protocol);
 
   static std::expected<binary_t, std::string>
   measurementReportToBytes(Protocol protocol,
@@ -58,5 +58,8 @@ public:
 
   static std::expected<RrcReconfigurationHandoverRequest, std::string>
   rrcReconfigurationHandoverFromBytes(const binary_t &bytes);
+
+  static std::expected<RequestType, std::string>
+  parseRequestType(const binary_t &bytes, Protocol &protocol);
 };
 } // namespace common

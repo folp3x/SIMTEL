@@ -92,7 +92,7 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   try {
     if (locationChanged) {
       ctx.updateLocation(coords);
-      if (ctx.isInActive()) {
+      if (ctx.isInActive() && exchange.hasSignal()) {
         handleLocationUpdate();
       }
     }

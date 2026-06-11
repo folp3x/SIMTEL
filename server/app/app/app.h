@@ -12,7 +12,6 @@ namespace server {
 class App : common::App<Config> {
 private:
   SimtelListener listener;
-  SimtelBaseStation bs;
 
   Menu menu;
 

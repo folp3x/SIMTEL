@@ -5,6 +5,9 @@
 #include <zpp_bits.h>
 
 #include "common/network/socket/socket_message_header/socket_message_header.h"
+#include "common/utils/network/network.h"
+
+#include <iostream>
 
 namespace common {
 std::optional<std::string> Socket::sendAll(const void *data,
@@ -84,6 +87,7 @@ void Socket::closeSock() {
 }
 
 std::optional<std::string> Socket::sendMessage(const binary_t &data) const {
+  // std::cout << "msg: " << toStr(data) << std::endl;
   if (data.empty()) {
     return "Empty message";
   }

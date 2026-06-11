@@ -10,7 +10,7 @@ namespace common {
 struct SocketMessageHeader {
   uint32_t msgSize;
   uint8_t protocol;
-  uint8_t msgType;
+  uint8_t reqType;
 };
 
 std::expected<SocketMessageHeader, std::string>

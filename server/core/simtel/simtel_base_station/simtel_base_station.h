@@ -49,16 +49,23 @@ private:
   sendBsHandover(const common::imei_t &mTmsi,
                  std::shared_ptr<SimtelUeContext> ctx);
 
+  static void handleLocationUpdate(const common::RrcConnectionRequest &req,
+                                   std::shared_ptr<SimtelUeContext> ctx);
+
+  static SimtelBaseStation *findBs(unsigned int id);
+
 public:
+  SimtelBaseStation(unsigned int id_);
+
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 
   common::Location<> getLocation() const;
 
   unsigned int getId() const;
 
-  void handleLocationUpdate(const common::RrcConnectionRequest &req,
-                            std::shared_ptr<SimtelUeContext> ctx);
-
   bool ueConnected(const common::imsi_t &imsi);
+
+  void handleMeasurementReport(const common::MeasurementReportRequest &req,
+                               std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

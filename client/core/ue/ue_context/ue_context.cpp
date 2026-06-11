@@ -1,5 +1,7 @@
 #include "ue_context.h"
 
+#include <stdexcept>
+
 namespace client {
 UeContext::UeContext(const common::imsi_t &imsi, const common::imei_t &imei,
                      common::Location<> &location,
@@ -13,8 +15,10 @@ common::imei_t UeContext::getImei() const { return state.imei; }
 common::imsi_t UeContext::getMTimsi() const { return state.mTimsi; }
 
 void UeContext::setMTimsi(const std::string &mTmsi_) {
-  if (!state.mTimsi.empty()) {
+  if (state.mTimsi.empty()) {
     state.mTimsi = mTmsi_;
+  } else {
+    throw std::runtime_error("mTmsi cant be changed");
   }
 }
 

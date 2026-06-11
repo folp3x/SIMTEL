@@ -1,11 +1,11 @@
 [
     {
-        "ecgi": "000000000000001",
+        "ecgi": 1,
         "loc": [-100],
         "maxConnections": 10
     },
     {
-        "ecgi": "000000000000002",
+        "ecgi": 2,
         "loc": [100],
         "maxConnections": 10
     }

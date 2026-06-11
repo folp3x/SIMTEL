@@ -78,10 +78,14 @@ UeExchange::receiveSignalLevel() const {
     return std::unexpected(bytes.error());
   }
 
-  auto req = common::RequestSerializer::measurementControlFromBytes(
-      *bytes, curProtocol);
+  common::Protocol protocol;
+  auto req =
+      common::RequestSerializer::measurementControlFromBytes(*bytes, protocol);
   if (!req) {
     return std::unexpected(req.error());
+  }
+  if (protocol != curProtocol) {
+    return std::unexpected("Invalid protocol");
   }
 
   return *req;
@@ -103,17 +107,18 @@ UeExchange::receiveBsInfo() const {
   if (!bytes) {
     return std::unexpected(bytes.error());
   }
-  auto msg = common::socketMessageFromBinary(*bytes);
-  if (!msg) {
-    return std::unexpected(msg.error());
+
+  common::Protocol protocol;
+  auto reqType = common::RequestSerializer::parseRequestType(*bytes, protocol);
+  if (!reqType) {
+    return std::unexpected(reqType.error());
   }
-  auto parsedProtocol = common::protocolFromNetworkId(msg->header.protocol);
-  if (!parsedProtocol || *parsedProtocol != curProtocol) {
+  if (protocol != curProtocol) {
     return std::unexpected("Invalid protocol");
   }
 
-  auto reqType = static_cast<common::RequestType>(msg->header.msgType);
-  if (reqType == common::RequestType::Rrc_Reconfiguration_Keep) {
+  switch (*reqType) {
+  case common::RequestType::Rrc_Reconfiguration_Keep: {
     auto req =
         common::RequestSerializer::rrcReconfigurationKeepFromBytes(*bytes);
     if (!req) {
@@ -121,15 +126,18 @@ UeExchange::receiveBsInfo() const {
     }
 
     return std::make_unique<common::RrcReconfigurationKeepRequest>(*req);
-  } else if (reqType == common::RequestType::Rrc_Reconfiguration_Handover) {
+  }
+  case common::RequestType::Rrc_Reconfiguration_Handover: {
     auto req =
         common::RequestSerializer::rrcReconfigurationHandoverFromBytes(*bytes);
     if (!req) {
       return std::unexpected(req.error());
     }
+    return std::make_unique<common::RrcReconfigurationHandoverRequest>(*req);
   }
-
-  return std::unexpected("Unexpected request type");
+  default:
+    return std::unexpected("Unexpected request type");
+  }
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
@@ -175,26 +183,24 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
   }
   auto response = std::move(*bsInfoResponse);
 
+  unsigned int newBsId;
   if (auto *bsKeepResponse =
           dynamic_cast<common::RrcReconfigurationKeepRequest *>(
               response.get())) {
-    if (bsKeepResponse->bsId == bestSignalResponse.bsId) {
-      signalLevel = bestSignalResponse.signal;
-    } else {
-      return std::unexpected("Unexpected BS id in info: " +
-                             std::to_string(bsKeepResponse->bsId));
-    }
+    newBsId = bsKeepResponse->bsId;
   } else if (auto *bsHandoverResponse =
                  dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                      response.get())) {
-    if (bsKeepResponse->bsId == bestSignalResponse.bsId) {
-      signalLevel = bestSignalResponse.signal;
-    } else {
-      return std::unexpected("Unexpected BS id in info: " +
-                             std::to_string(bsKeepResponse->bsId));
-    }
+    newBsId = bsHandoverResponse->bsId;
   } else {
     return std::unexpected("BS rejected connection");
+  }
+
+  if (newBsId == bestSignalResponse.bsId) {
+    signalLevel = bestSignalResponse.signal;
+  } else {
+    return std::unexpected("Unexpected BS id in info: " +
+                           std::to_string(newBsId));
   }
 
   return response;
@@ -206,6 +212,8 @@ void UeExchange::closeConnection() {
 }
 
 unsigned int UeExchange::getSignalLevel() const { return signalLevel; }
+
+bool UeExchange::hasSignal() const { return signalLevel != 0; }
 
 void UeExchange::stop() {
   running = false;

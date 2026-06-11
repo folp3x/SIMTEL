@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include <zpp_bits.h>
 
+#include "common/utils/network/network.h"
+
 namespace common {
 std::expected<SocketMessageHeader, std::string>
 socketMessageHeaderFromBinary(const binary_t &binary) {
@@ -10,7 +12,7 @@ socketMessageHeaderFromBinary(const binary_t &binary) {
 
   zpp::bits::in in(binary);
 
-  if (in(header.msgSize, header.protocol, header.msgType) !=
+  if (in(header.msgSize, header.protocol, header.reqType) !=
       zpp::bits::errc{}) {
     return std::unexpected("Failed to deserialize header");
   }
@@ -25,7 +27,7 @@ socketMessageHeaderToBinary(const SocketMessageHeader &header) {
 
   uint32_t msgSize = htonl(header.msgSize);
 
-  if (out(msgSize, header.protocol, header.msgType) != zpp::bits::errc{}) {
+  if (out(msgSize, header.protocol, header.reqType) != zpp::bits::errc{}) {
     return std::unexpected("Failed to serialize header");
   }
 

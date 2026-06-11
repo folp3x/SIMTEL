@@ -19,8 +19,8 @@ std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
   baseStations.clear();
-  baseStations.emplace(1, std::make_unique<SimtelBaseStation>());
-  baseStations.emplace(2, std::make_unique<SimtelBaseStation>());
+  baseStations.emplace(1, std::make_unique<SimtelBaseStation>(1));
+  baseStations.emplace(2, std::make_unique<SimtelBaseStation>(2));
 
   // начальное получение данных через 1ую вышку
   auto *firstBs = baseStations.begin()->second.get();
@@ -31,13 +31,11 @@ void SimtelBaseStation::handleConnectionRequest(
     return;
   }
 
-  std::cout << "imei_" + req->imei + "sent location: " << req->loc.toStr()
+  std::cout << "All BS: req from UE_" << ctx->getAddrStr()
+            << " = {imei=" + req->imei << ", loc=" << req->loc.toStr() << "}"
             << std::endl;
 
-  for (const auto &[id, bs] : baseStations) {
-    ctx->setBs(bs.get());
-    bs->handleLocationUpdate(*req, ctx);
-  }
+  handleLocationUpdate(*req, ctx);
 }
 
 common::Location<> SimtelBaseStation::getLocation() const { return location; }
@@ -129,61 +127,108 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
 }
 
 void SimtelBaseStation::handleLocationUpdate(
-    const common::RrcConnectionRequest &req,
+    const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx) {
-  common::imei_t ueImei = req.imei;
-  unsigned int signalLevel = measureSignal(req.loc);
-
-  if (signalLevel == 0) {
-    return;
-  }
-
-  auto signalSendError = sendSignalLevel(ueImei, signalLevel, ctx);
-  if (signalSendError) {
-    std::cout << createLogMsg("Error sending signal level to imei_" + req.imei +
-                              ": " + *signalSendError)
+  // имитация измерения уровня сигнала до базовых станций
+  auto initialBs = ctx->getBs();
+  for (const auto &[id, bs] : baseStations) {
+    ctx->setBs(bs.get());
+    unsigned int signalLevel = bs->measureSignal(locReq.loc);
+    std::cout << bs->createLogMsg("measured signal level=" +
+                                  std::to_string(signalLevel))
               << std::endl;
+
+    if (signalLevel == 0) {
+      continue;
+    }
+
+    auto signalSendError = bs->sendSignalLevel(locReq.imei, signalLevel, ctx);
+    if (signalSendError) {
+      std::cout << bs->createLogMsg("Error sending signal level: " +
+                                    *signalSendError)
+                << std::endl;
+      continue;
+    }
+  }
+  ctx->setBs(initialBs);
+
+  auto receiveError = ctx->receiveData();
+  if (receiveError) {
+    std::cout << *receiveError << std::endl;
+    return;
+  }
+  common::binary_t bytes = ctx->takeBuf();
+
+  common::Protocol protocol;
+  auto reqType = common::RequestSerializer::parseRequestType(bytes, protocol);
+  if (!reqType) {
+    std::cout << "Error parsing request type: " << reqType.error() << std::endl;
     return;
   }
 
-  auto chosenBsReq = receiveChosenBsId(ctx);
-  if (!chosenBsReq) {
-    std::cout << createLogMsg("Error receiving BS id from imei_" + req.imei +
-                              ": " + chosenBsReq.error())
+  if (*reqType == common::RequestType::Measurement_Report) {
+    auto chosenBsReq =
+        common::RequestSerializer::measurementReportFromBytes(bytes, protocol);
+    if (!chosenBsReq) {
+      std::cout << "Error receiving BS id" + chosenBsReq.error() << std::endl;
+      return;
+    }
+
+    if (chosenBsReq->imei != locReq.imei) {
+      std::cout << "Unknown imei received: " << chosenBsReq->imei << std::endl;
+      return;
+    }
+
+    std::cout << "Chosen BS: req from UE_" << ctx->getAddrStr()
+              << " = {imei=" << chosenBsReq->imei
+              << ", imsi=" << chosenBsReq->imsi
+              << ", bsId=" << std::to_string(chosenBsReq->bsId) << "}"
               << std::endl;
-    return;
+
+    // имитация получение сообщения о выборе вышки конкретной вышкой
+    auto bs = findBs(chosenBsReq->bsId);
+    if (!bs) {
+      std::cout << "Requested BS not found" << std::endl;
+      return;
+    }
+
+    ctx->setBs(bs);
+    bs->handleMeasurementReport(*chosenBsReq, ctx);
+  } else {
+    std::cout << "MeasurementReport expected" << std::endl;
   }
+}
 
-  if (chosenBsReq->imei != ueImei) {
-    std::cout << createLogMsg("Unknown imei received: imei_" +
-                              chosenBsReq->imei)
-              << std::endl;
-    return;
+SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
+  auto it = baseStations.find(id);
+  if (it == baseStations.end()) {
+    return nullptr;
   }
+  return it->second.get();
+}
 
-  std::cout << createLogMsg("imei_" + ueImei +
-                            " chose BS: " + std::to_string(chosenBsReq->bsId))
-            << std::endl;
+SimtelBaseStation::SimtelBaseStation(unsigned int id_) : id(id_) {}
 
-  auto curBs = ctx->getBs();
-  if (curBs && curBs->getId() == chosenBsReq->bsId &&
-      curBs->ueConnected(chosenBsReq->imsi)) {
-    auto keepSendError = sendBsKeep(ueImei, ctx);
+bool SimtelBaseStation::ueConnected(const common::imsi_t &imsi) {
+  return connectedUe.find(imsi) != connectedUe.end();
+}
+
+void SimtelBaseStation::handleMeasurementReport(
+    const common::MeasurementReportRequest &req,
+    std::shared_ptr<SimtelUeContext> ctx) {
+  if (ueConnected(req.imsi)) {
+    auto keepSendError = sendBsKeep(req.imsi, ctx);
     if (keepSendError) {
       std::cout << createLogMsg("Error sending BS keep info: " + *keepSendError)
                 << std::endl;
     }
   } else {
-    auto handoverSendError = sendBsHandover(ueImei, ctx);
+    auto handoverSendError = sendBsHandover(req.imsi, ctx);
     if (handoverSendError) {
       std::cout << createLogMsg("Error sending BS handover info: " +
                                 *handoverSendError)
                 << std::endl;
     }
   }
-}
-
-bool SimtelBaseStation::ueConnected(const common::imsi_t &imsi) {
-  return connectedUe.find(imsi) != connectedUe.end();
 }
 } // namespace server
