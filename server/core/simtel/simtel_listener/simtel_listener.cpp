@@ -5,11 +5,9 @@
 #include "common/logging/logger/logger.h"
 
 namespace server {
-SimtelListener::SimtelListener(
-    const common::NetworkAddress &addr,
-    const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler_,
-    size_t maxUeThreads_)
-    : handler(handler_), maxUeThreads(maxUeThreads_) {
+SimtelListener::SimtelListener(const common::NetworkAddress &addr,
+                               size_t maxUeThreads_)
+    : maxUeThreads(maxUeThreads_) {
   auto createResult = Socket::create(addr);
   if (!createResult) {
     throw std::runtime_error("Error creating socket: " + createResult.error());
@@ -22,7 +20,8 @@ SimtelListener::SimtelListener(
   }
 }
 
-void SimtelListener::acceptConnections() {
+void SimtelListener::acceptConnections(
+    const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler) {
   listening = true;
   while (listening) {
     auto acceptResult = sock->acceptConnection();
@@ -39,7 +38,7 @@ void SimtelListener::acceptConnections() {
     }
 
     auto ctx = std::make_shared<SimtelUeContext>(std::move(*acceptResult));
-    std::thread singleClientHandler{[this, ctx]() {
+    std::thread singleClientHandler{[this, handler, ctx]() {
       activeThreads++;
       handler(ctx);
       activeThreads--;
