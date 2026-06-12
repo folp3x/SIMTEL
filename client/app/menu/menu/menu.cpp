@@ -44,7 +44,10 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
 void Menu::showSignalInfo(const common::Location<> &location,
                           unsigned int signalLevel) const {
   std::string levelStr =
-      (signalLevel > 0) ? std::to_string(signalLevel) : "no signal";
+      (signalLevel > 0)
+          ? std::to_string(signalLevel) + "/" +
+                std::to_string(common::constants::MAX_SIGNAL_LEVEL)
+          : "no signal";
   std::cout << "Location: " << location.toStr() << ", signal: " << levelStr
             << std::endl;
 }

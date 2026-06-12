@@ -10,6 +10,7 @@ namespace server {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
     listener.stop();
+    isRunning = false;
 
     if (common::Logger::isInitialized()) {
       common::Logger::instance().getInner()->flush();
@@ -21,7 +22,7 @@ void App::sigintHandler(int signal) {
 }
 
 App::App(const common::NetworkAddress &addr, size_t maxUeThreads)
-    : listener(addr, maxUeThreads, msgHolder) {
+    : listener(addr, maxUeThreads) {
   SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(
       1, 120, 10, common::Location<>{{-100}}));
   SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(
@@ -33,12 +34,27 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreads)
 void App::run() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
 
+  isRunning = true;
+
   menu.showStatus();
   std::jthread connectionHandler{[this]() {
     listener.acceptConnections([](std::shared_ptr<SimtelUeContext> ctx) {
       SimtelBaseStation::handleConnectionRequest(ctx);
     });
   }};
+
+  while (isRunning) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS));
+
+    while (true) {
+      auto msg = MessageHolder::instance().takeMsg();
+      if (msg) {
+        menu.showMessage(*msg);
+      } else {
+        break;
+      }
+    }
+  }
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }

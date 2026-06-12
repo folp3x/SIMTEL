@@ -15,7 +15,9 @@ private:
 
   Menu menu;
 
-  std::shared_ptr<MessageHolder> msgHolder{};
+  bool isRunning = false;
+
+  static constexpr unsigned int MENU_SLEEP_MS = 100;
 
   void sigintHandler(int signal);
 

@@ -10,16 +10,24 @@
 namespace server {
 class MessageHolder {
 private:
+  bool waiting = false;
   std::mutex messagesMtx;
   std::condition_variable messagesCv;
   std::queue<common::MenuMessage> messages{};
 
+  MessageHolder() = default;
+
 public:
+  static MessageHolder &instance() {
+    static MessageHolder holder;
+    return holder;
+  }
+
   void addMsg(const std::string &content,
               common::MenuMessageType type = common::MenuMessageType::NOCOLOR);
 
-  std::optional<common::MenuMessage> takeMsg();
+  void addErrorMsg(const std::string &content);
 
-  void waitForMessages();
+  std::optional<common::MenuMessage> takeMsg();
 };
 } // namespace server

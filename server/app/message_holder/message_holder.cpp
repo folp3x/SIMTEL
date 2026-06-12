@@ -8,6 +8,10 @@ void MessageHolder::addMsg(const std::string &content,
   messagesCv.notify_one();
 }
 
+void MessageHolder::addErrorMsg(const std::string &content) {
+  addMsg(content, common::MenuMessageType::ERR);
+}
+
 std::optional<common::MenuMessage> MessageHolder::takeMsg() {
   std::lock_guard lock(messagesMtx);
   if (messages.empty()) {
@@ -17,10 +21,5 @@ std::optional<common::MenuMessage> MessageHolder::takeMsg() {
   auto copy = messages.front();
   messages.pop();
   return copy;
-}
-
-void MessageHolder::waitForMessages() {
-  std::unique_lock lock(messagesMtx);
-  messagesCv.wait(lock, [this] { return !messages.empty(); });
 }
 } // namespace server

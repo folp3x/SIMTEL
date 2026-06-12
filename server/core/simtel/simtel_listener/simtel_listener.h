@@ -17,11 +17,8 @@ private:
 
   std::atomic<int> activeThreads{0};
 
-  std::shared_ptr<MessageHolder> msgHolder;
-
 public:
-  SimtelListener(const common::NetworkAddress &addr, size_t maxUeThreads_,
-                 std::shared_ptr<MessageHolder> msgHolder_);
+  SimtelListener(const common::NetworkAddress &addr, size_t maxUeThreads_);
 
   void acceptConnections(
       const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler);

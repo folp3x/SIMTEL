@@ -42,6 +42,8 @@ void SimtelUeContext::setBuf(const common::binary_t &buf_) {
   std::unique_lock lock(bufMtx);
   bufCv.wait(lock, [this] { return buf.empty(); });
   buf = buf_;
+  MessageHolder::instance().addMsg(toStr() + " buf set (" +
+                                   std::to_string(buf.size()) + " bytes)");
 }
 
 std::optional<std::string> SimtelUeContext::receiveData() {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-#include <memory>
 #include <queue>
 #include <unordered_map>
 
@@ -10,6 +8,7 @@
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
+#include "server/app/message_holder/message_holder.h"
 
 namespace server {
 class SimtelUeContext;
@@ -26,6 +25,12 @@ private:
 
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
       connectedUe = {};
+
+  static std::optional<std::string>
+  handleLocationUpdate(const common::RrcConnectionRequest &req,
+                       std::shared_ptr<SimtelUeContext> ctx);
+
+  static SimtelBaseStation *findBs(unsigned int id);
 
   std::string createLogMsg(const std::string &content) const;
 
@@ -48,12 +53,6 @@ private:
   std::optional<std::string>
   sendBsHandover(const common::imei_t &mTmsi,
                  std::shared_ptr<SimtelUeContext> ctx) const;
-
-  static std::optional<std::string>
-  handleLocationUpdate(const common::RrcConnectionRequest &req,
-                       std::shared_ptr<SimtelUeContext> ctx);
-
-  static SimtelBaseStation *findBs(unsigned int id);
 
 public:
   SimtelBaseStation(unsigned int id_, float radius_, size_t maxConnections_,

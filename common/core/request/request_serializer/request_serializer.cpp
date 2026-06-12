@@ -500,6 +500,54 @@ RequestSerializer::rrcReconfigurationHandoverFromBytes(const binary_t &bytes,
   }
 }
 
+std::expected<binary_t, std::string>
+RequestSerializer::errorToBytes(Protocol protocol, const ErrorRequest &req) {
+  binary_t content;
+  switch (protocol) {
+  case Protocol::BINARY: {
+    content = BinarySerializer::strToBinary(req.description);
+    break;
+  }
+  case Protocol::JSON: {
+    nlohmann::json jsonObj = nlohmann::json{{"description", req.description}};
+
+    std::string jsonStr = jsonObj.dump();
+    content = BinarySerializer::strToBinary(jsonStr);
+    break;
+  }
+  default:
+    return std::unexpected("Unsupported protocol");
+  }
+
+  return requestToMsgBytes(protocol, RequestType::Error, content);
+}
+
+std::expected<ErrorRequest, std::string>
+RequestSerializer::errorFromBytes(const binary_t &bytes, Protocol &protocol) {
+  auto msg = requestMsgFromBytes(RequestType::Error, bytes, protocol);
+  if (!msg) {
+    return std::unexpected(msg.error());
+  }
+
+  switch (protocol) {
+  case Protocol::BINARY: {
+    return ErrorRequest{BinarySerializer::strFromBinary(msg->content)};
+  }
+  case Protocol::JSON: {
+    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
+
+    auto mTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
+    if (!mTimsi) {
+      return std::unexpected(mTimsi.error());
+    }
+
+    return RrcReconfigurationHandoverRequest{*mTimsi, *bsId};
+  }
+  default:
+    return std::unexpected("Unsupported protocol");
+  }
+}
+
 std::expected<RequestType, std::string>
 RequestSerializer::parseRequestType(const binary_t &bytes, Protocol &protocol) {
   auto msg = common::socketMessageFromBinary(bytes);

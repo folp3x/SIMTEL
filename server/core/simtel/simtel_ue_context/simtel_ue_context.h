@@ -1,10 +1,9 @@
 #pragma once
 
-#include <mutex>
-
 #include "common/core/location/location/location.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
+#include "server/app/message_holder/message_holder.h"
 #include "server/network/socket/socket.h"
 
 namespace server {
@@ -26,7 +25,7 @@ private:
   common::binary_t buf = {};
 
 public:
-  explicit SimtelUeContext(std::unique_ptr<Socket> sock_);
+  SimtelUeContext(std::unique_ptr<Socket> sock_);
 
   common::imsi_t getMTimsi() const;
   bool setMTimsi(const common::imsi_t &mTimsi_);

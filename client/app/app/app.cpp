@@ -1,7 +1,6 @@
 #include "app.h"
 
 #include <csignal>
-#include <iostream>
 #include <spdlog/fmt/fmt.h>
 #include <stdexcept>
 #include <thread>
