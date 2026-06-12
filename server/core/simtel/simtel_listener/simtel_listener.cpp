@@ -32,7 +32,7 @@ void SimtelListener::handleClients() {
               << std::endl;
 
     if (activeThreads >= MAX_CLIENT_THREADS) {
-      std::cout << "Too many threads. UE ignored" << std::endl;
+      std::cout << "Too many connections. UE ignored" << std::endl;
       continue;
     }
 

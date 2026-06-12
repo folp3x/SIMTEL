@@ -22,7 +22,7 @@ private:
   const float radius = 80;
   const unsigned int id = 0;
 
-  std::unordered_map<common::imsi_t, std::unique_ptr<SimtelUeContext>>
+  std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
       connectedUe = {};
   common::Location<> location{};
 
@@ -49,8 +49,9 @@ private:
   sendBsHandover(const common::imei_t &mTmsi,
                  std::shared_ptr<SimtelUeContext> ctx);
 
-  static void handleLocationUpdate(const common::RrcConnectionRequest &req,
-                                   std::shared_ptr<SimtelUeContext> ctx);
+  static std::optional<std::string>
+  handleLocationUpdate(const common::RrcConnectionRequest &req,
+                       std::shared_ptr<SimtelUeContext> ctx);
 
   static SimtelBaseStation *findBs(unsigned int id);
 
@@ -63,9 +64,14 @@ public:
 
   unsigned int getId() const;
 
-  bool ueConnected(const common::imsi_t &imsi);
+  bool ueConnected(const common::imsi_t &mTimsi);
 
   void handleMeasurementReport(const common::MeasurementReportRequest &req,
-                               std::shared_ptr<SimtelUeContext> ctx);
+                               std::shared_ptr<SimtelUeContext> ctx,
+                               common::imsi_t &handoverMTimsi);
+
+  std::shared_ptr<SimtelUeContext> takeUe(const common::imsi_t &mTImsi);
+  void addUe(const common::imsi_t &mTimsi,
+             std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

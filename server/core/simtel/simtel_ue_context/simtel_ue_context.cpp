@@ -1,7 +1,5 @@
 #include "simtel_ue_context.h"
 
-#include <iostream>
-
 #include "common/core/request/request_serializer/request_serializer.h"
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/utils/network/network.h"
@@ -10,10 +8,6 @@
 namespace server {
 SimtelUeContext::SimtelUeContext(std::unique_ptr<Socket> sock_)
     : sock(std::move(sock_)) {}
-
-common::imsi_t SimtelUeContext::getImsi() const { return imsi; }
-
-void SimtelUeContext::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
 SimtelBaseStation *SimtelUeContext::getBs() const { return bs; }
 
@@ -28,20 +22,10 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
 common::binary_t SimtelUeContext::takeBuf() {
   auto copy = buf;
   buf.clear();
-  if (bs) {
-    std::cout << "BS_" << bs->getId() << " UE_" << sock->getAddrStr()
-              << " buf taken, size=" << copy.size() << std::endl;
-  }
   return copy;
 }
 
-void SimtelUeContext::setBuf(const common::binary_t &buf_) {
-  buf = buf_;
-  if (bs) {
-    std::cout << "BS_" << bs->getId() << " UE_" << sock->getAddrStr()
-              << " buf set, size=" << buf.size() << std::endl;
-  }
-}
+void SimtelUeContext::setBuf(const common::binary_t &buf_) { buf = buf_; }
 
 std::optional<std::string> SimtelUeContext::receiveData() {
   auto binary = sock->receiveMessage();

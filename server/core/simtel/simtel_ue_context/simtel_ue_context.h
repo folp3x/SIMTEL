@@ -23,9 +23,6 @@ private:
 public:
   explicit SimtelUeContext(std::unique_ptr<Socket> sock_);
 
-  common::imsi_t getImsi() const;
-  void setImsi(const common::imsi_t &imsi_);
-
   SimtelBaseStation *getBs() const;
   void setBs(SimtelBaseStation *bs_);
 
