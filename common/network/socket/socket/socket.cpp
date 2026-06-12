@@ -10,8 +10,8 @@
 #include <iostream>
 
 namespace common {
-std::optional<std::string> Socket::sendAll(const void *data,
-                                           size_t size_) const {
+std::optional<NetworkError> Socket::sendAll(const void *data,
+                                            size_t size_) const {
   const char *ptr = static_cast<const char *>(data);
   size_t size = size_;
 
@@ -19,11 +19,12 @@ std::optional<std::string> Socket::sendAll(const void *data,
     ssize_t sent = send(sock, ptr, size, MSG_NOSIGNAL);
     if (sent < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        return "Send timeout";
+        return NetworkError{NetworkErrorType::SEND_TIMEOUT, "Send timeout"};
       }
-      return getLastError();
+      return NetworkError{NetworkErrorType::OTHER, getLastError()};
     } else if (sent == 0) {
-      return "Connection closed";
+      return NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+                          "Connection closed"};
     }
 
     ptr += sent;
@@ -86,15 +87,17 @@ void Socket::closeSock() {
   sock = INVALID_SOCK;
 }
 
-std::optional<std::string> Socket::sendMessage(const binary_t &data) const {
+std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
   // std::cout << "msg: " << toStr(data) << std::endl;
   if (data.empty()) {
-    return "Empty message";
+    return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
   }
 
   if (data.size() > MAX_MSG_SIZE) {
-    return "Message cant be larger than " +
-           std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB";
+    return NetworkError{
+        NetworkErrorType::LARGE_MESSAGE,
+        "Message cant be larger than " +
+            std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB"};
   }
 
   auto error = sendAll(data.data(), data.size());
@@ -105,7 +108,7 @@ std::optional<std::string> Socket::sendMessage(const binary_t &data) const {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> Socket::receiveMessage() const {
+std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   binary_t header;
   header.resize(constants::SOCKET_MESSAGE_HEADER_BYTES);
 
@@ -114,25 +117,32 @@ std::expected<binary_t, std::string> Socket::receiveMessage() const {
       recv(sock, header.data(), header.size(), MSG_WAITALL | MSG_NOSIGNAL);
   if (received == -1) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      return std::unexpected("Receive timeout");
+      return std::unexpected(
+          NetworkError{NetworkErrorType::RECEIVE_TIMEOUT, "Receive timeout"});
     }
     if (errno == ECONNRESET) {
-      return std::unexpected("Connection reset");
+      return std::unexpected(NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+                                          "Connection closed"});
     }
     if (errno == EBADF) {
-      return std::unexpected("Bad file descriptor");
+      return std::unexpected(NetworkError{NetworkErrorType::BAD_FILE_DESCRIPTOR,
+                                          "Bad file descriptor"});
     }
-    return std::unexpected(getLastError());
+    return std::unexpected(
+        NetworkError{NetworkErrorType::OTHER, getLastError()});
   } else if (received == 0) {
-    return std::unexpected("Connection closed");
+    return std::unexpected(
+        NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
   } else if (received != header.size()) {
-    return std::unexpected("Incomplete header");
+    return std::unexpected(
+        NetworkError{NetworkErrorType::INCOMPLETE_HEADER, "Incomplete header"});
   }
 
   auto in = zpp::bits::in(header);
   uint32_t msgSize = 0;
   if (in(msgSize) != zpp::bits::errc{}) {
-    return std::unexpected("Failed to read size");
+    return std::unexpected(
+        NetworkError{NetworkErrorType::NO_MSG_SIZE, "Failed to read size"});
   }
   msgSize = ntohl(msgSize);
 
@@ -140,9 +150,11 @@ std::expected<binary_t, std::string> Socket::receiveMessage() const {
   binary_t content(msgSize);
   received = recv(sock, content.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
   if (received < 0)
-    return std::unexpected(getLastError());
+    return std::unexpected(
+        NetworkError{NetworkErrorType::OTHER, getLastError()});
   if (received != msgSize)
-    return std::unexpected("Incomplete content");
+    return std::unexpected(NetworkError{NetworkErrorType::INCOMPLETE_CONTENT,
+                                        "Incomplete content"});
 
   binary_t result;
   result.reserve(header.size() + content.size());

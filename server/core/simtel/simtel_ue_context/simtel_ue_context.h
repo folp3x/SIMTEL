@@ -39,8 +39,8 @@ public:
   common::binary_t takeBuf();
   void setBuf(const common::binary_t &buf_);
 
-  std::optional<std::string> receiveData();
-  std::optional<std::string> sendBufToUe();
+  std::optional<common::NetworkError> receiveData();
+  std::optional<common::NetworkError> sendBufToUe();
 
   std::string toStr() const;
 

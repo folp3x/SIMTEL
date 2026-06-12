@@ -73,14 +73,19 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
   if (!bytes) {
     return bytes.error();
   }
-  return sock.sendMessage(*bytes);
+
+  auto sendError = sock.sendMessage(*bytes);
+  if (!sendError) {
+    return sendError->description;
+  }
+  return std::nullopt;
 }
 
 std::expected<common::MeasurementControlRequest, std::string>
 UeExchange::receiveSignalLevel() const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
-    return std::unexpected(bytes.error());
+    return std::unexpected(bytes.error().description);
   }
 
   common::Protocol protocol;
@@ -103,14 +108,19 @@ UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
   if (!bytes) {
     return bytes.error();
   }
-  return sock.sendMessage(*bytes);
+
+  auto sendError = sock.sendMessage(*bytes);
+  if (!sendError) {
+    return sendError->description;
+  }
+  return std::nullopt;
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::receiveBsInfo() const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
-    return std::unexpected(bytes.error());
+    return std::unexpected(bytes.error().description);
   }
 
   common::Protocol protocol;

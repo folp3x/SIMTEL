@@ -46,7 +46,7 @@ void SimtelUeContext::setBuf(const common::binary_t &buf_) {
                                    std::to_string(buf.size()) + " bytes)");
 }
 
-std::optional<std::string> SimtelUeContext::receiveData() {
+std::optional<common::NetworkError> SimtelUeContext::receiveData() {
   auto binary = sock->receiveMessage();
   if (!binary) {
     return binary.error();
@@ -56,7 +56,7 @@ std::optional<std::string> SimtelUeContext::receiveData() {
   }
 }
 
-std::optional<std::string> SimtelUeContext::sendBufToUe() {
+std::optional<common::NetworkError> SimtelUeContext::sendBufToUe() {
   auto error = sock->sendMessage(buf);
   buf.clear();
   return error;

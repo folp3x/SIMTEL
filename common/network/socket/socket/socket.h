@@ -7,6 +7,7 @@
 
 #include "common/constants.h"
 #include "common/network/network_address/network_address.h"
+#include "common/network/network_error/network_error/network_error.h"
 #include "common/types.h"
 
 namespace common {
@@ -16,7 +17,7 @@ private:
   static constexpr int INVALID_SOCK = -1;
   static constexpr int SEND_TIMEOUT_SEC = 10;
 
-  std::optional<std::string> sendAll(const void *data, size_t size_) const;
+  std::optional<NetworkError> sendAll(const void *data, size_t size_) const;
 
 protected:
   int sock = INVALID_SOCK;
@@ -39,7 +40,7 @@ public:
   Socket(Socket &&other);
   Socket &operator=(Socket &&other);
 
-  std::optional<std::string> sendMessage(const binary_t &data) const;
-  std::expected<binary_t, std::string> receiveMessage() const;
+  std::optional<NetworkError> sendMessage(const binary_t &data) const;
+  std::expected<binary_t, NetworkError> receiveMessage() const;
 };
 } // namespace common

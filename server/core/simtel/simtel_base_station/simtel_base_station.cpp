@@ -73,16 +73,17 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
     MessageHolder::instance().addMsg(
         createLogMsg("Measurement_Control response to " + ctx->toStr() + " = " +
                      req.toStr()));
+    return std::nullopt;
   }
 
-  return sendError;
+  return sendError->description;
 }
 
 std::expected<common::RrcConnectionRequest, std::string>
 SimtelBaseStation::receiveLocation(std::shared_ptr<SimtelUeContext> ctx) const {
   auto receiveError = ctx->receiveData();
   if (receiveError) {
-    return std::unexpected(*receiveError);
+    return std::unexpected(receiveError->description);
   }
 
   common::Protocol protocol;
@@ -102,7 +103,7 @@ SimtelBaseStation::receiveChosenBsId(
     std::shared_ptr<SimtelUeContext> ctx) const {
   auto receiveError = ctx->receiveData();
   if (receiveError) {
-    return std::unexpected(*receiveError);
+    return std::unexpected(receiveError->description);
   }
 
   common::Protocol protocol;
@@ -133,9 +134,10 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
     MessageHolder::instance().addMsg(
         createLogMsg("Rrc_Reconfiguration_Keep response to " + ctx->toStr() +
                      " = " + req.toStr()));
+    return std::nullopt;
   }
 
-  return sendError;
+  return sendError->description;
 }
 
 std::optional<std::string>
@@ -152,9 +154,10 @@ SimtelBaseStation::sendError(const std::string &description,
   if (!sendError) {
     MessageHolder::instance().addMsg(createLogMsg(
         "Error response to " + ctx->toStr() + " = " + req.toStr()));
+    return std::nullopt;
   }
 
-  return sendError;
+  return sendError->description;
 }
 
 std::optional<std::string>
@@ -173,9 +176,10 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
     MessageHolder::instance().addMsg(
         createLogMsg("Rrc_Reconfiguration_Handover response to " +
                      ctx->toStr() + " = " + req.toStr()));
+    return std::nullopt;
   }
 
-  return sendError;
+  return sendError->description;
 }
 
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
@@ -326,15 +330,17 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
   while (true) {
     auto receiveError = ctx->receiveData();
 
-    if (receiveError == "Connection closed" ||
-        receiveError == "Connection reset" ||
-        receiveError == "Bad file descriptor") {
-      takeUe(ctx->getMTimsi());
+    if (receiveError) {
+      if (common ::isNoConnectedError(*receiveError)) {
+        takeUe(ctx->getMTimsi());
 
-      MessageHolder::instance().addMsg(
-          createLogMsg(ctx->toStr() + " disconnected"),
-          common::MenuMessageType::INFO);
-      break;
+        MessageHolder::instance().addMsg(
+            createLogMsg(ctx->toStr() + " disconnected"),
+            common::MenuMessageType::INFO);
+        break;
+      } else {
+        MessageHolder::instance().addErrorMsg(receiveError->description);
+      }
     } else {
       common::binary_t bytes = ctx->takeBuf();
       common::Protocol protocol;
