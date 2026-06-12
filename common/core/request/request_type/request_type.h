@@ -11,6 +11,7 @@ enum class RequestType : uint8_t {
   Measurement_Report,
   Rrc_Reconfiguration_Keep,
   Rrc_Reconfiguration_Handover,
+  Rrc_Reconfiguration_Complete,
   SM_Transfer,
   SM_Submit,
   MO_Forward_SM,

@@ -238,15 +238,20 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   }
 
   if (handover) {
-    auto ue = ctx->getBs()->takeUe(ctx->getMTimsi());
+    auto ue = ctx->getBs()->copyUe(ctx->getMTimsi());
     // если UE еще не подключен к какой-либо вышке
     if (!ue) {
       ue = ctx;
     }
 
+    // rrc_reconfigure_complete
+
+    ctx->getBs()->removeUe(ctx->getMTimsi());
     ue->setBs(chosenBs);
     chosenBs->addUe(std::move(ue));
   }
+
+  // attach_accept
 
   return std::nullopt;
 }
@@ -314,22 +319,30 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   return std::nullopt;
 }
 
+void SimtelBaseStation::addUe(std::shared_ptr<SimtelUeContext> ctx) {
+  connectedUe.emplace(ctx->getMTimsi(), ctx);
+  MessageHolder::instance().addMsg(
+      createLogMsg(ctx->toStr() + " buffer added "));
+}
+
 std::shared_ptr<SimtelUeContext>
-SimtelBaseStation::takeUe(const common::imsi_t &mTImsi) {
+SimtelBaseStation::copyUe(const common::imsi_t &mTImsi) {
   auto it = connectedUe.find(mTImsi);
   if (it == connectedUe.end()) {
     return nullptr;
   }
 
-  auto ue = it->second;
-  connectedUe.erase(it);
-  return ue;
+  return it->second;
 }
 
-void SimtelBaseStation::addUe(std::shared_ptr<SimtelUeContext> ctx) {
-  connectedUe.emplace(ctx->getMTimsi(), ctx);
-  MessageHolder::instance().addMsg(
-      createLogMsg(ctx->toStr() + " buffer added "));
+bool SimtelBaseStation::removeUe(const common::imsi_t &mTImsi) {
+  auto it = connectedUe.find(mTImsi);
+  if (it == connectedUe.end()) {
+    return false;
+  }
+
+  connectedUe.erase(it);
+  return true;
 }
 
 void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {

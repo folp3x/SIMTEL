@@ -79,8 +79,10 @@ public:
                           std::shared_ptr<SimtelUeContext> ctx,
                           bool &handover) const;
 
-  std::shared_ptr<SimtelUeContext> takeUe(const common::imsi_t &mTImsi);
   void addUe(std::shared_ptr<SimtelUeContext> ctx);
+  std::shared_ptr<SimtelUeContext> copyUe(const common::imsi_t &mTImsi);
+  bool removeUe(const common::imsi_t &mTImsi);
+
   void handleUe(std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server

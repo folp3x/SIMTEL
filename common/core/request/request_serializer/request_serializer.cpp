@@ -463,13 +463,13 @@ RequestSerializer::rrcReconfigurationHandoverFromBytes(const binary_t &bytes,
   case Protocol::BINARY: {
     auto curByte = msg->content.begin();
 
-    if (curByte + IMEI_BINARY_BYTES > msg->content.end()) {
-      return std::unexpected("Binary too short for IMSI");
+    if (curByte + IMSI_BINARY_BYTES > msg->content.end()) {
+      return std::unexpected("Binary too short for m-TIMSI");
     }
-    binary_t imeiBinary(curByte, curByte + IMEI_BINARY_BYTES);
-    auto mTimsi = BinarySerializer::imsiFromBinary(imeiBinary);
+    binary_t mTimsiBinary(curByte, curByte + IMSI_BINARY_BYTES);
+    auto mTimsi = BinarySerializer::imsiFromBinary(mTimsiBinary);
     if (!mTimsi) {
-      return std::unexpected("IMSI deserialize error");
+      return std::unexpected("m-TIMSI deserialize error");
     }
     curByte += IMSI_BINARY_BYTES;
 
@@ -542,6 +542,71 @@ RequestSerializer::errorFromBytes(const binary_t &bytes, Protocol &protocol) {
     }
 
     return ErrorRequest{*description};
+  }
+  default:
+    return std::unexpected("Unsupported protocol");
+  }
+}
+
+std::expected<binary_t, std::string>
+RequestSerializer::rrcReconfigurationCompleteToBytes(
+    Protocol protocol, const RrcReconfigurationCompleteRequest &req) {
+  binary_t content;
+  switch (protocol) {
+  case Protocol::BINARY: {
+    auto mTimsi = BinarySerializer::imsiToBinary(req.mTimsi);
+    if (!mTimsi) {
+      return std::unexpected("m-TIMSI serialize error");
+    }
+
+    content = std::move(*mTimsi);
+    break;
+  }
+  case Protocol::JSON: {
+    nlohmann::json jsonObj = nlohmann::json{{"mTimsi", req.mTimsi}};
+
+    std::string jsonStr = jsonObj.dump();
+    content = BinarySerializer::strToBinary(jsonStr);
+    break;
+  }
+  default:
+    return std::unexpected("Unsupported protocol");
+  }
+
+  return requestToMsgBytes(protocol, RequestType::Rrc_Reconfiguration_Complete,
+                           content);
+}
+
+std::expected<RrcReconfigurationCompleteRequest, std::string>
+RequestSerializer::rrcReconfigurationCompleteFromBytes(const binary_t &bytes,
+                                                       Protocol &protocol) {
+  auto msg = requestMsgFromBytes(RequestType::Rrc_Reconfiguration_Complete,
+                                 bytes, protocol);
+  if (!msg) {
+    return std::unexpected(msg.error());
+  }
+
+  switch (protocol) {
+  case Protocol::BINARY: {
+    auto curByte = msg->content.begin();
+
+    binary_t mTimsiBinary(msg->content.begin(), msg->content.end());
+    auto mTimsi = BinarySerializer::imsiFromBinary(mTimsiBinary);
+    if (!mTimsi) {
+      return std::unexpected("m-TIMSI deserialize error");
+    }
+
+    return RrcReconfigurationCompleteRequest{*mTimsi};
+  }
+  case Protocol::JSON: {
+    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
+
+    auto mTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
+    if (!mTimsi) {
+      return std::unexpected(mTimsi.error());
+    }
+
+    return RrcReconfigurationCompleteRequest{*mTimsi};
   }
   default:
     return std::unexpected("Unsupported protocol");

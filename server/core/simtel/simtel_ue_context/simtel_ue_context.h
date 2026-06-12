@@ -40,8 +40,6 @@ public:
 
   common::binary_t takeBuf();
   void setBuf(const common::binary_t &buf_);
-  common::binary_t copyBuf();
-  void clearBuf();
 
   std::optional<common::NetworkError> receiveData();
   std::optional<common::NetworkError> sendBufToUe();

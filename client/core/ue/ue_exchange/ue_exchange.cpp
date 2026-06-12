@@ -32,6 +32,7 @@ void UeExchange::handleRequests() {
     case common::RequestType::Rrc_Connection: {
       auto result = handleLocationUpdate(info);
       if (!result) {
+        signalLevel = 0;
         info.callback(nullptr, result.error());
       } else {
         info.callback(std::move(*result), "");
@@ -207,14 +208,13 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
   auto response = std::move(*bsInfoResponse);
 
   unsigned int newBsId;
-  if (auto *bsKeepResponse =
-          dynamic_cast<common::RrcReconfigurationKeepRequest *>(
-              response.get())) {
-    newBsId = bsKeepResponse->bsId;
-  } else if (auto *bsHandoverResponse =
+  if (auto *resp = dynamic_cast<common::RrcReconfigurationKeepRequest *>(
+          response.get())) {
+    newBsId = resp->bsId;
+  } else if (auto *resp =
                  dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                      response.get())) {
-    newBsId = bsHandoverResponse->bsId;
+    newBsId = resp->bsId;
   } else if (auto *errorResponse =
                  dynamic_cast<common::ErrorRequest *>(response.get())) {
     return std::unexpected("Error response: " + errorResponse->description);

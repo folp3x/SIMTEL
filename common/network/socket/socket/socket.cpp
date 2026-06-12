@@ -150,6 +150,10 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   }
   msgSize = ntohl(msgSize);
 
+  if (msgSize == 0) {
+    return header;
+  }
+
   // чтение данных
   binary_t content(msgSize);
   received = recv(sock, content.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);

@@ -6,6 +6,7 @@
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/network/protocol/protocol.h"
@@ -66,6 +67,13 @@ public:
 
   static std::expected<ErrorRequest, std::string>
   errorFromBytes(const binary_t &bytes, Protocol &protocol);
+
+  static std::expected<binary_t, std::string> rrcReconfigurationCompleteToBytes(
+      Protocol protocol, const RrcReconfigurationCompleteRequest &req);
+
+  static std::expected<RrcReconfigurationCompleteRequest, std::string>
+  rrcReconfigurationCompleteFromBytes(const binary_t &bytes,
+                                      Protocol &protocol);
 
   static std::expected<RequestType, std::string>
   parseRequestType(const binary_t &bytes, Protocol &protocol);
