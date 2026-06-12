@@ -26,6 +26,9 @@ public:
 
   static std::expected<unsigned int, std::string>
   bsIdFromJsonStr(const std::string &str, const std::string &name = "bsId");
+
+  static std::expected<std::string, std::string>
+  strFromJsonStr(const std::string &str, const std::string &name);
 };
 } // namespace common
 

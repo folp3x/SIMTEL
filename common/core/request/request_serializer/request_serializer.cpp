@@ -536,12 +536,12 @@ RequestSerializer::errorFromBytes(const binary_t &bytes, Protocol &protocol) {
   case Protocol::JSON: {
     std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
 
-    auto mTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
-    if (!mTimsi) {
-      return std::unexpected(mTimsi.error());
+    auto description = JsonDeserializer::strFromJsonStr(jsonStr, "description");
+    if (!description) {
+      return std::unexpected(description.error());
     }
 
-    return RrcReconfigurationHandoverRequest{*mTimsi, *bsId};
+    return ErrorRequest{*description};
   }
   default:
     return std::unexpected("Unsupported protocol");

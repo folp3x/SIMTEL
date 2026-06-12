@@ -51,6 +51,10 @@ private:
              std::shared_ptr<SimtelUeContext> ctx) const;
 
   std::optional<std::string>
+  sendError(const std::string &description,
+            std::shared_ptr<SimtelUeContext> ctx) const;
+
+  std::optional<std::string>
   sendBsHandover(const common::imei_t &mTmsi,
                  std::shared_ptr<SimtelUeContext> ctx) const;
 

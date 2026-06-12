@@ -139,6 +139,25 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
 }
 
 std::optional<std::string>
+SimtelBaseStation::sendError(const std::string &description,
+                             std::shared_ptr<SimtelUeContext> ctx) const {
+  common::ErrorRequest req{description};
+  auto bytes = common::RequestSerializer::errorToBytes(ctx->getProtocol(), req);
+  if (!bytes) {
+    return bytes.error();
+  }
+  ctx->setBuf(*bytes);
+
+  auto sendError = ctx->sendBufToUe();
+  if (!sendError) {
+    MessageHolder::instance().addMsg(createLogMsg(
+        "Error response to " + ctx->toStr() + " = " + req.toStr()));
+  }
+
+  return sendError;
+}
+
+std::optional<std::string>
 SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
                                   std::shared_ptr<SimtelUeContext> ctx) const {
   common::RrcReconfigurationHandoverRequest req{mTmsi, id};
@@ -249,13 +268,19 @@ bool SimtelBaseStation::canAcceptConnection() const {
 std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     const common::MeasurementReportRequest &req,
     std::shared_ptr<SimtelUeContext> ctx, bool &handover) const {
+
+  auto errorSendError = sendError("MME error", ctx);
+  return "MME error";
+
   common::imsi_t mTimsi = "000000000000000";
   MessageHolder::instance().addMsg(
       createLogMsg("received t-imsi from MME: " + mTimsi));
+
   bool set = ctx->setMTimsi(mTimsi);
   if (!set) {
     return "UE imsi already set";
   }
+
   auto curBs = ctx->getBs();
   bool connectedToCur =
       curBs && curBs->getId() == id && ueConnected(ctx->getMTimsi());

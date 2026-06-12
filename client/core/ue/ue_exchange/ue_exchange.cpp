@@ -140,6 +140,13 @@ UeExchange::receiveBsInfo() const {
     }
     return std::make_unique<common::RrcReconfigurationHandoverRequest>(*req);
   }
+  case common::RequestType::Error: {
+    auto req = common::RequestSerializer::errorFromBytes(*bytes, protocol);
+    if (!req) {
+      return std::unexpected(req.error());
+    }
+    return std::make_unique<common::ErrorRequest>(*req);
+  }
   default:
     return std::unexpected("Unexpected request type");
   }
@@ -198,8 +205,11 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
                  dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                      response.get())) {
     newBsId = bsHandoverResponse->bsId;
+  } else if (auto *errorResponse =
+                 dynamic_cast<common::ErrorRequest *>(response.get())) {
+    return std::unexpected("Error response: " + errorResponse->description);
   } else {
-    return std::unexpected("BS rejected connection");
+    return std::unexpected("Invalid response received");
   }
 
   if (newBsId == bestSignalResponse.bsId) {
