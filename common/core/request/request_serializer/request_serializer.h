@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "common/core/request/attach_accept_request/attach_accept_request.h"
 #include "common/core/request/error_request/error_request.h"
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
@@ -74,6 +75,12 @@ public:
   static std::expected<RrcReconfigurationCompleteRequest, std::string>
   rrcReconfigurationCompleteFromBytes(const binary_t &bytes,
                                       Protocol &protocol);
+
+  static std::expected<binary_t, std::string>
+  attachAcceptToBytes(Protocol protocol, const AttachAcceptRequest &req);
+
+  static std::expected<AttachAcceptRequest, std::string>
+  attachAcceptFromBytes(const binary_t &bytes, Protocol &protocol);
 
   static std::expected<RequestType, std::string>
   parseRequestType(const binary_t &bytes, Protocol &protocol);

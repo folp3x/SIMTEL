@@ -613,6 +613,23 @@ RequestSerializer::rrcReconfigurationCompleteFromBytes(const binary_t &bytes,
   }
 }
 
+std::expected<binary_t, std::string>
+RequestSerializer::attachAcceptToBytes(Protocol protocol,
+                                       const AttachAcceptRequest &req) {
+  return requestToMsgBytes(protocol, RequestType::Rrc_Reconfiguration_Complete,
+                           common::binary_t{});
+}
+
+std::expected<AttachAcceptRequest, std::string>
+RequestSerializer::attachAcceptFromBytes(const binary_t &bytes,
+                                         Protocol &protocol) {
+  auto msg = requestMsgFromBytes(RequestType::Error, bytes, protocol);
+  if (!msg) {
+    return std::unexpected(msg.error());
+  }
+  return AttachAcceptRequest{};
+}
+
 std::expected<RequestType, std::string>
 RequestSerializer::parseRequestType(const binary_t &bytes, Protocol &protocol) {
   auto msg = common::socketMessageFromBinary(bytes);

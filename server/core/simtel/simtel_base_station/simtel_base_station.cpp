@@ -332,6 +332,9 @@ SimtelBaseStation::copyUe(const common::imsi_t &mTImsi) {
     return nullptr;
   }
 
+  MessageHolder::instance().addMsg(
+      createLogMsg(it->second->toStr() + " buffer copied "));
+
   return it->second;
 }
 
@@ -340,6 +343,9 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTImsi) {
   if (it == connectedUe.end()) {
     return false;
   }
+
+  MessageHolder::instance().addMsg(
+      createLogMsg(it->second->toStr() + " buffer removed "));
 
   connectedUe.erase(it);
   return true;

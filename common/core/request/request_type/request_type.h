@@ -12,6 +12,7 @@ enum class RequestType : uint8_t {
   Rrc_Reconfiguration_Keep,
   Rrc_Reconfiguration_Handover,
   Rrc_Reconfiguration_Complete,
+  Attach_Accept,
   SM_Transfer,
   SM_Submit,
   MO_Forward_SM,
