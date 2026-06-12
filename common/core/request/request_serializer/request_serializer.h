@@ -51,13 +51,14 @@ public:
                                 const RrcReconfigurationKeepRequest &req);
 
   static std::expected<RrcReconfigurationKeepRequest, std::string>
-  rrcReconfigurationKeepFromBytes(const binary_t &bytes);
+  rrcReconfigurationKeepFromBytes(const binary_t &bytes, Protocol &protocol);
 
   static std::expected<binary_t, std::string> rrcReconfigurationHandoverToBytes(
       Protocol protocol, const RrcReconfigurationHandoverRequest &req);
 
   static std::expected<RrcReconfigurationHandoverRequest, std::string>
-  rrcReconfigurationHandoverFromBytes(const binary_t &bytes);
+  rrcReconfigurationHandoverFromBytes(const binary_t &bytes,
+                                      Protocol &protocol);
 
   static std::expected<RequestType, std::string>
   parseRequestType(const binary_t &bytes, Protocol &protocol);

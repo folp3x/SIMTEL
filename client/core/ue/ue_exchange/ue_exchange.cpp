@@ -124,8 +124,8 @@ UeExchange::receiveBsInfo() const {
 
   switch (*reqType) {
   case common::RequestType::Rrc_Reconfiguration_Keep: {
-    auto req =
-        common::RequestSerializer::rrcReconfigurationKeepFromBytes(*bytes);
+    auto req = common::RequestSerializer::rrcReconfigurationKeepFromBytes(
+        *bytes, protocol);
     if (!req) {
       return std::unexpected(req.error());
     }
@@ -133,8 +133,8 @@ UeExchange::receiveBsInfo() const {
     return std::make_unique<common::RrcReconfigurationKeepRequest>(*req);
   }
   case common::RequestType::Rrc_Reconfiguration_Handover: {
-    auto req =
-        common::RequestSerializer::rrcReconfigurationHandoverFromBytes(*bytes);
+    auto req = common::RequestSerializer::rrcReconfigurationHandoverFromBytes(
+        *bytes, protocol);
     if (!req) {
       return std::unexpected(req.error());
     }

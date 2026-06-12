@@ -9,6 +9,7 @@ set(SOURCES_LIST
     "core/simtel/simtel_listener/simtel_listener.cpp"
     "core/simtel/simtel_ue_context/simtel_ue_context.cpp"
     "core/simtel/simtel_base_station/simtel_base_station.cpp"
+    "app/message_holder/message_holder.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

@@ -367,8 +367,8 @@ RequestSerializer::rrcReconfigurationKeepToBytes(
 }
 
 std::expected<RrcReconfigurationKeepRequest, std::string>
-RequestSerializer::rrcReconfigurationKeepFromBytes(const binary_t &bytes) {
-  Protocol protocol;
+RequestSerializer::rrcReconfigurationKeepFromBytes(const binary_t &bytes,
+                                                   Protocol &protocol) {
   auto msg = requestMsgFromBytes(RequestType::Rrc_Reconfiguration_Keep, bytes,
                                  protocol);
   if (!msg) {
@@ -451,8 +451,8 @@ RequestSerializer::rrcReconfigurationHandoverToBytes(
 }
 
 std::expected<RrcReconfigurationHandoverRequest, std::string>
-RequestSerializer::rrcReconfigurationHandoverFromBytes(const binary_t &bytes) {
-  Protocol protocol;
+RequestSerializer::rrcReconfigurationHandoverFromBytes(const binary_t &bytes,
+                                                       Protocol &protocol) {
   auto msg = requestMsgFromBytes(RequestType::Rrc_Reconfiguration_Handover,
                                  bytes, protocol);
   if (!msg) {
