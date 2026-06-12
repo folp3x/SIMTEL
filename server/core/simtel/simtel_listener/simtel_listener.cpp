@@ -25,8 +25,8 @@ void SimtelListener::acceptConnections(
       continue;
     }
 
-    MessageHolder::instance().addMsg("\nUE connected: " +
-                                         (*acceptResult)->getAddrStr(),
+    MessageHolder::instance().addMsg("\nUE_" + (*acceptResult)->getAddrStr() +
+                                         " connected",
                                      common::MenuMessageType::INFO);
 
     if (activeThreads >= maxUeThreads) {

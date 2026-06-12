@@ -11,6 +11,8 @@ class SimtelBaseStation;
 
 class SimtelUeContext {
 private:
+  static constexpr int SOCK_RECEIVE_TIMEOUT_SEC = 4;
+
   bool mTimsiSet = false;
   common::imsi_t mTimsi;
 
@@ -38,6 +40,8 @@ public:
 
   common::binary_t takeBuf();
   void setBuf(const common::binary_t &buf_);
+  common::binary_t copyBuf();
+  void clearBuf();
 
   std::optional<common::NetworkError> receiveData();
   std::optional<common::NetworkError> sendBufToUe();
@@ -45,5 +49,8 @@ public:
   std::string toStr() const;
 
   bool notifyBs() const;
+
+  bool setReceiveTimeout();
+  bool removeReceiveTimeout();
 };
 } // namespace server

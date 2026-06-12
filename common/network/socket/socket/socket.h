@@ -15,7 +15,6 @@ class Socket {
 private:
   static constexpr uint32_t MAX_MSG_SIZE = constants::BYTES_IN_MB;
   static constexpr int INVALID_SOCK = -1;
-  static constexpr int SEND_TIMEOUT_SEC = 10;
 
   std::optional<NetworkError> sendAll(const void *data, size_t size_) const;
 
@@ -28,12 +27,16 @@ protected:
 
   static std::expected<int, std::string> initSock();
 
-public:
   Socket() = default;
   Socket(int sock_);
-  ~Socket();
+
+public:
+  virtual ~Socket();
 
   void closeSock();
+
+  static bool setSendTimeout(int sock, unsigned int timeoutSec);
+  static bool setReceiveTimeout(int sock, unsigned int timeoutSec);
 
   Socket(const Socket &) = delete;
   Socket &operator=(const Socket &) = delete;

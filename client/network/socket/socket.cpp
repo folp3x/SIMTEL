@@ -28,6 +28,16 @@ Socket::connectTo(const common::NetworkAddress &address) {
 
   sock = *initResult;
 
+  bool sendTimeoutSet = setSendTimeout(sock, SEND_TIMEOUT_SEC);
+  if (!sendTimeoutSet) {
+    return "Error setting send timeout";
+  }
+
+  bool receiveTimeoutSet = setReceiveTimeout(sock, RECEIVE_TIMEOUT_SEC);
+  if (!receiveTimeoutSet) {
+    return "Error setting receive timeout";
+  }
+
   sockaddr_in serverAddr = common::Socket::toSockAddr(address);
   if (connect(sock, reinterpret_cast<sockaddr *>(&serverAddr),
               sizeof(serverAddr)) < 0) {

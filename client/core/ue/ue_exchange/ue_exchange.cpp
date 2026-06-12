@@ -76,9 +76,9 @@ UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
 
   auto sendError = sock.sendMessage(*bytes);
   if (!sendError) {
-    return sendError->description;
+    return std::nullopt;
   }
-  return std::nullopt;
+  return sendError->description;
 }
 
 std::expected<common::MeasurementControlRequest, std::string>
@@ -111,9 +111,9 @@ UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
 
   auto sendError = sock.sendMessage(*bytes);
   if (!sendError) {
-    return sendError->description;
+    return std::nullopt;
   }
-  return std::nullopt;
+  return sendError->description;
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>

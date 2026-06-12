@@ -46,6 +46,10 @@ void SimtelUeContext::setBuf(const common::binary_t &buf_) {
                                    std::to_string(buf.size()) + " bytes)");
 }
 
+common::binary_t SimtelUeContext::copyBuf() { return buf; }
+
+void SimtelUeContext::clearBuf() { buf.clear(); }
+
 std::optional<common::NetworkError> SimtelUeContext::receiveData() {
   auto binary = sock->receiveMessage();
   if (!binary) {
@@ -64,5 +68,13 @@ std::optional<common::NetworkError> SimtelUeContext::sendBufToUe() {
 
 std::string SimtelUeContext::toStr() const {
   return "UE_" + sock->getAddrStr();
+}
+
+bool SimtelUeContext::setReceiveTimeout() {
+  return sock->setReceiveTimeout(SOCK_RECEIVE_TIMEOUT_SEC);
+}
+
+bool SimtelUeContext::removeReceiveTimeout() {
+  return sock->removeReceiveTimeout();
 }
 } // namespace server

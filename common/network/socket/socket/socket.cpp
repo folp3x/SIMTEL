@@ -72,12 +72,6 @@ std::expected<int, std::string> Socket::initSock() {
     return std::unexpected(getLastError());
   }
 
-  timeval tv = {SEND_TIMEOUT_SEC, 0};
-  if (setsockopt(inited, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
-    close(inited);
-    return std::unexpected(getLastError());
-  }
-
   return inited;
 }
 
@@ -85,6 +79,16 @@ void Socket::closeSock() {
   shutdown(sock, SHUT_RDWR);
   close(sock);
   sock = INVALID_SOCK;
+}
+
+bool Socket::setSendTimeout(int sock, unsigned int timeoutSec) {
+  timeval tv = {timeoutSec, 0};
+  return setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) == 0;
+}
+
+bool Socket::setReceiveTimeout(int sock, unsigned int timeoutSec) {
+  timeval tv = {timeoutSec, 0};
+  return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == 0;
 }
 
 std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {

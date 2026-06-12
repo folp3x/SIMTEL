@@ -16,6 +16,13 @@ std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
 
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
+  bool timeoutSet = ctx->setReceiveTimeout();
+  if (!timeoutSet) {
+    MessageHolder::instance().addErrorMsg(ctx->toStr() +
+                                          " error setting receive timeout");
+    return;
+  }
+
   // начальное получение данных через 1ую вышку
   auto *firstBs = baseStations.begin()->second.get();
   ctx->setBs(firstBs);
@@ -38,6 +45,13 @@ void SimtelBaseStation::handleConnectionRequest(
   auto bs = ctx->getBs();
   if (!bs) {
     MessageHolder::instance().addErrorMsg("UE not connected to BS");
+    return;
+  }
+
+  bool timeoutRemoved = ctx->removeReceiveTimeout();
+  if (!timeoutRemoved) {
+    MessageHolder::instance().addErrorMsg(ctx->toStr() +
+                                          " error removing receive timeout");
     return;
   }
 
@@ -186,7 +200,6 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx) {
   // имитация измерения уровня сигнала до базовых станций
-  bool signalLevelSent = false;
   auto initialBs = ctx->getBs();
   for (const auto &[id, bs] : baseStations) {
     unsigned int signalLevel = bs->measureSignal(locReq.loc);
@@ -202,12 +215,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
       return bs->createLogMsg("Error sending signal level: " +
                               *signalSendError);
     }
-    signalLevelSent = true;
   }
-  if (!signalLevelSent) {
-    return "All BS cant receive signal from client";
-  }
-
   ctx->setBs(initialBs);
 
   MessageHolder::instance().addMsg("Receiving BS id through initial BS");
@@ -273,8 +281,8 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     const common::MeasurementReportRequest &req,
     std::shared_ptr<SimtelUeContext> ctx, bool &handover) const {
 
-  auto errorSendError = sendError("MME error", ctx);
-  return "MME error";
+  // auto errorSendError = sendError("MME error", ctx);
+  // return "MME error";
 
   common::imsi_t mTimsi = "000000000000000";
   MessageHolder::instance().addMsg(

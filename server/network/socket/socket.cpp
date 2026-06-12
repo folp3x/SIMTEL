@@ -17,6 +17,11 @@ Socket::create(const common::NetworkAddress &address) {
   int sock = *initResult;
   sockaddr_in sockAddr = toSockAddr(address);
 
+  bool sendTimeoutSet = setSendTimeout(sock, SEND_TIMEOUT_SEC);
+  if (!sendTimeoutSet) {
+    return std::unexpected("Error setting send timeout");
+  }
+
   if (bind(sock, reinterpret_cast<sockaddr *>(&sockAddr), sizeof(sockAddr)) <
       0) {
     return std::unexpected(getLastError());
@@ -54,5 +59,13 @@ std::string Socket::getAddrStr() const {
   }
 
   return std::string(buf) + ":" + std::to_string(ntohs(sockAddr.sin_port));
+}
+
+bool Socket::setReceiveTimeout(unsigned int timeoutSec) {
+  return common::Socket::setReceiveTimeout(sock, timeoutSec);
+}
+
+bool Socket::removeReceiveTimeout() {
+  return common::Socket::setReceiveTimeout(sock, 0);
 }
 } // namespace server

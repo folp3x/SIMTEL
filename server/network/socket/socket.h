@@ -8,6 +8,7 @@ namespace server {
 class Socket : public common::Socket {
 private:
   static constexpr int MAX_WAITING_CONNECTIONS = 10;
+  static constexpr int SEND_TIMEOUT_SEC = 10;
 
   sockaddr_in sockAddr;
 
@@ -22,5 +23,8 @@ public:
   std::expected<std::unique_ptr<Socket>, std::string> acceptConnection() const;
 
   std::string getAddrStr() const;
+
+  bool setReceiveTimeout(unsigned int timeoutSec);
+  bool removeReceiveTimeout();
 };
 } // namespace server
