@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 #include "server/network/socket/socket.h"
 
@@ -16,8 +17,11 @@ private:
 
   std::atomic<int> activeThreads{0};
 
+  std::shared_ptr<MessageHolder> msgHolder;
+
 public:
-  SimtelListener(const common::NetworkAddress &addr, size_t maxUeThreads_);
+  SimtelListener(const common::NetworkAddress &addr, size_t maxUeThreads_,
+                 std::shared_ptr<MessageHolder> msgHolder_);
 
   void acceptConnections(
       const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler);

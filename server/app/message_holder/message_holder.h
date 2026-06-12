@@ -15,9 +15,10 @@ private:
   std::queue<common::MenuMessage> messages{};
 
 public:
-  void put(const common::MenuMessage &msg);
+  void addMsg(const std::string &content,
+              common::MenuMessageType type = common::MenuMessageType::NOCOLOR);
 
-  std::optional<common::MenuMessage> take();
+  std::optional<common::MenuMessage> takeMsg();
 
   void waitForMessages();
 };

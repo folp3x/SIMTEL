@@ -34,9 +34,9 @@ private:
 
   void sigintHandler(int signal);
 
-  common::MenuMessage formChangeMessage(const std::string &paramName,
-                                        const std::string &valueStr,
-                                        bool changed = true) const;
+  std::string formChangeMessage(const std::string &paramName,
+                                const std::string &valueStr,
+                                bool changed = true) const;
 
   void handleLocationUpdate();
 
@@ -52,6 +52,11 @@ private:
 
   void logCommandProcess(std::string_view commandName,
                          std::string_view argsStr = "") const;
+
+  void addMsg(const std::string &content,
+              common::MenuMessageType type = common::MenuMessageType::INFO);
+
+  void addErrorMsg(const std::string &content);
 
 public:
   App(const UeContext &ctx_,

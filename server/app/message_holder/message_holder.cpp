@@ -1,13 +1,14 @@
 #include "message_holder.h"
 
 namespace server {
-void MessageHolder::put(const common::MenuMessage &msg) {
+void MessageHolder::addMsg(const std::string &content,
+                           common::MenuMessageType type) {
   std::lock_guard lock(messagesMtx);
-  messages.push(msg);
+  messages.push({content, type});
   messagesCv.notify_one();
 }
 
-std::optional<common::MenuMessage> MessageHolder::take() {
+std::optional<common::MenuMessage> MessageHolder::takeMsg() {
   std::lock_guard lock(messagesMtx);
   if (messages.empty()) {
     return std::nullopt;
