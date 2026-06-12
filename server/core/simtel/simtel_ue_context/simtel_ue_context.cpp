@@ -60,5 +60,7 @@ std::optional<std::string> SimtelUeContext::sendBufToUe() {
   return error;
 }
 
-std::string SimtelUeContext::getAddrStr() const { return sock->getAddrStr(); }
+std::string SimtelUeContext::toStr() const {
+  return "UE_" + sock->getAddrStr();
+}
 } // namespace server

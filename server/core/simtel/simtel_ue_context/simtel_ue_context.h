@@ -43,7 +43,7 @@ public:
   std::optional<std::string> receiveData();
   std::optional<std::string> sendBufToUe();
 
-  std::string getAddrStr() const;
+  std::string toStr() const;
 
   bool notifyBs() const;
 };

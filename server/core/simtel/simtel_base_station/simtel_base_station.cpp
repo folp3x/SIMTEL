@@ -22,8 +22,8 @@ void SimtelBaseStation::handleConnectionRequest(
   auto *firstBs = baseStations.begin()->second.get();
   ctx->setBs(firstBs);
 
-  std::cout << "UE_" << ctx->getAddrStr()
-            << " receiving location through first BS" << std::endl;
+  std::cout << ctx->toStr() << " receiving location through first BS"
+            << std::endl;
   auto req = firstBs->receiveLocation(ctx);
   if (!req) {
     std::cout << "Error receiving location: " << req.error() << std::endl;
@@ -70,8 +70,8 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
 
   auto sendError = ctx->sendBufToUe();
   if (!sendError) {
-    std::cout << createLogMsg("Measurement_Control response to UE_" +
-                              ctx->getAddrStr() + " = " + req.toStr())
+    std::cout << createLogMsg("Measurement_Control response to " +
+                              ctx->toStr() + " = " + req.toStr())
               << std::endl;
   }
 
@@ -90,8 +90,8 @@ SimtelBaseStation::receiveLocation(std::shared_ptr<SimtelUeContext> ctx) const {
                                                                protocol);
   if (req) {
     ctx->setProtocol(protocol);
-    std::cout << createLogMsg("Rrc_Connection req from UE_" +
-                              ctx->getAddrStr() + " = " + req->toStr())
+    std::cout << createLogMsg("Rrc_Connection req from " + ctx->toStr() +
+                              " = " + req->toStr())
               << std::endl;
   }
 
@@ -111,8 +111,8 @@ SimtelBaseStation::receiveChosenBsId(
       ctx->takeBuf(), protocol);
   if (req) {
     ctx->setProtocol(protocol);
-    std::cout << createLogMsg("Measurement_Report req from UE_" +
-                              ctx->getAddrStr() + " = " + req->toStr())
+    std::cout << createLogMsg("Measurement_Report req from " + ctx->toStr() +
+                              " = " + req->toStr())
               << std::endl;
   }
 
@@ -132,8 +132,8 @@ SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
 
   auto sendError = ctx->sendBufToUe();
   if (!sendError) {
-    std::cout << createLogMsg("Rrc_Reconfiguration_Keep response to UE_" +
-                              ctx->getAddrStr() + " = " + req.toStr())
+    std::cout << createLogMsg("Rrc_Reconfiguration_Keep response to " +
+                              ctx->toStr() + " = " + req.toStr())
               << std::endl;
   }
 
@@ -153,8 +153,8 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
 
   auto sendError = ctx->sendBufToUe();
   if (!sendError) {
-    std::cout << createLogMsg("Rrc_Reconfiguration_Handover response to UE_" +
-                              ctx->getAddrStr() + " = " + req.toStr())
+    std::cout << createLogMsg("Rrc_Reconfiguration_Handover response to " +
+                              ctx->toStr() + " = " + req.toStr())
               << std::endl;
   }
 
@@ -285,13 +285,11 @@ SimtelBaseStation::takeUe(const common::imsi_t &mTImsi) {
 
 void SimtelBaseStation::addUe(std::shared_ptr<SimtelUeContext> ctx) {
   connectedUe.emplace(ctx->getMTimsi(), ctx);
-  std::cout << createLogMsg("UE_" + ctx->getAddrStr() + " buffer added ")
-            << std::endl;
+  std::cout << createLogMsg(ctx->toStr() + " buffer added ") << std::endl;
 }
 
 void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
-  std::cout << createLogMsg("started handling requests from UE_" +
-                            ctx->getAddrStr())
+  std::cout << createLogMsg("started handling requests from " + ctx->toStr())
             << std::endl;
   while (true) {
     auto receiveError = ctx->receiveData();
@@ -301,8 +299,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         receiveError == "Bad file descriptor") {
       takeUe(ctx->getMTimsi());
 
-      std::cout << createLogMsg("UE_" + ctx->getAddrStr() + " disconnected")
-                << std::endl;
+      std::cout << createLogMsg(ctx->toStr() + " disconnected") << std::endl;
       break;
     } else {
       common::binary_t bytes = ctx->takeBuf();
@@ -323,8 +320,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         }
 
         ctx->setProtocol(protocol);
-        std::cout << createLogMsg("Rrc_Connection req from UE_" +
-                                  ctx->getAddrStr() + " = " + req->toStr())
+        std::cout << createLogMsg("Rrc_Connection req from " + ctx->toStr() +
+                                  " = " + req->toStr())
                   << std::endl;
 
         auto updateError = handleLocationUpdate(*req, ctx);
