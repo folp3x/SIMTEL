@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
     common::NetworkAddress addr{"127.0.0.1", config.getPort()};
 
-    server::App app{addr};
+    server::App app{addr, 20};
     app.run();
 
     return 0;

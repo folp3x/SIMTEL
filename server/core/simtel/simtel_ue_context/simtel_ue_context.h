@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "common/core/location/location/location.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
@@ -10,7 +12,8 @@ class SimtelBaseStation;
 
 class SimtelUeContext {
 private:
-  common::imsi_t imsi = "";
+  bool mTimsiSet = false;
+  common::imsi_t mTimsi;
 
   std::unique_ptr<Socket> sock;
 
@@ -18,10 +21,15 @@ private:
 
   SimtelBaseStation *bs = nullptr;
 
+  std::mutex bufMtx;
+  std::condition_variable bufCv{};
   common::binary_t buf = {};
 
 public:
   explicit SimtelUeContext(std::unique_ptr<Socket> sock_);
+
+  common::imsi_t getMTimsi() const;
+  bool setMTimsi(const common::imsi_t &mTimsi_);
 
   SimtelBaseStation *getBs() const;
   void setBs(SimtelBaseStation *bs_);
@@ -36,5 +44,7 @@ public:
   std::optional<std::string> sendBufToUe();
 
   std::string getAddrStr() const;
+
+  bool notifyBs() const;
 };
 } // namespace server

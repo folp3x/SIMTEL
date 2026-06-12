@@ -9,13 +9,15 @@ namespace client {
 struct UeState {
   const common::imsi_t imsi;
   const common::imei_t imei;
-  common::imsi_t mTimsi = "";
+  common::imsi_t mTimsi;
 
   common::Location<> location;
   common::Protocol protocol = common::Protocol::JSON;
 
   UeState(const common::imsi_t &imsi_, const common::imei_t &imei_,
           const common::Location<> location_)
-      : imsi(imsi_), imei(imei_), location(location_) {}
+      : imsi(imsi_), imei(imei_), mTimsi(imsi), location(location_) {}
+
+  common::imsi_t getCurImsi() { return mTimsi.empty() ? imsi : mTimsi; }
 };
 } // namespace client

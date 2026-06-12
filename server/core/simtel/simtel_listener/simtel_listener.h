@@ -8,9 +8,9 @@
 namespace server {
 class SimtelListener {
 private:
-  static constexpr int MAX_CLIENT_THREADS = 20;
+  const size_t maxUeThreads;
 
-  bool listening = true;
+  bool listening = false;
 
   std::unique_ptr<Socket> sock;
 
@@ -19,11 +19,12 @@ private:
   std::function<void(std::shared_ptr<SimtelUeContext> ctx)> handler;
 
 public:
-  SimtelListener(const common::NetworkAddress &addr,
-                 const std::function<void(std::shared_ptr<SimtelUeContext> ctx)>
-                     &handler_);
+  SimtelListener(
+      const common::NetworkAddress &addr,
+      const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler_,
+      size_t maxUeThreads_);
 
-  void handleClients();
+  void acceptConnections();
 
   void stop();
 };

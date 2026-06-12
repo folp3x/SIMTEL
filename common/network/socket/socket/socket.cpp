@@ -112,9 +112,15 @@ std::expected<binary_t, std::string> Socket::receiveMessage() const {
   // чтение заголовка
   ssize_t received =
       recv(sock, header.data(), header.size(), MSG_WAITALL | MSG_NOSIGNAL);
-  if (received < 0) {
+  if (received == -1) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
       return std::unexpected("Receive timeout");
+    }
+    if (errno == ECONNRESET) {
+      return std::unexpected("Connection reset");
+    }
+    if (errno == EBADF) {
+      return std::unexpected("Bad file descriptor");
     }
     return std::unexpected(getLastError());
   } else if (received == 0) {

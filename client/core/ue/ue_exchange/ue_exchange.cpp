@@ -21,6 +21,11 @@ void UeExchange::handleRequests() {
     requests.pop();
     lock.unlock();
 
+    if (info.type != common::RequestType::Rrc_Connection && signalLevel == 0) {
+      info.callback(nullptr, "Not connected");
+      continue;
+    }
+
     curProtocol = info.state.protocol;
 
     switch (info.type) {
@@ -156,6 +161,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.signal == 0) {
+        signalLevel = 0;
         return std::unexpected("BS not found");
       }
     } else {
@@ -169,8 +175,8 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     }
   }
 
-  common::MeasurementReportRequest chosenBsReq{info.state.imei, info.state.imsi,
-                                               bestSignalResponse.bsId};
+  common::MeasurementReportRequest chosenBsReq{
+      info.state.imei, info.state.mTimsi, bestSignalResponse.bsId};
   auto bsIdSendError = sendChosenBsId(chosenBsReq);
   if (bsIdSendError) {
     return std::unexpected("Failed to send chosen BS id - " + *bsIdSendError);

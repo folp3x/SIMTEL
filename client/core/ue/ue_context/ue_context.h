@@ -11,6 +11,8 @@ private:
 
   bool inActive = false;
 
+  bool mTimsiSet = false;
+
 public:
   UeContext(const common::imsi_t &imsi, const common::imei_t &imei,
             common::Location<> &location,
@@ -21,7 +23,7 @@ public:
   common::imei_t getImei() const;
 
   common::imsi_t getMTimsi() const;
-  bool setMTimsi(const std::string &mtmsi_);
+  bool setMTimsi(const std::string &mTimsi_);
 
   common::Location<> getLocation() const;
   template <typename T> void updateLocation(const std::vector<T> &coords);

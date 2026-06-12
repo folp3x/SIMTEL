@@ -18,7 +18,7 @@ private:
   void sigintHandler(int signal);
 
 public:
-  App(const common::NetworkAddress &addr);
+  App(const common::NetworkAddress &addr, size_t maxUeThreads);
 
   virtual void run() override;
 };

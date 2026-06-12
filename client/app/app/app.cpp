@@ -219,7 +219,7 @@ void App::run() {
   messages = {};
   isRunning = true;
 
-  std::thread requestsHandler{[this]() { exchange.handleRequests(); }};
+  std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
@@ -251,7 +251,6 @@ void App::run() {
   }
 
   exchange.stop();
-  requestsHandler.join();
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }

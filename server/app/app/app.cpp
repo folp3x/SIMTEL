@@ -21,10 +21,17 @@ void App::sigintHandler(int signal) {
   }
 }
 
-App::App(const common::NetworkAddress &addr)
-    : listener(addr, [this](std::shared_ptr<SimtelUeContext> ctx) {
-        SimtelBaseStation::handleConnectionRequest(ctx);
-      }) {
+App::App(const common::NetworkAddress &addr, size_t maxUeThreads)
+    : listener(
+          addr,
+          [this](std::shared_ptr<SimtelUeContext> ctx) {
+            SimtelBaseStation::handleConnectionRequest(ctx);
+          },
+          maxUeThreads) {
+  SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(
+      1, 120, 10, common::Location<>{{-100}}));
+  SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(
+      2, 120, 10, common::Location<>{{100}}));
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }
@@ -33,7 +40,7 @@ void App::run() {
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
 
   menu.showStatus();
-  listener.handleClients();
+  std::jthread connectionHandler{[this]() { listener.acceptConnections(); }};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }

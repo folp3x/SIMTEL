@@ -1,11 +1,13 @@
 [
     {
         "ecgi": 1,
+        "radius": 120,
         "loc": [-100],
         "maxConnections": 10
     },
     {
         "ecgi": 2,
+        "radius": 120,
         "loc": [100],
         "maxConnections": 10
     }

@@ -9,6 +9,17 @@ namespace server {
 SimtelUeContext::SimtelUeContext(std::unique_ptr<Socket> sock_)
     : sock(std::move(sock_)) {}
 
+common::imsi_t SimtelUeContext::getMTimsi() const { return mTimsi; }
+
+bool SimtelUeContext::setMTimsi(const common::imsi_t &mTimsi_) {
+  if (!mTimsiSet) {
+    mTimsi = mTimsi_;
+    mTimsiSet = true;
+    return true;
+  }
+  return false;
+}
+
 SimtelBaseStation *SimtelUeContext::getBs() const { return bs; }
 
 void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
@@ -20,12 +31,18 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
 }
 
 common::binary_t SimtelUeContext::takeBuf() {
+  std::unique_lock lock(bufMtx);
   auto copy = buf;
   buf.clear();
+  bufCv.notify_one();
   return copy;
 }
 
-void SimtelUeContext::setBuf(const common::binary_t &buf_) { buf = buf_; }
+void SimtelUeContext::setBuf(const common::binary_t &buf_) {
+  std::unique_lock lock(bufMtx);
+  bufCv.wait(lock, [this] { return buf.empty(); });
+  buf = buf_;
+}
 
 std::optional<std::string> SimtelUeContext::receiveData() {
   auto binary = sock->receiveMessage();

@@ -7,8 +7,9 @@
 namespace server {
 SimtelListener::SimtelListener(
     const common::NetworkAddress &addr,
-    const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler_)
-    : handler(handler_) {
+    const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler_,
+    size_t maxUeThreads_)
+    : handler(handler_), maxUeThreads(maxUeThreads_) {
   auto createResult = Socket::create(addr);
   if (!createResult) {
     throw std::runtime_error("Error creating socket: " + createResult.error());
@@ -21,7 +22,8 @@ SimtelListener::SimtelListener(
   }
 }
 
-void SimtelListener::handleClients() {
+void SimtelListener::acceptConnections() {
+  listening = true;
   while (listening) {
     auto acceptResult = sock->acceptConnection();
     if (!acceptResult) {
@@ -31,7 +33,7 @@ void SimtelListener::handleClients() {
     std::cout << "\nUE connected: " << (*acceptResult)->getAddrStr()
               << std::endl;
 
-    if (activeThreads >= MAX_CLIENT_THREADS) {
+    if (activeThreads >= maxUeThreads) {
       std::cout << "Too many connections. UE ignored" << std::endl;
       continue;
     }
