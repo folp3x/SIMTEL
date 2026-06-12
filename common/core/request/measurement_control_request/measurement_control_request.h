@@ -12,5 +12,10 @@ struct MeasurementControlRequest : Request {
   MeasurementControlRequest(const imei_t &imei_, unsigned int signal_,
                             unsigned int bsId_)
       : imei(imei_), signal(signal_), bsId(bsId_) {}
+
+  std::string toStr() {
+    return "{imei=" + imei + ", signal=" + std::to_string(signal) +
+           ", bsId=" + std::to_string(bsId) + "}";
+  }
 };
 } // namespace common

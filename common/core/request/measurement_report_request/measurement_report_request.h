@@ -12,5 +12,10 @@ struct MeasurementReportRequest : Request {
   MeasurementReportRequest(const imei_t &imei_, const imsi_t &imsi_,
                            unsigned int bsId_)
       : imei(imei_), imsi(imsi_), bsId(bsId_) {}
+
+  std::string toStr() {
+    return "{imei=" + imei + ", imsi=" + imsi +
+           ", bsId=" + std::to_string(bsId) + "}";
+  }
 };
 } // namespace common

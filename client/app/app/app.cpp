@@ -56,7 +56,8 @@ void App::handleLocationUpdate() {
           bool set = ctx.setMTimsi(bsHandoverResponse->mTimsi);
           if (!set) {
             messages.push(
-                {"Handover. m-timsi cant be changed: " + ctx.getMTimsi()});
+                {"Handover. New m-timsi received, but it is already set",
+                 common::MenuMessageType::ERR});
           } else {
             messages.push({"Handover. m-timsi set: " + ctx.getMTimsi()});
           }

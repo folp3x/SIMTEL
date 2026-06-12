@@ -10,5 +10,9 @@ struct RrcReconfigurationHandoverRequest : Request {
 
   RrcReconfigurationHandoverRequest(const imsi_t &mTimsi_, unsigned int bsId_)
       : mTimsi(mTimsi_), bsId(bsId_) {}
+
+  std::string toStr() {
+    return "{mTimsi=" + mTimsi + ", bsId=" + std::to_string(bsId) + "}";
+  }
 };
 } // namespace common
