@@ -163,6 +163,40 @@ UeExchange::receiveBsInfo() const {
   }
 }
 
+std::expected<common::AttachAcceptRequest, std::string>
+UeExchange::receiveAttachAccept() const {
+  auto bytes = sock.receiveMessage();
+  if (!bytes) {
+    return std::unexpected(bytes.error().description);
+  }
+
+  common::Protocol protocol;
+  auto req = common::RequestSerializer::attachAcceptFromBytes(*bytes, protocol);
+  if (!req) {
+    return std::unexpected(req.error());
+  }
+  if (protocol != curProtocol) {
+    return std::unexpected("Invalid protocol");
+  }
+
+  return *req;
+}
+
+std::optional<std::string> UeExchange::sendBsAccept(
+    const common::RrcReconfigurationCompleteRequest &req) const {
+  auto bytes = common::RequestSerializer::rrcReconfigurationCompleteToBytes(
+      curProtocol, req);
+  if (!bytes) {
+    return bytes.error();
+  }
+
+  auto sendError = sock.sendMessage(*bytes);
+  if (!sendError) {
+    return std::nullopt;
+  }
+  return sendError->description;
+}
+
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
   common::RrcConnectionRequest locationReq{info.state.imei,

@@ -196,6 +196,46 @@ SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
   return sendError->description;
 }
 
+std::optional<std::string> SimtelBaseStation::sendAttachAccept(
+    std::shared_ptr<SimtelUeContext> ctx) const {
+  common::AttachAcceptRequest req{};
+  auto bytes =
+      common::RequestSerializer::attachAcceptToBytes(ctx->getProtocol(), req);
+  if (!bytes) {
+    return bytes.error();
+  }
+  ctx->setBuf(*bytes);
+
+  auto sendError = ctx->sendBufToUe();
+  if (!sendError) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("Rrc_Reconfiguration_Keep response to " + ctx->toStr()));
+    return std::nullopt;
+  }
+
+  return sendError->description;
+}
+
+std::expected<common::RrcReconfigurationCompleteRequest, std::string>
+SimtelBaseStation::receiveBsAccept(std::shared_ptr<SimtelUeContext> ctx) const {
+  auto receiveError = ctx->receiveData();
+  if (receiveError) {
+    return std::unexpected(receiveError->description);
+  }
+
+  common::Protocol protocol;
+  auto req = common::RequestSerializer::rrcReconfigurationCompleteFromBytes(
+      ctx->takeBuf(), protocol);
+  if (req) {
+    ctx->setProtocol(protocol);
+    MessageHolder::instance().addMsg(
+        createLogMsg("Rrc_Reconfiguration_Complete req from " + ctx->toStr() +
+                     " = " + req->toStr()));
+  }
+
+  return req;
+}
+
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx) {
@@ -359,7 +399,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 
     if (receiveError) {
       if (common ::isNoConnectedError(*receiveError)) {
-        takeUe(ctx->getMTimsi());
+        ctx->setBs(nullptr);
+        removeUe(ctx->getMTimsi());
 
         MessageHolder::instance().addMsg(
             createLogMsg(ctx->toStr() + " disconnected"),

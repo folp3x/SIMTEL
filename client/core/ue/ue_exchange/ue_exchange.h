@@ -5,9 +5,11 @@
 
 #include "client/core/ue/ue_state/ue_state.h"
 #include "client/network/socket/socket.h"
+#include "common/core/request/attach_accept_request/attach_accept_request.h"
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 
 namespace client {
 class UeExchange {
@@ -46,6 +48,12 @@ private:
 
   std::expected<std::unique_ptr<common::Request>, std::string>
   receiveBsInfo() const;
+
+  std::expected<common::AttachAcceptRequest, std::string>
+  receiveAttachAccept() const;
+
+  std::optional<std::string>
+  sendBsAccept(const common::RrcReconfigurationCompleteRequest &req) const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);

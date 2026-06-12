@@ -6,6 +6,7 @@
 #include "common/core/location/location/location.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
 #include "server/app/message_holder/message_holder.h"
@@ -57,6 +58,12 @@ private:
   std::optional<std::string>
   sendBsHandover(const common::imei_t &mTmsi,
                  std::shared_ptr<SimtelUeContext> ctx) const;
+
+  std::optional<std::string>
+  sendAttachAccept(std::shared_ptr<SimtelUeContext> ctx) const;
+
+  std::expected<common::RrcReconfigurationCompleteRequest, std::string>
+  receiveBsAccept(std::shared_ptr<SimtelUeContext> ctx) const;
 
 public:
   SimtelBaseStation(unsigned int id_, float radius_, size_t maxConnections_,
