@@ -53,8 +53,13 @@ void App::handleLocationUpdate() {
         if (auto *bsHandoverResponse =
                 dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                     response.get())) {
-          ctx.setMTimsi(bsHandoverResponse->mTimsi);
-          messages.push({"Handover. m-timsi set: " + ctx.getMTimsi()});
+          bool set = ctx.setMTimsi(bsHandoverResponse->mTimsi);
+          if (!set) {
+            messages.push(
+                {"Handover. m-timsi cant be changed: " + ctx.getMTimsi()});
+          } else {
+            messages.push({"Handover. m-timsi set: " + ctx.getMTimsi()});
+          }
         }
       });
 }

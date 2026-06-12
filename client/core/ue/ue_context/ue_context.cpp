@@ -14,12 +14,12 @@ common::imei_t UeContext::getImei() const { return state.imei; }
 
 common::imsi_t UeContext::getMTimsi() const { return state.mTimsi; }
 
-void UeContext::setMTimsi(const std::string &mTmsi_) {
+bool UeContext::setMTimsi(const std::string &mTmsi_) {
   if (state.mTimsi.empty()) {
     state.mTimsi = mTmsi_;
-  } else {
-    throw std::runtime_error("mTmsi cant be changed");
+    return true;
   }
+  return false;
 }
 
 common::Location<> UeContext::getLocation() const { return state.location; }
