@@ -45,6 +45,11 @@ private:
   sendResponse(std::shared_ptr<SimtelUeContext> ctx,
                std::unique_ptr<common::Request> req) const;
 
+  template <std::derived_from<common::Request> T>
+  std::expected<T, std::string>
+  parseFromBytes(const common::binary_t &bytes,
+                 common::Protocol &protocol) const;
+
 public:
   SimtelBaseStation(unsigned int id_, float radius_, size_t maxConnections_,
                     const common::Location<> &location_);

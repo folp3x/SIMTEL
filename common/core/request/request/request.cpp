@@ -41,20 +41,6 @@ Request::reqToMsgBytes(Protocol protocol, const binary_t &content) const {
   return socketMessagetoBinary(msg);
 }
 
-nlohmann::json Request::toJson() const { return nlohmann::json{}; }
-
-std::optional<std::string> Request::fromJsonStr(const std::string &jsonStr) {
-  return std::nullopt;
-}
-
-std::expected<common::binary_t, std::string> Request::toBinary() const {
-  return common::binary_t{};
-}
-
-std::optional<std::string> Request::fromBinary(const common::binary_t &binary) {
-  return std::nullopt;
-}
-
 std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
   binary_t content;
   switch (protocol) {

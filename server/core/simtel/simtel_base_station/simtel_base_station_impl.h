@@ -10,15 +10,27 @@ SimtelBaseStation::receiveRequest(std::shared_ptr<SimtelUeContext> ctx) const {
   }
 
   common::Protocol protocol;
-  T req{};
-  auto error = req.fromBytes(ctx->takeBuf(), protocol);
-  if (error) {
-    return std::unexpected(*error);
+  auto req = parseFromBytes<T>(ctx->takeBuf(), protocol);
+  if (!req) {
+    return std::unexpected(req.error());
   }
 
   ctx->setProtocol(protocol);
   MessageHolder::instance().addMsg(
-      createLogMsg("request from " + ctx->toStr() + " = " + req.toStr()));
+      createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()));
+
+  return req;
+}
+
+template <std::derived_from<common::Request> T>
+std::expected<T, std::string>
+SimtelBaseStation::parseFromBytes(const common::binary_t &bytes,
+                                  common::Protocol &protocol) const {
+  T req{};
+  auto error = req.fromBytes(bytes, protocol);
+  if (error) {
+    return std::unexpected(*error);
+  }
 
   return req;
 }

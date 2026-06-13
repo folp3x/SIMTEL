@@ -271,26 +271,25 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         MessageHolder::instance().addErrorMsg(receiveError->description);
       }
     } else {
-      common::binary_t bytes = ctx->takeBuf();
-      common::Protocol protocol;
-      auto reqType = common::parseRequestType(bytes);
+      common::binary_t data = ctx->takeBuf();
+      auto reqType = common::parseRequestType(data);
       if (!reqType) {
         MessageHolder::instance().addErrorMsg(reqType.error());
       }
 
       switch (*reqType) {
       case common::RequestType::Rrc_Connection: {
-        common::RrcConnectionRequest req{};
-        auto parseError = req.fromBytes(bytes, protocol);
-        if (parseError) {
-          MessageHolder::instance().addErrorMsg(*parseError);
+        common::Protocol protocol;
+        auto req = parseFromBytes<common::RrcConnectionRequest>(data, protocol);
+        if (!req) {
+          MessageHolder::instance().addErrorMsg(req.error());
         }
 
         ctx->setProtocol(protocol);
         MessageHolder::instance().addMsg(
-            createLogMsg("req from " + ctx->toStr() + " = " + req.toStr()));
+            createLogMsg("req from " + ctx->toStr() + " = " + req->toStr()));
 
-        auto updateError = handleLocationUpdate(req, ctx);
+        auto updateError = handleLocationUpdate(*req, ctx);
         if (updateError) {
           MessageHolder::instance().addErrorMsg(*updateError);
           return;

@@ -20,11 +20,13 @@ struct Request {
   std::expected<binary_t, std::string>
   reqToMsgBytes(Protocol protocol, const binary_t &content) const;
 
-  virtual nlohmann::json toJson() const;
-  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
+  virtual nlohmann::json toJson() const = 0;
+  virtual std::optional<std::string>
+  fromJsonStr(const std::string &jsonStr) = 0;
 
-  virtual std::expected<common::binary_t, std::string> toBinary() const;
-  virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+  virtual std::expected<common::binary_t, std::string> toBinary() const = 0;
+  virtual std::optional<std::string>
+  fromBinary(const common::binary_t &binary) = 0;
 
   virtual std::expected<binary_t, std::string> toBytes(Protocol protocol) const;
   virtual std::optional<std::string> fromBytes(const binary_t &bytes,
