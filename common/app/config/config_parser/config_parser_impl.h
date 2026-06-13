@@ -6,7 +6,7 @@ namespace common {
 template <std::derived_from<Config> T> void ConfigParser<T>::initPortField() {
   this->template addParsedField<int>(
       "port", [this](int port) { config.setPort(port); },
-      nlohmann::json::value_t::number_unsigned, Validator::isCorrectPort);
+      Validator::isCorrectPort);
 }
 
 template <std::derived_from<Config> T> void ConfigParser<T>::initFields() {

@@ -10,9 +10,9 @@ namespace common {
 class JsonDeserializer {
 private:
   template <typename T>
-  static std::expected<T, std::string>
-  deserializeValue(const std::string &name, nlohmann::json::value_t type,
-                   const std::string &jsonStr);
+  static std::expected<T, std::string> deserializeValue(
+      const std::string &name, const std::string &jsonStr,
+      const std::function<std::string(const T &)> &checkFn = nullptr);
 
 public:
   static std::expected<imei_t, std::string>

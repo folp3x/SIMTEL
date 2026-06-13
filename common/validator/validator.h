@@ -49,5 +49,6 @@ public:
   static std::string isCorrectMsisdn(const msisdn_t &msisdn);
   static std::string
   isCorrectSpeedDialNumStr(const std::string &speedDialNumStr);
+  static std::string isCorrectSignal(unsigned int signal);
 };
 } // namespace common

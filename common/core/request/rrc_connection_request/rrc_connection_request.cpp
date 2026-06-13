@@ -1,5 +1,6 @@
 #include "rrc_connection_request.h"
 
+#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
@@ -55,20 +56,23 @@ std::expected<binary_t, std::string> RrcConnectionRequest::toBinary() const {
 
 std::optional<std::string>
 RrcConnectionRequest::fromBinary(const common::binary_t &binary) {
-  auto curByte = binary.begin();
+  BinaryIterator it{binary};
 
-  if (curByte + common::constants::IMEI_BINARY_BYTES > binary.end()) {
+  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
-  binary_t imeiBinary(curByte, curByte + common::constants::IMEI_BINARY_BYTES);
-  auto parsedImei = BinarySerializer::imeiFromBinary(imeiBinary);
+  auto parsedImei = BinarySerializer::imeiFromBinary(*imeiBinary);
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
   imei = *parsedImei;
-  curByte += common::constants::IMEI_BINARY_BYTES;
 
-  auto parsedLoc = Location<>::fromBinary(binary_t{curByte, binary.end()});
+  auto locBinary = it.getRemaining();
+  if (!locBinary) {
+    return "Binary too short for IMEI";
+  }
+  auto parsedLoc = Location<>::fromBinary(*locBinary);
   if (!parsedLoc) {
     return parsedLoc.error();
   }

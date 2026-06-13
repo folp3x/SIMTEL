@@ -19,15 +19,16 @@ protected:
   const std::function<void(const T &)> successCallback;
 
   void logConstructor(const std::string &constructorType,
-                      const std::string &name,
-                      nlohmann::json::value_t type) const;
+                      const std::string &name) const;
+
+  template <typename U>
+  static constexpr nlohmann::json::value_t recognizeType(bool arrayType);
 
 public:
-  JsonFieldInfo(
-      const std::string &name_,
-      const std::function<void(const T &)> &successCallback_,
-      nlohmann::json::value_t type_,
-      const std::function<std::string(const T &)> &checkFn_ = nullptr);
+  JsonFieldInfo(const std::string &name_,
+                const std::function<void(const T &)> &successCallback_,
+                const std::function<std::string(const T &)> &checkFn_ = nullptr,
+                bool arrayType = false);
 
   JsonFieldInfo(const JsonFieldInfo &other);
 

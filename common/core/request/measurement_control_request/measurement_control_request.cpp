@@ -1,5 +1,6 @@
 #include "measurement_control_request.h"
 
+#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
@@ -67,37 +68,33 @@ MeasurementControlRequest::toBinary() const {
 
 std::optional<std::string>
 MeasurementControlRequest::fromBinary(const common::binary_t &binary) {
-  auto curByte = binary.begin();
+  BinaryIterator it{binary};
 
-  if (curByte + common::constants::IMEI_BINARY_BYTES > binary.end()) {
+  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
-  binary_t imeiBinary(curByte, curByte + common::constants::IMEI_BINARY_BYTES);
-  auto parsedImei = BinarySerializer::imeiFromBinary(imeiBinary);
+  auto parsedImei = BinarySerializer::imeiFromBinary(*imeiBinary);
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
   imei = *parsedImei;
-  curByte += common::constants::IMEI_BINARY_BYTES;
 
-  size_t signalSize = sizeof(signal);
-  if (curByte + signalSize > binary.end()) {
+  auto signalBinary = it.getNext(sizeof(signal));
+  if (!signalBinary) {
     return "Binary too short for signal";
   }
-  binary_t signalBinary(curByte, curByte + signalSize);
-  auto parsedSignal = BinarySerializer::fromBinary<unsigned int>(signalBinary);
+  auto parsedSignal = BinarySerializer::fromBinary<unsigned int>(*signalBinary);
   if (!parsedSignal) {
     return "Signal deserialize error";
   }
   signal = *parsedSignal;
-  curByte += signalSize;
 
-  size_t bsIdSize = sizeof(bsId);
-  if (curByte + bsIdSize > binary.end()) {
+  auto bsIdBinary = it.getNext(sizeof(bsId));
+  if (!bsIdBinary) {
     return "Binary too short for bsId";
   }
-  binary_t bsIdBinary(curByte, curByte + bsIdSize);
-  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(bsIdBinary);
+  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
   if (!parsedBsId) {
     return "BS id deserialize error";
   }

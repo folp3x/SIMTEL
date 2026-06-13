@@ -19,7 +19,6 @@ protected:
   void addParsedField(
       const std::string &name,
       const std::function<void(const F &)> &successCallback,
-      nlohmann::json::value_t type,
       const std::function<std::string(const F &)> &checkFn = nullptr);
 
   template <typename E, size_t S>

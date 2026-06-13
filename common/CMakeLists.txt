@@ -30,6 +30,7 @@ set(SOURCES_LIST
 	"core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.cpp"
 	"core/request/error_request/error_request.cpp"
 	"core/request/request_type/request_type.cpp"
+	"network/binary_iterator/binary_iterator.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

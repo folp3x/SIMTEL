@@ -1,5 +1,6 @@
 #include "measurement_report_request.h"
 
+#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
@@ -66,32 +67,33 @@ MeasurementReportRequest::toBinary() const {
 
 std::optional<std::string>
 MeasurementReportRequest::fromBinary(const common::binary_t &binary) {
-  auto curByte = binary.begin();
+  BinaryIterator it{binary};
 
-  if (curByte + common::constants::IMEI_BINARY_BYTES > binary.end()) {
+  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
-  binary_t imeiBinary(curByte, curByte + common::constants::IMEI_BINARY_BYTES);
-  auto parsedImei = BinarySerializer::imeiFromBinary(imeiBinary);
+  auto parsedImei = BinarySerializer::imeiFromBinary(*imeiBinary);
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
   imei = *parsedImei;
-  curByte += common::constants::IMEI_BINARY_BYTES;
 
-  if (curByte + common::constants::IMSI_BINARY_BYTES > binary.end()) {
+  auto imsiBinary = it.getNext(common::constants::IMSI_BINARY_BYTES);
+  if (!imsiBinary) {
     return "Binary too short for IMSI";
   }
-  binary_t imsiBinary(curByte, curByte + common::constants::IMSI_BINARY_BYTES);
-  auto parsedImsi = BinarySerializer::imsiFromBinary(imsiBinary);
+  auto parsedImsi = BinarySerializer::imsiFromBinary(*imsiBinary);
   if (!parsedImsi) {
     return "IMSI deserialize error";
   }
   imsi = *parsedImsi;
-  curByte += common::constants::IMSI_BINARY_BYTES;
 
-  binary_t bsIdBinary(curByte, binary.end());
-  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(bsIdBinary);
+  auto bsIdBinary = it.getNext(sizeof(bsId));
+  if (!bsIdBinary) {
+    return "Binary too short for BS id";
+  }
+  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
   if (!parsedBsId) {
     return "BS id deserialize error";
   }

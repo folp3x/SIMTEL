@@ -25,10 +25,9 @@ template <typename F>
 void JsonParser<T>::addParsedField(
     const std::string &name,
     const std::function<void(const F &)> &successCallback,
-    nlohmann::json::value_t type,
     const std::function<std::string(const F &)> &checkFn) {
   auto info =
-      std::make_unique<JsonFieldInfo<F>>(name, successCallback, type, checkFn);
+      std::make_unique<JsonFieldInfo<F>>(name, successCallback, checkFn);
   fieldsInfo.push_back(std::move(info));
 }
 

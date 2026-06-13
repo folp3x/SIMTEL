@@ -140,4 +140,12 @@ Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {
   }
   return "";
 }
+
+std::string Validator::isCorrectSignal(unsigned int signal) {
+  if (signal > common::constants::MAX_SIGNAL_LEVEL) {
+    return "Signal cant be bigger than " +
+           std::to_string(common::constants::MAX_SIGNAL_LEVEL);
+  }
+  return "";
+}
 } // namespace common

@@ -17,8 +17,7 @@ JsonArrayInfo<T, S>::JsonArrayInfo(
     const std::function<void(const std::array<T, S> &)> &successCallback,
     nlohmann::json::value_t elemType_,
     const std::function<std::string(const std::array<T, S> &)> &checkFn)
-    : JsonFieldInfo<std::array<T, S>>(name, successCallback,
-                                      nlohmann::json::value_t::array, checkFn),
+    : JsonFieldInfo<std::array<T, S>>(name, successCallback, checkFn, true),
       elemType(elemType_) {}
 
 template <typename T, size_t S>
