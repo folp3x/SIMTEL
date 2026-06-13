@@ -1,13 +1,14 @@
 {
   "port": 60000,
-  "loc": [ 1 ],
   "bsFilePath": "nodes.json",
   "epcFilePath": "eps.json",
   "mmeConfig": {
-      "maxVlrSize": 20
+    "maxVlrSize": 20
   },
   "smscConfig": {
     "smsTtl_ms": 30000,
-    "cdrAccessParams": {}
+    "cdrAccessParams": {
+      "filePath:": "./data/cdr.json"
+    }
   }
 }

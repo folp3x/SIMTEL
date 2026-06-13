@@ -1,0 +1,7 @@
+{
+    "ttl_sec": 120,
+    "hlrAccessParams": {"filePath": "./data/storage/hlr.db"},
+    "cdrAccessParams": {
+      "filePath:": "./data/cdr.json"
+    }
+}

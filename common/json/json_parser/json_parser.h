@@ -37,6 +37,9 @@ protected:
       const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 
+  void addParsedObject(const std::string &name,
+                       std::vector<std::unique_ptr<JsonBaseInfo>> innerFields);
+
   virtual void initFields() = 0;
 
 public:
