@@ -3,10 +3,6 @@
 #include "common/network/socket/socket_message/socket_message.h"
 
 namespace common {
-RequestType Request::getType() const { return RequestType::Unknown; };
-
-std::string Request::toStr() const { return "Unknown"; };
-
 std::expected<SocketMessage, std::string>
 Request::msgFromReqBytes(const binary_t &binary, Protocol &protocol) const {
   auto msg = socketMessageFromBinary(binary);

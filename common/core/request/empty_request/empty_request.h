@@ -5,7 +5,8 @@
 #include "common/core/request/request/request.h"
 
 namespace common {
-struct EmptyRequest : Request {
+class EmptyRequest : public Request {
+public:
   virtual std::string toStr() const override;
 
   virtual RequestType getType() const override;

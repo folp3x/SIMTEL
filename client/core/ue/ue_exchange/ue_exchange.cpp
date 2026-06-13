@@ -117,23 +117,23 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     auto signalResponse = receiveResponse<common::MeasurementControlRequest>();
     if (!signalResponse) {
       bsLeft = false;
-      if (bestSignalResponse.signal == 0) {
+      if (bestSignalResponse.getSignal() == 0) {
         signalLevel = 0;
         return std::unexpected("BS not found");
       }
     } else {
-      if (signalResponse->imei != info.state.imei) {
+      if (signalResponse->getImei() != info.state.imei) {
         continue;
       }
 
-      if (signalResponse->signal > bestSignalResponse.signal) {
+      if (signalResponse->getSignal() > bestSignalResponse.getSignal()) {
         bestSignalResponse = std::move(*signalResponse);
       }
     }
   }
 
   auto chosenBsReq = std::make_unique<common::MeasurementReportRequest>(
-      info.state.imei, info.state.mTimsi, bestSignalResponse.bsId);
+      info.state.imei, info.state.mTimsi, bestSignalResponse.getBsId());
   auto bsIdSendError = sendRequest(std::move(chosenBsReq));
   if (bsIdSendError) {
     return std::unexpected("Failed to send chosen BS id - " + *bsIdSendError);
@@ -154,7 +154,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     if (!receivedResponse) {
       return std::unexpected(receivedResponse.error());
     }
-    newBsId = receivedResponse->bsId;
+    newBsId = receivedResponse->getBsId();
     response = std::make_unique<common::RrcReconfigurationKeepRequest>(
         *receivedResponse);
     break;
@@ -165,21 +165,21 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     if (!receivedResponse) {
       return std::unexpected(receivedResponse.error());
     }
-    newBsId = receivedResponse->bsId;
+    newBsId = receivedResponse->getBsId();
     response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
         *receivedResponse);
     break;
   }
   case common::RequestType::Error: {
     auto error = parseFromBytes<common::ErrorRequest>(*data);
-    return std::unexpected(error ? error->description : error.error());
+    return std::unexpected(error ? error->getDescription() : error.error());
   }
   default:
     return std::unexpected("Unexpected request type");
   }
 
-  if (newBsId == bestSignalResponse.bsId) {
-    signalLevel = bestSignalResponse.signal;
+  if (newBsId == bestSignalResponse.getBsId()) {
+    signalLevel = bestSignalResponse.getSignal();
   } else {
     return std::unexpected("Unexpected BS id in info: " +
                            std::to_string(newBsId));

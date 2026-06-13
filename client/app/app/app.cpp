@@ -52,7 +52,7 @@ void App::handleLocationUpdate() {
         if (auto *bsHandoverResponse =
                 dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                     response.get())) {
-          bool set = ctx.setMTimsi(bsHandoverResponse->mTimsi);
+          bool set = ctx.setMTimsi(bsHandoverResponse->getMTimsi());
           if (!set) {
             addErrorMsg(
                 "Handover. New m-timsi received, but it is already set");

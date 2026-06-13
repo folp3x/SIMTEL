@@ -96,7 +96,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   // имитация измерения уровня сигнала до базовых станций
   auto initialBs = ctx->getBs();
   for (const auto &[id, bs] : baseStations) {
-    unsigned int signalLevel = bs->measureSignal(locReq.loc);
+    unsigned int signalLevel = bs->measureSignal(locReq.getLoc());
     MessageHolder::instance().addMsg(bs->createLogMsg(
         "measured signal level = " + std::to_string(signalLevel)));
 
@@ -105,7 +105,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     }
 
     auto response = std::make_unique<common::MeasurementControlRequest>(
-        locReq.imei, signalLevel, bs->getId());
+        locReq.getImei(), signalLevel, bs->getId());
     auto responseSendError = bs->sendResponse(ctx, std::move(response));
     if (responseSendError) {
       return bs->createLogMsg("Error sending signal level: " +
@@ -120,10 +120,10 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   if (!chosenBsReq) {
     return "Error receiving BS id: " + chosenBsReq.error();
   }
-  if (chosenBsReq->imei != locReq.imei) {
-    return "Unknown imei received: " + chosenBsReq->imei;
+  if (chosenBsReq->getImei() != locReq.getImei()) {
+    return "Unknown imei received: " + chosenBsReq->getImei();
   }
-  auto chosenBs = findBs(chosenBsReq->bsId);
+  auto chosenBs = findBs(chosenBsReq->getBsId());
   if (!chosenBs) {
     return "Requested BS not found";
   }

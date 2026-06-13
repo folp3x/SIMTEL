@@ -8,17 +8,19 @@
 #include "common/network/socket/socket_message/socket_message.h"
 
 namespace common {
-struct Request {
-  virtual RequestType getType() const;
-
-  virtual std::string toStr() const;
-
-  virtual ~Request() = default;
-
+class Request {
+private:
   std::expected<SocketMessage, std::string>
   msgFromReqBytes(const binary_t &binary, Protocol &protocol) const;
   std::expected<binary_t, std::string>
   reqToMsgBytes(Protocol protocol, const binary_t &content) const;
+
+public:
+  virtual ~Request() = default;
+
+  virtual RequestType getType() const = 0;
+
+  virtual std::string toStr() const = 0;
 
   virtual nlohmann::json toJson() const = 0;
   virtual std::optional<std::string>

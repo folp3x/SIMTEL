@@ -78,4 +78,8 @@ RrcReconfigurationHandoverRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+imsi_t RrcReconfigurationHandoverRequest::getMTimsi() const { return mTimsi; }
+
+unsigned int RrcReconfigurationHandoverRequest::getBsId() const { return bsId; }
 } // namespace common

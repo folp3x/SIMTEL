@@ -5,9 +5,11 @@
 #include "common/core/request/request/request.h"
 
 namespace common {
-struct ErrorRequest : Request {
+class ErrorRequest : public Request {
+private:
   std::string description = "";
 
+public:
   ErrorRequest() = default;
   ErrorRequest(const std::string &description_);
 
@@ -20,5 +22,7 @@ struct ErrorRequest : Request {
 
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+
+  std::string getDescription() const;
 };
 } // namespace common

@@ -4,10 +4,12 @@
 #include "common/types.h"
 
 namespace common {
-struct RrcReconfigurationKeepRequest : Request {
+class RrcReconfigurationKeepRequest : public Request {
+private:
   imei_t imei = "";
   unsigned int bsId = 0;
 
+public:
   RrcReconfigurationKeepRequest() = default;
   RrcReconfigurationKeepRequest(const imei_t &imei_, unsigned int bsId_);
 
@@ -20,5 +22,8 @@ struct RrcReconfigurationKeepRequest : Request {
 
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+
+  imei_t getImei() const;
+  unsigned int getBsId() const;
 };
 } // namespace common

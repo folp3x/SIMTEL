@@ -4,9 +4,11 @@
 #include "common/types.h"
 
 namespace common {
-struct RrcReconfigurationCompleteRequest : Request {
+class RrcReconfigurationCompleteRequest : public Request {
+private:
   imsi_t mTimsi = "";
 
+public:
   RrcReconfigurationCompleteRequest() = default;
   RrcReconfigurationCompleteRequest(const imsi_t &mTimsi_);
 
@@ -19,5 +21,7 @@ struct RrcReconfigurationCompleteRequest : Request {
 
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+
+  imsi_t getMTimsi() const;
 };
 } // namespace common

@@ -99,4 +99,10 @@ MeasurementReportRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+imei_t MeasurementReportRequest::getImei() const { return imei; }
+
+imei_t MeasurementReportRequest::getImsi() const { return imsi; }
+
+unsigned int MeasurementReportRequest::getBsId() const { return bsId; }
 } // namespace common

@@ -105,4 +105,10 @@ MeasurementControlRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+imei_t MeasurementControlRequest::getImei() const { return imei; }
+
+unsigned int MeasurementControlRequest::getSignal() const { return signal; }
+
+unsigned int MeasurementControlRequest::getBsId() const { return bsId; }
 } // namespace common

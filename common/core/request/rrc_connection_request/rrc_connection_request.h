@@ -5,10 +5,12 @@
 #include "common/types.h"
 
 namespace common {
-struct RrcConnectionRequest : Request {
+class RrcConnectionRequest : public Request {
+private:
   imei_t imei = "";
   Location<> loc{};
 
+public:
   RrcConnectionRequest() = default;
   RrcConnectionRequest(const imei_t &imei_, const Location<> &loc_);
 
@@ -21,5 +23,8 @@ struct RrcConnectionRequest : Request {
 
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+
+  imei_t getImei() const;
+  Location<> getLoc() const;
 };
 } // namespace common

@@ -40,4 +40,6 @@ ErrorRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+std::string ErrorRequest::getDescription() const { return description; }
 } // namespace common

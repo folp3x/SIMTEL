@@ -51,4 +51,6 @@ RrcReconfigurationCompleteRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+imsi_t RrcReconfigurationCompleteRequest::getMTimsi() const { return mTimsi; }
 } // namespace common

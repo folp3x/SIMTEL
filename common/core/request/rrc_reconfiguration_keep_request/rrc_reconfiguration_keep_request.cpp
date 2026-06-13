@@ -76,4 +76,8 @@ RrcReconfigurationKeepRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+imei_t RrcReconfigurationKeepRequest::getImei() const { return imei; }
+
+unsigned int RrcReconfigurationKeepRequest::getBsId() const { return bsId; }
 } // namespace common

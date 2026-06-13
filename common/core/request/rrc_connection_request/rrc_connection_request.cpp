@@ -76,4 +76,8 @@ RrcConnectionRequest::fromBinary(const common::binary_t &binary) {
 
   return std::nullopt;
 }
+
+imei_t RrcConnectionRequest::getImei() const { return imei; }
+
+Location<> RrcConnectionRequest::getLoc() const { return loc; }
 } // namespace common

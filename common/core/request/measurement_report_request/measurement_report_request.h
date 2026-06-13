@@ -4,11 +4,13 @@
 #include "common/types.h"
 
 namespace common {
-struct MeasurementReportRequest : Request {
+class MeasurementReportRequest : public Request {
+private:
   imei_t imei = "";
   imei_t imsi = "";
   unsigned int bsId = 0;
 
+public:
   MeasurementReportRequest() = default;
   MeasurementReportRequest(const imei_t &imei_, const imsi_t &imsi_,
                            unsigned int bsId_);
@@ -22,5 +24,9 @@ struct MeasurementReportRequest : Request {
 
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+
+  imei_t getImei() const;
+  imei_t getImsi() const;
+  unsigned int getBsId() const;
 };
 } // namespace common
