@@ -1,6 +1,5 @@
 #include "simtel_ue_context.h"
 
-#include "common/core/request/request_serializer/request_serializer.h"
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/utils/network/network.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"

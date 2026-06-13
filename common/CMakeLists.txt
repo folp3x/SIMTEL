@@ -15,7 +15,6 @@ set(SOURCES_LIST
 	"network/socket/socket/socket.cpp"
 	"app/menu/menu/menu.cpp"
 	"app/signals/signal_handler/signal_handler.cpp"
-	"core/request/request_serializer/request_serializer.cpp"
 	"network/binary_serializer/binary_serializer.cpp"
 	"network/socket/socket_message_header/socker_message_header.cpp"
 	"network/socket/socket_message/socket_message.cpp"

@@ -3,7 +3,7 @@
 namespace server {
 template <std::derived_from<common::Request> T>
 std::expected<T, std::string>
-SimtelBaseStation::receiveRequest(std::shared_ptr<SimtelUeContext> ctx) {
+SimtelBaseStation::receiveRequest(std::shared_ptr<SimtelUeContext> ctx) const {
   auto receiveError = ctx->receiveData();
   if (receiveError) {
     return std::unexpected(receiveError->description);
@@ -18,7 +18,7 @@ SimtelBaseStation::receiveRequest(std::shared_ptr<SimtelUeContext> ctx) {
 
   ctx->setProtocol(protocol);
   MessageHolder::instance().addMsg(
-      createLogMsg("req from " + ctx->toStr() + " = " + req.toStr()));
+      createLogMsg("request from " + ctx->toStr() + " = " + req.toStr()));
 
   return req;
 }

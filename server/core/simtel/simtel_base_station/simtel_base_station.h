@@ -1,13 +1,11 @@
 #pragma once
 
 #include <concepts>
-#include <queue>
 #include <unordered_map>
 
 #include "common/core/location/location/location.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
-#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
 #include "server/app/message_holder/message_holder.h"
@@ -41,35 +39,11 @@ private:
 
   template <std::derived_from<common::Request> T>
   std::expected<T, std::string>
-  receiveRequest(std::shared_ptr<SimtelUeContext> ctx);
-
-  std::optional<std::string> sendRequest(std::shared_ptr<SimtelUeContext> ctx,
-                                         std::unique_ptr<common::Request> req);
+  receiveRequest(std::shared_ptr<SimtelUeContext> ctx) const;
 
   std::optional<std::string>
-  sendSignalLevel(const common::imei_t &imei, unsigned int signalLevel,
-                  std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::expected<common::MeasurementReportRequest, std::string>
-  receiveChosenBsId(std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::optional<std::string>
-  sendBsKeep(const common::imei_t &imei,
-             std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::optional<std::string>
-  sendError(const std::string &description,
-            std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::optional<std::string>
-  sendBsHandover(const common::imei_t &mTmsi,
-                 std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::optional<std::string>
-  sendAttachAccept(std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::expected<common::RrcReconfigurationCompleteRequest, std::string>
-  receiveBsAccept(std::shared_ptr<SimtelUeContext> ctx) const;
+  sendResponse(std::shared_ptr<SimtelUeContext> ctx,
+               std::unique_ptr<common::Request> req) const;
 
 public:
   SimtelBaseStation(unsigned int id_, float radius_, size_t maxConnections_,

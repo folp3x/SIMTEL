@@ -1,7 +1,11 @@
 #include "ue_exchange.h"
 
-#include "common/core/request/request_serializer/request_serializer.h"
-#include "common/network/socket/socket_message/socket_message.h"
+#include "common/core/request/error_request/error_request.h"
+#include "common/core/request/measurement_control_request/measurement_control_request.h"
+#include "common/core/request/measurement_report_request/measurement_report_request.h"
+#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
+#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 
 namespace client {
 std::optional<std::string>
@@ -20,7 +24,7 @@ UeExchange::sendRequest(std::unique_ptr<common::Request> req) {
 }
 
 std::expected<common::binary_t, std::string>
-UeExchange::receiveRequestData(common::RequestType &type) const {
+UeExchange::receiveResponseData(common::RequestType &type) const {
   auto bytes = sock.receiveMessage();
   if (!bytes) {
     return std::unexpected(bytes.error().description);
@@ -98,121 +102,6 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
   }
 }
 
-std::expected<common::MeasurementControlRequest, std::string>
-UeExchange::receiveSignalLevel() const {
-  auto bytes = sock.receiveMessage();
-  if (!bytes) {
-    return std::unexpected(bytes.error().description);
-  }
-
-  common::Protocol protocol;
-  auto req =
-      common::RequestSerializer::measurementControlFromBytes(*bytes, protocol);
-  if (!req) {
-    return std::unexpected(req.error());
-  }
-  if (protocol != curProtocol) {
-    return std::unexpected("Invalid protocol");
-  }
-
-  return *req;
-}
-
-std::optional<std::string>
-UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
-  auto bytes =
-      common::RequestSerializer::measurementReportToBytes(curProtocol, req);
-  if (!bytes) {
-    return bytes.error();
-  }
-
-  auto sendError = sock.sendMessage(*bytes);
-  if (!sendError) {
-    return std::nullopt;
-  }
-  return sendError->description;
-}
-
-std::expected<std::unique_ptr<common::Request>, std::string>
-UeExchange::receiveBsInfo() const {
-  common::RequestType type;
-  auto data = receiveRequestData(type);
-  if (!data) {
-    return std::unexpected(data.error());
-  }
-
-  common::Protocol protocol;
-  switch (type) {
-  case common::RequestType::Rrc_Reconfiguration_Keep: {
-    auto req = common::RequestSerializer::rrcReconfigurationKeepFromBytes(
-        *data, protocol);
-    if (!req) {
-      return std::unexpected(req.error());
-    } else if (protocol != curProtocol) {
-      return std::unexpected("Unknown protocol");
-    }
-
-    return std::make_unique<common::RrcReconfigurationKeepRequest>(*req);
-  }
-  case common::RequestType::Rrc_Reconfiguration_Handover: {
-    auto req = common::RequestSerializer::rrcReconfigurationHandoverFromBytes(
-        *data, protocol);
-    if (!req) {
-      return std::unexpected(req.error());
-    } else if (protocol != curProtocol) {
-      return std::unexpected("Unknown protocol");
-    }
-
-    return std::make_unique<common::RrcReconfigurationHandoverRequest>(*req);
-  }
-  case common::RequestType::Error: {
-    auto req = common::RequestSerializer::errorFromBytes(*data, protocol);
-    if (!req) {
-      return std::unexpected(req.error());
-    } else if (protocol != curProtocol) {
-      return std::unexpected("Unknown protocol");
-    }
-    return std::make_unique<common::ErrorRequest>(*req);
-  }
-  default:
-    return std::unexpected("Unexpected request type");
-  }
-}
-
-std::expected<common::AttachAcceptRequest, std::string>
-UeExchange::receiveAttachAccept() const {
-  auto bytes = sock.receiveMessage();
-  if (!bytes) {
-    return std::unexpected(bytes.error().description);
-  }
-
-  common::Protocol protocol;
-  auto req = common::RequestSerializer::attachAcceptFromBytes(*bytes, protocol);
-  if (!req) {
-    return std::unexpected(req.error());
-  }
-  if (protocol != curProtocol) {
-    return std::unexpected("Invalid protocol");
-  }
-
-  return *req;
-}
-
-std::optional<std::string> UeExchange::sendBsAccept(
-    const common::RrcReconfigurationCompleteRequest &req) const {
-  auto bytes = common::RequestSerializer::rrcReconfigurationCompleteToBytes(
-      curProtocol, req);
-  if (!bytes) {
-    return bytes.error();
-  }
-
-  auto sendError = sock.sendMessage(*bytes);
-  if (!sendError) {
-    return std::nullopt;
-  }
-  return sendError->description;
-}
-
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
   auto locationReq = std::make_unique<common::RrcConnectionRequest>(
@@ -225,7 +114,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
   common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
-    auto signalResponse = receiveSignalLevel();
+    auto signalResponse = receiveResponse<common::MeasurementControlRequest>();
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.signal == 0) {
@@ -243,33 +132,50 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     }
   }
 
-  common::MeasurementReportRequest chosenBsReq{
-      info.state.imei, info.state.mTimsi, bestSignalResponse.bsId};
-  auto bsIdSendError = sendChosenBsId(chosenBsReq);
+  auto chosenBsReq = std::make_unique<common::MeasurementReportRequest>(
+      info.state.imei, info.state.mTimsi, bestSignalResponse.bsId);
+  auto bsIdSendError = sendRequest(std::move(chosenBsReq));
   if (bsIdSendError) {
     return std::unexpected("Failed to send chosen BS id - " + *bsIdSendError);
   }
 
-  auto bsInfoResponse = receiveBsInfo();
-  if (!bsInfoResponse) {
-    return std::unexpected("Failed to receive BS info - " +
-                           bsInfoResponse.error());
+  common::RequestType responseType;
+  auto data = receiveResponseData(responseType);
+  if (!data) {
+    return std::unexpected(data.error());
   }
-  auto response = std::move(*bsInfoResponse);
 
   unsigned int newBsId;
-  if (auto *resp = dynamic_cast<common::RrcReconfigurationKeepRequest *>(
-          response.get())) {
-    newBsId = resp->bsId;
-  } else if (auto *resp =
-                 dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
-                     response.get())) {
-    newBsId = resp->bsId;
-  } else if (auto *errorResponse =
-                 dynamic_cast<common::ErrorRequest *>(response.get())) {
-    return std::unexpected("Error response: " + errorResponse->description);
-  } else {
-    return std::unexpected("Invalid response received");
+  std::unique_ptr<common::Request> response;
+  switch (responseType) {
+  case common::RequestType::Rrc_Reconfiguration_Keep: {
+    auto receivedResponse =
+        parseFromBytes<common::RrcReconfigurationKeepRequest>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    }
+    newBsId = receivedResponse->bsId;
+    response = std::make_unique<common::RrcReconfigurationKeepRequest>(
+        *receivedResponse);
+    break;
+  }
+  case common::RequestType::Rrc_Reconfiguration_Handover: {
+    auto receivedResponse =
+        parseFromBytes<common::RrcReconfigurationHandoverRequest>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    }
+    newBsId = receivedResponse->bsId;
+    response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
+        *receivedResponse);
+    break;
+  }
+  case common::RequestType::Error: {
+    auto error = parseFromBytes<common::ErrorRequest>(*data);
+    return std::unexpected(error ? error->description : error.error());
+  }
+  default:
+    return std::unexpected("Unexpected request type");
   }
 
   if (newBsId == bestSignalResponse.bsId) {

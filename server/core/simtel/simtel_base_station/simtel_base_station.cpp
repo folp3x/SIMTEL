@@ -1,7 +1,9 @@
 #include "simtel_base_station.h"
 
-#include "common/core/request/request_serializer/request_serializer.h"
-#include "common/network/socket/socket_message/socket_message.h"
+#include "common/core/request/measurement_control_request/measurement_control_request.h"
+#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
+#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/utils/network/network.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 
@@ -70,8 +72,8 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
 }
 
 std::optional<std::string>
-SimtelBaseStation::sendRequest(std::shared_ptr<SimtelUeContext> ctx,
-                               std::unique_ptr<common::Request> req) {
+SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
+                                std::unique_ptr<common::Request> req) const {
   auto bytes = req->toBytes(ctx->getProtocol());
   if (!bytes) {
     return bytes.error();
@@ -88,153 +90,6 @@ SimtelBaseStation::sendRequest(std::shared_ptr<SimtelUeContext> ctx,
   return sendError->description;
 }
 
-std::optional<std::string>
-SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
-                                   unsigned int signalLevel,
-                                   std::shared_ptr<SimtelUeContext> ctx) const {
-  common::MeasurementControlRequest req{imei, signalLevel, id};
-  auto bytes = common::RequestSerializer::measurementControlToBytes(
-      ctx->getProtocol(), req);
-  if (!bytes) {
-    return bytes.error();
-  }
-  ctx->setBuf(*bytes);
-
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
-    MessageHolder::instance().addMsg(
-        createLogMsg("Measurement_Control response to " + ctx->toStr() + " = " +
-                     req.toStr()));
-    return std::nullopt;
-  }
-
-  return sendError->description;
-}
-
-std::expected<common::MeasurementReportRequest, std::string>
-SimtelBaseStation::receiveChosenBsId(
-    std::shared_ptr<SimtelUeContext> ctx) const {
-  auto receiveError = ctx->receiveData();
-  if (receiveError) {
-    return std::unexpected(receiveError->description);
-  }
-
-  common::Protocol protocol;
-  auto req = common::RequestSerializer::measurementReportFromBytes(
-      ctx->takeBuf(), protocol);
-  if (req) {
-    ctx->setProtocol(protocol);
-    MessageHolder::instance().addMsg(createLogMsg(
-        "Measurement_Report req from " + ctx->toStr() + " = " + req->toStr()));
-  }
-
-  return req;
-}
-
-std::optional<std::string>
-SimtelBaseStation::sendBsKeep(const common::imei_t &imei,
-                              std::shared_ptr<SimtelUeContext> ctx) const {
-  common::RrcReconfigurationKeepRequest req{imei, id};
-  auto bytes = common::RequestSerializer::rrcReconfigurationKeepToBytes(
-      ctx->getProtocol(), req);
-  if (!bytes) {
-    return bytes.error();
-  }
-  ctx->setBuf(*bytes);
-
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
-    MessageHolder::instance().addMsg(
-        createLogMsg("Rrc_Reconfiguration_Keep response to " + ctx->toStr() +
-                     " = " + req.toStr()));
-    return std::nullopt;
-  }
-
-  return sendError->description;
-}
-
-std::optional<std::string>
-SimtelBaseStation::sendError(const std::string &description,
-                             std::shared_ptr<SimtelUeContext> ctx) const {
-  common::ErrorRequest req{description};
-  auto bytes = common::RequestSerializer::errorToBytes(ctx->getProtocol(), req);
-  if (!bytes) {
-    return bytes.error();
-  }
-  ctx->setBuf(*bytes);
-
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
-    MessageHolder::instance().addMsg(createLogMsg(
-        "Error response to " + ctx->toStr() + " = " + req.toStr()));
-    return std::nullopt;
-  }
-
-  return sendError->description;
-}
-
-std::optional<std::string>
-SimtelBaseStation::sendBsHandover(const common::imei_t &mTmsi,
-                                  std::shared_ptr<SimtelUeContext> ctx) const {
-  common::RrcReconfigurationHandoverRequest req{mTmsi, id};
-  auto bytes = common::RequestSerializer::rrcReconfigurationHandoverToBytes(
-      ctx->getProtocol(), req);
-  if (!bytes) {
-    return bytes.error();
-  }
-  ctx->setBuf(*bytes);
-
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
-    MessageHolder::instance().addMsg(
-        createLogMsg("Rrc_Reconfiguration_Handover response to " +
-                     ctx->toStr() + " = " + req.toStr()));
-    return std::nullopt;
-  }
-
-  return sendError->description;
-}
-
-std::optional<std::string> SimtelBaseStation::sendAttachAccept(
-    std::shared_ptr<SimtelUeContext> ctx) const {
-  common::AttachAcceptRequest req{};
-  auto bytes =
-      common::RequestSerializer::attachAcceptToBytes(ctx->getProtocol(), req);
-  if (!bytes) {
-    return bytes.error();
-  }
-  ctx->setBuf(*bytes);
-
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
-    MessageHolder::instance().addMsg(
-        createLogMsg("Rrc_Reconfiguration_Keep response to " + ctx->toStr()));
-    return std::nullopt;
-  }
-
-  return sendError->description;
-}
-
-std::expected<common::RrcReconfigurationCompleteRequest, std::string>
-SimtelBaseStation::receiveBsAccept(std::shared_ptr<SimtelUeContext> ctx) const {
-  auto receiveError = ctx->receiveData();
-  if (receiveError) {
-    return std::unexpected(receiveError->description);
-  }
-
-  common::Protocol protocol;
-  auto req = common::RequestSerializer::rrcReconfigurationCompleteFromBytes(
-      ctx->takeBuf(), protocol);
-  if (req) {
-    ctx->setProtocol(protocol);
-    MessageHolder::instance().addMsg(
-        createLogMsg("Rrc_Reconfiguration_Complete req from " + ctx->toStr() +
-                     " = " + req->toStr()));
-  }
-
-  return req;
-}
-
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx) {
@@ -249,16 +104,19 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
       continue;
     }
 
-    auto signalSendError = bs->sendSignalLevel(locReq.imei, signalLevel, ctx);
-    if (signalSendError) {
+    auto response = std::make_unique<common::MeasurementControlRequest>(
+        locReq.imei, signalLevel, bs->getId());
+    auto responseSendError = bs->sendResponse(ctx, std::move(response));
+    if (responseSendError) {
       return bs->createLogMsg("Error sending signal level: " +
-                              *signalSendError);
+                              *responseSendError);
     }
   }
   ctx->setBs(initialBs);
 
   MessageHolder::instance().addMsg("Receiving BS id through initial BS");
-  auto chosenBsReq = initialBs->receiveChosenBsId(ctx);
+  auto chosenBsReq =
+      initialBs->receiveRequest<common::MeasurementReportRequest>(ctx);
   if (!chosenBsReq) {
     return "Error receiving BS id: " + chosenBsReq.error();
   }
@@ -341,15 +199,19 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   bool connectedToCur =
       curBs && curBs->getId() == id && ueConnected(ctx->getMTimsi());
   if (connectedToCur || !canAcceptConnection()) {
-    auto keepSendError = sendBsKeep(req.imei, ctx);
-    if (keepSendError) {
-      return createLogMsg("Error sending BS keep info: " + *keepSendError);
+    auto response =
+        std::make_unique<common::RrcReconfigurationKeepRequest>(mTimsi, id);
+    auto responseSendError = sendResponse(ctx, std::move(response));
+    if (responseSendError) {
+      return createLogMsg("Error sending BS keep info: " + *responseSendError);
     }
   } else {
-    auto handoverSendError = sendBsHandover(ctx->getMTimsi(), ctx);
-    if (handoverSendError) {
+    auto response =
+        std::make_unique<common::RrcReconfigurationHandoverRequest>(mTimsi, id);
+    auto responseSendError = sendResponse(ctx, std::move(response));
+    if (responseSendError) {
       return createLogMsg("Error sending BS handover info: " +
-                          *handoverSendError);
+                          *responseSendError);
     } else {
       handover = true;
     }
@@ -420,7 +282,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       case common::RequestType::Rrc_Connection: {
         common::RrcConnectionRequest req{};
         auto parseError = req.fromBytes(bytes, protocol);
-        if (!parseError) {
+        if (parseError) {
           MessageHolder::instance().addErrorMsg(*parseError);
         }
 

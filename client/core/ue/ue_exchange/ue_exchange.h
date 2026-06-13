@@ -5,11 +5,7 @@
 
 #include "client/core/ue/ue_state/ue_state.h"
 #include "client/network/socket/socket.h"
-#include "common/core/request/attach_accept_request/attach_accept_request.h"
-#include "common/core/request/measurement_control_request/measurement_control_request.h"
-#include "common/core/request/measurement_report_request/measurement_report_request.h"
-#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
-#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
+#include "common/core/request/request/request.h"
 
 namespace client {
 class UeExchange {
@@ -40,25 +36,14 @@ private:
   std::optional<std::string> sendRequest(std::unique_ptr<common::Request> req);
 
   std::expected<common::binary_t, std::string>
-  receiveRequestData(common::RequestType &type) const;
+  receiveResponseData(common::RequestType &type) const;
 
   template <std::derived_from<common::Request> T>
-  std::expected<T, std::string> receiveRequest() const;
+  std::expected<T, std::string> receiveResponse() const;
 
-  std::expected<common::MeasurementControlRequest, std::string>
-  receiveSignalLevel() const;
-
-  std::optional<std::string>
-  sendChosenBsId(const common::MeasurementReportRequest &req) const;
-
-  std::expected<std::unique_ptr<common::Request>, std::string>
-  receiveBsInfo() const;
-
-  std::expected<common::AttachAcceptRequest, std::string>
-  receiveAttachAccept() const;
-
-  std::optional<std::string>
-  sendBsAccept(const common::RrcReconfigurationCompleteRequest &req) const;
+  template <std::derived_from<common::Request> T>
+  std::expected<T, std::string>
+  parseFromBytes(const common::binary_t &bytes) const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);
