@@ -1,13 +1,13 @@
 #pragma once
 
-#include "common/json/info/json_field_info/json_field_info.h"
+#include "common/json/info/json_container_info/json_container_info.h"
 
 #include <array>
 
 namespace common {
 // класс с информацией для парсинга JSON-массива
 template <typename T, size_t S>
-class JsonArrayInfo : public JsonFieldInfo<std::array<T, S>> {
+class JsonArrayInfo : public JsonContainerInfo<std::array<T, S>> {
 private:
   const nlohmann::json::value_t elemType;
 
@@ -27,8 +27,8 @@ public:
 
   JsonArrayInfo(JsonArrayInfo &&other) noexcept;
 
-  virtual std::optional<std::string> parse(const nlohmann::json &json,
-                                           bool finalParse = true) override;
+  virtual std::expected<std::array<T, S>, std::string>
+  parseContainer(const nlohmann::json &fieldJson) override;
 };
 } // namespace common
 
