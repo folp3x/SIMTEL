@@ -16,16 +16,16 @@ private:
 
 public:
   static std::expected<imei_t, std::string>
-  imeiFromJsonStr(const std::string &str, const std::string &name = "imei");
+  imeiFromJsonStr(const std::string &str, const std::string &name);
 
   static std::expected<imsi_t, std::string>
-  imsiFromJsonStr(const std::string &str, const std::string &name = "imsi");
+  imsiFromJsonStr(const std::string &str, const std::string &name);
 
   static std::expected<unsigned int, std::string>
-  signalFromJsonStr(const std::string &str, const std::string &name = "signal");
+  signalFromJsonStr(const std::string &str, const std::string &name);
 
   static std::expected<unsigned int, std::string>
-  bsIdFromJsonStr(const std::string &str, const std::string &name = "bsId");
+  bsIdFromJsonStr(const std::string &str, const std::string &name);
 
   static std::expected<std::string, std::string>
   strFromJsonStr(const std::string &str, const std::string &name);

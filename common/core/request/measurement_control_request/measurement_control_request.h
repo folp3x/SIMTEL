@@ -9,13 +9,18 @@ struct MeasurementControlRequest : Request {
   unsigned int signal = 0;
   unsigned int bsId = 0;
 
+  MeasurementControlRequest() = default;
   MeasurementControlRequest(const imei_t &imei_, unsigned int signal_,
-                            unsigned int bsId_)
-      : imei(imei_), signal(signal_), bsId(bsId_) {}
+                            unsigned int bsId_);
 
-  std::string toStr() {
-    return "{imei=" + imei + ", signal=" + std::to_string(signal) +
-           ", bsId=" + std::to_string(bsId) + "}";
-  }
+  virtual std::string toStr() const override;
+
+  virtual RequestType getType() const override;
+
+  virtual nlohmann::json toJson() const;
+  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
+
+  virtual std::expected<binary_t, std::string> toBinary() const;
+  virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
 };
 } // namespace common

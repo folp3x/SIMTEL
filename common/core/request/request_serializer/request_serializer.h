@@ -30,12 +30,6 @@ private:
 
 public:
   static std::expected<binary_t, std::string>
-  rrcConnectionToBytes(Protocol protocol, const RrcConnectionRequest &req);
-
-  static std::expected<RrcConnectionRequest, std::string>
-  rrcConnectionFromBytes(const binary_t &bytes, Protocol &protocol);
-
-  static std::expected<binary_t, std::string>
   measurementControlToBytes(Protocol protocol,
                             const MeasurementControlRequest &req);
 
@@ -81,8 +75,5 @@ public:
 
   static std::expected<AttachAcceptRequest, std::string>
   attachAcceptFromBytes(const binary_t &bytes, Protocol &protocol);
-
-  static std::expected<RequestType, std::string>
-  parseRequestType(const binary_t &bytes, Protocol &protocol);
 };
 } // namespace common

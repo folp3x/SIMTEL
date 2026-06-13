@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <queue>
 #include <unordered_map>
 
@@ -10,6 +11,7 @@
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
 #include "server/app/message_holder/message_holder.h"
+#include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
 class SimtelUeContext;
@@ -37,12 +39,16 @@ private:
 
   unsigned int measureSignal(const common::Location<> &targetLoc) const;
 
+  template <std::derived_from<common::Request> T>
+  std::expected<T, std::string>
+  receiveRequest(std::shared_ptr<SimtelUeContext> ctx);
+
+  std::optional<std::string> sendRequest(std::shared_ptr<SimtelUeContext> ctx,
+                                         std::unique_ptr<common::Request> req);
+
   std::optional<std::string>
   sendSignalLevel(const common::imei_t &imei, unsigned int signalLevel,
                   std::shared_ptr<SimtelUeContext> ctx) const;
-
-  std::expected<common::RrcConnectionRequest, std::string>
-  receiveLocation(std::shared_ptr<SimtelUeContext> ctx) const;
 
   std::expected<common::MeasurementReportRequest, std::string>
   receiveChosenBsId(std::shared_ptr<SimtelUeContext> ctx) const;
@@ -93,3 +99,5 @@ public:
   void handleUe(std::shared_ptr<SimtelUeContext> ctx);
 };
 } // namespace server
+
+#include "simtel_base_station_impl.h"

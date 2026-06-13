@@ -4,6 +4,37 @@
 #include "common/network/socket/socket_message/socket_message.h"
 
 namespace client {
+std::optional<std::string>
+UeExchange::sendRequest(std::unique_ptr<common::Request> req) {
+  auto bytes = req->toBytes(curProtocol);
+  if (!bytes) {
+    return bytes.error();
+  }
+
+  auto sendError = sock.sendMessage(*bytes);
+  if (!sendError) {
+    return std::nullopt;
+  }
+
+  return sendError->description;
+}
+
+std::expected<common::binary_t, std::string>
+UeExchange::receiveRequestData(common::RequestType &type) const {
+  auto bytes = sock.receiveMessage();
+  if (!bytes) {
+    return std::unexpected(bytes.error().description);
+  }
+
+  auto reqType = common::parseRequestType(*bytes);
+  if (!reqType) {
+    return std::unexpected(reqType.error());
+  }
+  type = *reqType;
+
+  return *bytes;
+}
+
 UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
     : serverAddr(serverAddr_) {}
 
@@ -67,21 +98,6 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
   }
 }
 
-std::optional<std::string>
-UeExchange::sendLocationUpdate(const common::RrcConnectionRequest &req) const {
-  auto bytes =
-      common::RequestSerializer::rrcConnectionToBytes(curProtocol, req);
-  if (!bytes) {
-    return bytes.error();
-  }
-
-  auto sendError = sock.sendMessage(*bytes);
-  if (!sendError) {
-    return std::nullopt;
-  }
-  return sendError->description;
-}
-
 std::expected<common::MeasurementControlRequest, std::string>
 UeExchange::receiveSignalLevel() const {
   auto bytes = sock.receiveMessage();
@@ -119,42 +135,42 @@ UeExchange::sendChosenBsId(const common::MeasurementReportRequest &req) const {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::receiveBsInfo() const {
-  auto bytes = sock.receiveMessage();
-  if (!bytes) {
-    return std::unexpected(bytes.error().description);
+  common::RequestType type;
+  auto data = receiveRequestData(type);
+  if (!data) {
+    return std::unexpected(data.error());
   }
 
   common::Protocol protocol;
-  auto reqType = common::RequestSerializer::parseRequestType(*bytes, protocol);
-  if (!reqType) {
-    return std::unexpected(reqType.error());
-  }
-  if (protocol != curProtocol) {
-    return std::unexpected("Invalid protocol");
-  }
-
-  switch (*reqType) {
+  switch (type) {
   case common::RequestType::Rrc_Reconfiguration_Keep: {
     auto req = common::RequestSerializer::rrcReconfigurationKeepFromBytes(
-        *bytes, protocol);
+        *data, protocol);
     if (!req) {
       return std::unexpected(req.error());
+    } else if (protocol != curProtocol) {
+      return std::unexpected("Unknown protocol");
     }
 
     return std::make_unique<common::RrcReconfigurationKeepRequest>(*req);
   }
   case common::RequestType::Rrc_Reconfiguration_Handover: {
     auto req = common::RequestSerializer::rrcReconfigurationHandoverFromBytes(
-        *bytes, protocol);
+        *data, protocol);
     if (!req) {
       return std::unexpected(req.error());
+    } else if (protocol != curProtocol) {
+      return std::unexpected("Unknown protocol");
     }
+
     return std::make_unique<common::RrcReconfigurationHandoverRequest>(*req);
   }
   case common::RequestType::Error: {
-    auto req = common::RequestSerializer::errorFromBytes(*bytes, protocol);
+    auto req = common::RequestSerializer::errorFromBytes(*data, protocol);
     if (!req) {
       return std::unexpected(req.error());
+    } else if (protocol != curProtocol) {
+      return std::unexpected("Unknown protocol");
     }
     return std::make_unique<common::ErrorRequest>(*req);
   }
@@ -199,9 +215,9 @@ std::optional<std::string> UeExchange::sendBsAccept(
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
-  common::RrcConnectionRequest locationReq{info.state.imei,
-                                           info.state.location};
-  auto locationSendError = sendLocationUpdate(locationReq);
+  auto locationReq = std::make_unique<common::RrcConnectionRequest>(
+      info.state.imei, info.state.location);
+  auto locationSendError = sendRequest(std::move(locationReq));
   if (locationSendError) {
     return std::unexpected("Failed to send location - " + *locationSendError);
   }

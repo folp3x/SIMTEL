@@ -1,0 +1,102 @@
+#include "request.h"
+
+#include "common/network/socket/socket_message/socket_message.h"
+
+namespace common {
+RequestType Request::getType() const { return RequestType::Unknown; };
+
+std::string Request::toStr() const { return "Unknown"; };
+
+std::expected<SocketMessage, std::string>
+Request::msgFromReqBytes(const binary_t &binary, Protocol &protocol) const {
+  auto msg = socketMessageFromBinary(binary);
+  if (!msg) {
+    return msg;
+  }
+  auto parsedProtocol = protocolFromNetworkId(msg->header.protocol);
+  if (!parsedProtocol) {
+    return std::unexpected("Unknown protocol");
+  }
+  protocol = *parsedProtocol;
+  auto reqType = static_cast<RequestType>(msg->header.reqType);
+  if (reqType != getType()) {
+    return std::unexpected("Location_Update message expected");
+  }
+
+  return msg;
+}
+
+std::expected<binary_t, std::string>
+Request::reqToMsgBytes(Protocol protocol, const binary_t &content) const {
+  auto protocolId = protocolToNetworkId(protocol);
+  if (!protocolId) {
+    return std::unexpected("Unsupported protocol");
+  }
+
+  uint8_t requestTypeBinary = static_cast<uint8_t>(getType());
+  SocketMessage msg{
+      {static_cast<uint32_t>(content.size()), *protocolId, requestTypeBinary},
+      content};
+
+  return socketMessagetoBinary(msg);
+}
+
+nlohmann::json Request::toJson() const { return nlohmann::json{}; }
+
+std::optional<std::string> Request::fromJsonStr(const std::string &jsonStr) {
+  return std::nullopt;
+}
+
+std::expected<common::binary_t, std::string> Request::toBinary() const {
+  return common::binary_t{};
+}
+
+std::optional<std::string> Request::fromBinary(const common::binary_t &binary) {
+  return std::nullopt;
+}
+
+std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
+  binary_t content;
+  switch (protocol) {
+  case Protocol::BINARY: {
+    auto binary = toBinary();
+    if (!binary) {
+      return std::unexpected(binary.error());
+    }
+    content = std::move(*binary);
+    break;
+  }
+  case Protocol::JSON: {
+    nlohmann::json jsonObj = toJson();
+
+    std::string jsonStr = jsonObj.dump();
+    content = BinarySerializer::strToBinary(jsonStr);
+    break;
+  }
+  default:
+    return std::unexpected("Unsupported protocol");
+  }
+
+  return reqToMsgBytes(protocol, content);
+}
+
+std::optional<std::string> Request::fromBytes(const binary_t &bytes,
+                                              Protocol &protocol) {
+  auto msg = msgFromReqBytes(bytes, protocol);
+  if (!msg) {
+    return msg.error();
+  }
+
+  switch (protocol) {
+  case Protocol::BINARY: {
+    return fromBinary(msg->content);
+  }
+  case Protocol::JSON: {
+    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
+    return fromJsonStr(jsonStr);
+  }
+  default:
+    return "Unsupported protocol";
+  }
+}
+} // namespace common

@@ -92,7 +92,7 @@ bool Socket::setReceiveTimeout(int sock, unsigned int timeoutSec) {
 }
 
 std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
-  // std::cout << "msg: " << toStr(data) << std::endl;
+  // std::cout << "sent msg: " << toStr(data) << std::endl;
   if (data.empty()) {
     return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
   }
@@ -168,6 +168,8 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   result.reserve(header.size() + content.size());
   result.insert(result.end(), header.begin(), header.end());
   result.insert(result.end(), content.begin(), content.end());
+
+  // std::cout << "received msg: " << toStr(result) << std::endl;
 
   return result;
 }

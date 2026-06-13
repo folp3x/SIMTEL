@@ -8,8 +8,17 @@ namespace common {
 struct ErrorRequest : Request {
   std::string description = "";
 
-  ErrorRequest(const std::string &description_) : description(description_) {}
+  ErrorRequest() = default;
+  ErrorRequest(const std::string &description_);
 
-  std::string toStr() { return "{description=" + description + "}"; }
+  virtual std::string toStr() const override;
+
+  virtual RequestType getType() const override;
+
+  virtual nlohmann::json toJson() const;
+  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
+
+  virtual std::expected<binary_t, std::string> toBinary() const;
+  virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
 };
 } // namespace common

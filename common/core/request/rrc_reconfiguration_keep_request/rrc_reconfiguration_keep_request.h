@@ -8,11 +8,17 @@ struct RrcReconfigurationKeepRequest : Request {
   imei_t imei = "";
   unsigned int bsId = 0;
 
-  RrcReconfigurationKeepRequest(const imei_t &imei_, unsigned int bsId_)
-      : imei(imei_), bsId(bsId_) {}
+  RrcReconfigurationKeepRequest() = default;
+  RrcReconfigurationKeepRequest(const imei_t &imei_, unsigned int bsId_);
 
-  std::string toStr() {
-    return "{imei=" + imei + ", bsId=" + std::to_string(bsId) + "}";
-  }
+  virtual std::string toStr() const override;
+
+  virtual RequestType getType() const override;
+
+  virtual nlohmann::json toJson() const;
+  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
+
+  virtual std::expected<binary_t, std::string> toBinary() const;
+  virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
 };
 } // namespace common

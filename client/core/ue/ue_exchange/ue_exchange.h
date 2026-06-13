@@ -37,8 +37,13 @@ private:
   std::condition_variable requestsCv{};
   std::queue<RequestInfo> requests = {};
 
-  std::optional<std::string>
-  sendLocationUpdate(const common::RrcConnectionRequest &req) const;
+  std::optional<std::string> sendRequest(std::unique_ptr<common::Request> req);
+
+  std::expected<common::binary_t, std::string>
+  receiveRequestData(common::RequestType &type) const;
+
+  template <std::derived_from<common::Request> T>
+  std::expected<T, std::string> receiveRequest() const;
 
   std::expected<common::MeasurementControlRequest, std::string>
   receiveSignalLevel() const;
@@ -76,3 +81,5 @@ public:
   void stop();
 };
 } // namespace client
+
+#include "ue_exchange_impl.h"

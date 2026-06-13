@@ -4,7 +4,6 @@
 #include "common/network/socket/socket_message/socket_message.h"
 #include "common/utils/network/network.h"
 #include "server/core/distance_calculator/distance_calculator.h"
-#include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
 std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
@@ -29,7 +28,7 @@ void SimtelBaseStation::handleConnectionRequest(
 
   MessageHolder::instance().addMsg(ctx->toStr() +
                                    " receiving location through first BS");
-  auto req = firstBs->receiveLocation(ctx);
+  auto req = firstBs->receiveRequest<common::RrcConnectionRequest>(ctx);
   if (!req) {
     MessageHolder::instance().addErrorMsg("Error receiving location: " +
                                           req.error());
@@ -71,6 +70,25 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
 }
 
 std::optional<std::string>
+SimtelBaseStation::sendRequest(std::shared_ptr<SimtelUeContext> ctx,
+                               std::unique_ptr<common::Request> req) {
+  auto bytes = req->toBytes(ctx->getProtocol());
+  if (!bytes) {
+    return bytes.error();
+  }
+  ctx->setBuf(*bytes);
+
+  auto sendError = ctx->sendBufToUe();
+  if (!sendError) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("response to " + ctx->toStr() + " = " + req->toStr()));
+    return std::nullopt;
+  }
+
+  return sendError->description;
+}
+
+std::optional<std::string>
 SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
                                    unsigned int signalLevel,
                                    std::shared_ptr<SimtelUeContext> ctx) const {
@@ -91,25 +109,6 @@ SimtelBaseStation::sendSignalLevel(const common::imei_t &imei,
   }
 
   return sendError->description;
-}
-
-std::expected<common::RrcConnectionRequest, std::string>
-SimtelBaseStation::receiveLocation(std::shared_ptr<SimtelUeContext> ctx) const {
-  auto receiveError = ctx->receiveData();
-  if (receiveError) {
-    return std::unexpected(receiveError->description);
-  }
-
-  common::Protocol protocol;
-  auto req = common::RequestSerializer::rrcConnectionFromBytes(ctx->takeBuf(),
-                                                               protocol);
-  if (req) {
-    ctx->setProtocol(protocol);
-    MessageHolder::instance().addMsg(createLogMsg(
-        "Rrc_Connection req from " + ctx->toStr() + " = " + req->toStr()));
-  }
-
-  return req;
 }
 
 std::expected<common::MeasurementReportRequest, std::string>
@@ -334,9 +333,9 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
       createLogMsg("received t-imsi from MME: " + mTimsi));
 
   bool set = ctx->setMTimsi(mTimsi);
-  if (!set) {
-    return "UE imsi already set";
-  }
+  // if (!set) {
+  //   return "UE imsi already set";
+  // }
 
   auto curBs = ctx->getBs();
   bool connectedToCur =
@@ -398,7 +397,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
     auto receiveError = ctx->receiveData();
 
     if (receiveError) {
-      if (common ::isNoConnectedError(*receiveError)) {
+      if (isNoConnectedError(*receiveError)) {
         ctx->setBs(nullptr);
         removeUe(ctx->getMTimsi());
 
@@ -412,25 +411,24 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
     } else {
       common::binary_t bytes = ctx->takeBuf();
       common::Protocol protocol;
-      auto reqType =
-          common::RequestSerializer::parseRequestType(bytes, protocol);
+      auto reqType = common::parseRequestType(bytes);
       if (!reqType) {
         MessageHolder::instance().addErrorMsg(reqType.error());
       }
 
       switch (*reqType) {
       case common::RequestType::Rrc_Connection: {
-        auto req =
-            common::RequestSerializer::rrcConnectionFromBytes(bytes, protocol);
-        if (!req) {
-          MessageHolder::instance().addErrorMsg(req.error());
+        common::RrcConnectionRequest req{};
+        auto parseError = req.fromBytes(bytes, protocol);
+        if (!parseError) {
+          MessageHolder::instance().addErrorMsg(*parseError);
         }
 
         ctx->setProtocol(protocol);
-        MessageHolder::instance().addMsg(createLogMsg(
-            "Rrc_Connection req from " + ctx->toStr() + " = " + req->toStr()));
+        MessageHolder::instance().addMsg(
+            createLogMsg("req from " + ctx->toStr() + " = " + req.toStr()));
 
-        auto updateError = handleLocationUpdate(*req, ctx);
+        auto updateError = handleLocationUpdate(req, ctx);
         if (updateError) {
           MessageHolder::instance().addErrorMsg(*updateError);
           return;

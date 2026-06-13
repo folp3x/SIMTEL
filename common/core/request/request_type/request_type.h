@@ -1,6 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <expected>
+
+#include "common/network/protocol/protocol.h"
+#include "common/types.h"
 
 namespace common {
 enum class RequestType : uint8_t {
@@ -22,4 +26,6 @@ enum class RequestType : uint8_t {
   SM_Delivery,
   SM_Delivery_Report
 };
+
+std::expected<RequestType, std::string> parseRequestType(const binary_t &bytes);
 } // namespace common

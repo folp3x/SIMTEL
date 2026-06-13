@@ -9,9 +9,17 @@ struct RrcConnectionRequest : Request {
   imei_t imei = "";
   Location<> loc{};
 
-  RrcConnectionRequest(const imei_t &imei_, const Location<> &loc_)
-      : imei(imei_), loc(loc_) {}
+  RrcConnectionRequest() = default;
+  RrcConnectionRequest(const imei_t &imei_, const Location<> &loc_);
 
-  std::string toStr() { return "{imei=" + imei + ", loc=" + loc.toStr() + "}"; }
+  virtual std::string toStr() const override;
+
+  virtual RequestType getType() const override;
+
+  virtual nlohmann::json toJson() const;
+  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
+
+  virtual std::expected<binary_t, std::string> toBinary() const;
+  virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
 };
 } // namespace common

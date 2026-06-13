@@ -72,9 +72,11 @@ std::expected<T, std::string> fromString(const std::string &str) {
     else
       return stold(str);
   } catch (std::invalid_argument &e) {
-    return std::unexpected("not a valid number");
+    return std::unexpected("Not a valid number");
   } catch (std::out_of_range &e) {
-    return std::unexpected("value out of range");
+    return std::unexpected("Value out of range");
+  } catch (std::exception &e) {
+    return std::unexpected("Failed to deserialize number");
   }
 }
 } // namespace common

@@ -115,7 +115,7 @@ Location<T, S>::fromJsonStr(const std::string &str) {
 
 template <typename T, size_t S>
 std::expected<binary_t, std::string> Location<T, S>::toBinary() const {
-  auto binary = BinarySerializer::toBinary<decltype(coords)>(coords);
+  auto binary = BinarySerializer::toBinary<>(coords);
   if (!binary) {
     return std::unexpected("Failed to serialize location");
   }

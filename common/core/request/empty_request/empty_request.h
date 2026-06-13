@@ -1,18 +1,11 @@
 #pragma once
 
+#include <expected>
+
 #include "common/core/request/request/request.h"
-#include "common/types.h"
 
 namespace common {
-struct MeasurementReportRequest : Request {
-  imei_t imei = "";
-  imei_t imsi = "";
-  unsigned int bsId = 0;
-
-  MeasurementReportRequest() = default;
-  MeasurementReportRequest(const imei_t &imei_, const imsi_t &imsi_,
-                           unsigned int bsId_);
-
+struct EmptyRequest : Request {
   virtual std::string toStr() const override;
 
   virtual RequestType getType() const override;
