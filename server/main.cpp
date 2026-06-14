@@ -1,5 +1,6 @@
 #include "app/app/app.h"
 #include "app/cli/cli_parser/cli_parser.h"
+#include "app/config/bs_config/bs_config_parser/bs_config_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
 
@@ -47,6 +48,14 @@ int main(int argc, char *argv[]) {
 
     // переопределение опций из файла опциями командной строки
     config = cliParser->redefineConfig(config);
+
+    auto bsConfigParser = server::BsConfigParser::create();
+    auto parsedBsConfig = bsConfigParser->parse(config.getBsFilePath());
+    if (!parsedBsConfig) {
+      std::cout << "Error parsing config file: " << parsedBsConfig.error()
+                << std::endl;
+      return 1;
+    }
 
     common::NetworkAddress addr{"127.0.0.1", config.getPort()};
 

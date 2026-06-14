@@ -53,11 +53,11 @@ protected:
 
   virtual void initFields() = 0;
 
-public:
-  virtual ~JsonParser() = default;
-
   virtual std::expected<T, std::string>
   parseJson(const nlohmann::json &json) = 0;
+
+public:
+  virtual ~JsonParser() = default;
 
   static std::optional<std::string>
   parseField(const std::unique_ptr<JsonFieldInfo<T>> &fieldInfo,

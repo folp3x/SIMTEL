@@ -50,8 +50,10 @@ void ConfigParser::initMmeConfigsField() {
       "maxVlrSize", [this](size_t size) { curMmeConfig.maxVlrSize = size; },
       [](size_t size) { return (size > 0) ? "" : "VLR size cant be 0"; }));
 
-  addParsedObjectArray("mmeConfigs", std::move(mmeConfigObj),
-                       [this]() { config.addMmeConfig(curMmeConfig); });
+  addParsedObjectArray("mmeConfigs", std::move(mmeConfigObj), [this]() {
+    config.addMmeConfig(curMmeConfig);
+    curMmeConfig = {};
+  });
 }
 
 void ConfigParser::initFields() {
