@@ -5,7 +5,6 @@
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "server/app/config/bs_config/bs_config/bs_config.h"
-#include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 

@@ -4,6 +4,7 @@
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+#include "server/app/message_holder/message_holder.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 
 namespace server {
@@ -191,12 +192,21 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     }
   }
 
-  common::imsi_t mTimsi = mme->generateMTimsi();
-  MessageHolder::instance().addMsg(
-      createLogMsg("received t-imsi from MME: " + mTimsi));
+  auto mTimsi =
+      mme->handleAttachRequest(req.getImsi(), req.getImei(), req.getBsId());
+  if (!mTimsi) {
+    auto response = std::make_unique<common::ErrorRequest>(mTimsi.error());
+    auto responseSendError = sendResponse(ctx, std::move(response));
+    if (responseSendError) {
+      return createLogMsg("Error sending error info: " + *responseSendError);
+    }
+  }
 
-  bool updated = ctx->setMTimsi(mTimsi);
-  if (!updated && ctx->getMTimsi() != mTimsi) {
+  MessageHolder::instance().addMsg(
+      createLogMsg("received t-imsi from MME: " + *mTimsi));
+
+  bool updated = ctx->setMTimsi(*mTimsi);
+  if (!updated && ctx->getMTimsi() != *mTimsi) {
     return "UE IMSI cant be reassigned";
   }
 
@@ -211,8 +221,8 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
       return createLogMsg("Error sending BS keep info: " + *responseSendError);
     }
   } else {
-    auto response =
-        std::make_unique<common::RrcReconfigurationHandoverRequest>(mTimsi, id);
+    auto response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
+        *mTimsi, id);
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
       return createLogMsg("Error sending BS handover info: " +

@@ -10,6 +10,19 @@ SimtelMme::SimtelMme(const MmeConfig &config,
 
 unsigned int SimtelMme::getId() const { return id; }
 
+std::expected<common::imsi_t, std::string>
+SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
+                               const common::imei_t &imei, unsigned int bsId) {
+  auto record = vlr.getRecord(imsi);
+  if (!record) {
+    auto mTimsi = generateMTimsi();
+    vlr.setRecord(mTimsi, imei, "", bsId);
+    return mTimsi;
+  }
+
+  return record->mTimsi;
+}
+
 common::imsi_t SimtelMme::generateMTimsi() {
   curMTimsi++;
   if (curMTimsi > MAX_MTIMSI) {

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <expected>
 #include <memory>
-#include <optional>
 
 #include "common/types.h"
 #include "server/app/config/mme_config/mme_config.h"
@@ -24,12 +24,16 @@ private:
   std::shared_ptr<SimtelRegister> hlr;
   std::shared_ptr<SimtelSmsc> smsc;
 
+  common::imsi_t generateMTimsi();
+
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
             std::shared_ptr<SimtelSmsc> smsc_);
 
   unsigned int getId() const;
 
-  common::imsi_t generateMTimsi();
+  std::expected<common::imsi_t, std::string>
+  handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei,
+                      unsigned int bsId);
 };
 } // namespace server
