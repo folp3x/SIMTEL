@@ -5,7 +5,7 @@
 #include <array>
 
 namespace common {
-// класс с информацией для парсинга JSON-массива
+// класс с информацией для парсинга масства из JSON
 template <typename T, size_t S>
 class JsonArrayInfo : public JsonContainerInfo<std::array<T, S>> {
 private:

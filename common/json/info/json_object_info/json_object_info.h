@@ -3,19 +3,13 @@
 #include "common/json/info/json_base_info/json_base_info.h"
 
 namespace common {
-// класс с информацией для парсинга сложного JSON-поля
+// класс с информацией для парсинга JSON-объекта
 class JsonObjectInfo : public JsonBaseInfo {
 private:
-  const std::string name;
-
   std::vector<std::unique_ptr<JsonBaseInfo>> innerFields = {};
 
-  virtual std::string getName(bool quoted = false) const override;
-
-  virtual nlohmann::json getFieldJson(const nlohmann::json &json) const;
-
 public:
-  JsonObjectInfo(const std::string &name_);
+  explicit JsonObjectInfo(const std::string &name);
 
   virtual std::optional<std::string> parse(const nlohmann::json &json,
                                            bool finalParse = true) override;

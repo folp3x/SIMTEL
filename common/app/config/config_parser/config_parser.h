@@ -19,11 +19,11 @@ protected:
 
   virtual void initFields() override;
 
-public:
-  static std::unique_ptr<ConfigParser> create();
-
   virtual std::expected<T, std::string>
   parseJson(const nlohmann::json &json) override;
+
+public:
+  static std::unique_ptr<ConfigParser> create();
 };
 } // namespace common
 

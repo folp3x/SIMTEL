@@ -1,16 +1,14 @@
 #pragma once
 
 #include "common/json/info/json_array_info/json_array_info.h"
+#include "common/json/info/json_object_array_info/json_object_array_info.h"
 #include "common/json/info/json_vector_info/json_vector_info.h"
-
-#include <iostream>
 
 namespace common {
 template <typename T>
 std::optional<std::string>
 JsonParser<T>::parseFields(const nlohmann::json &json) {
   for (const auto &info : fieldsInfo) {
-    std::cout << "parseFields" << std::endl;
     auto error = info->parse(json);
     if (error) {
       return error;
@@ -99,6 +97,15 @@ JsonParser<T>::parse(const std::string &filePath) {
 
 template <typename T>
 void JsonParser<T>::addParsedObject(std::unique_ptr<JsonObjectInfo> info) {
+  fieldsInfo.push_back(std::move(info));
+}
+
+template <typename T>
+void JsonParser<T>::addParsedObjectArray(
+    const std::string &name, JsonObjectInfo objectInfo,
+    const std::function<void()> &objectCallback) {
+  auto info = std::make_unique<JsonObjectArrayInfo>(name, std::move(objectInfo),
+                                                    objectCallback);
   fieldsInfo.push_back(std::move(info));
 }
 } // namespace common

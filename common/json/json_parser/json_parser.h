@@ -39,7 +39,17 @@ protected:
       const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 
+  template <typename E>
+  void addParsedList(
+      const std::string &name,
+      const std::function<void(const std::vector<E> &)> &elemCallback,
+      const std::function<std::string(const std::vector<E> &)> &checkFn =
+          nullptr);
+
   void addParsedObject(std::unique_ptr<JsonObjectInfo> info);
+
+  void addParsedObjectArray(const std::string &name, JsonObjectInfo objectInfo,
+                            const std::function<void()> &objectCallback);
 
   virtual void initFields() = 0;
 

@@ -40,19 +40,13 @@ int main(int argc, char *argv[]) {
         return 1;
       }
       config = std::move(*parsedConfig);
-    } else if (!cliParser->allConfigOptsSet()) {
-      std::cout
-          << "If --config is not specified all config options are required"
-          << std::endl;
+    } else {
+      std::cout << "Error: path to config file not specified" << std::endl;
       return 1;
     }
 
     // переопределение опций из файла опциями командной строки
     config = cliParser->redefineConfig(config);
-    if (!config.isInitialized()) {
-      std::cout << "Some config fields are not initialized" << std::endl;
-      return 1;
-    }
 
     common::NetworkAddress addr{"127.0.0.1", config.getPort()};
 

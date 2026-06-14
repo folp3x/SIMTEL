@@ -32,6 +32,8 @@ set(SOURCES_LIST
 	"core/request/request_type/request_type.cpp"
 	"network/binary_iterator/binary_iterator.cpp"
 	"json/info/json_object_info/json_object_info.cpp"
+	"json/info/json_object_array_info/json_object_array_info.cpp"
+	"json/info/json_base_info/json_base_info.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

@@ -2,10 +2,10 @@
   "port": 60000,
   "bsFilePath": "./data/config/nodes.json",
   "epcFilePath": "./data/config/epc.json",
-  "mmeConfig": [
+  "mmeConfigs": [
     {
-    "id": 1,
-    "maxVlrSize": 20
+      "id": 1,
+      "maxVlrSize": 20
     }
   ],
   "smscConfig": {

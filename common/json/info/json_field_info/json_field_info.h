@@ -17,26 +17,14 @@ private:
   static nlohmann::json::value_t recognizeType(bool arrayType);
 
 protected:
-  const std::string name = "";
   T *field;
   const std::function<void(const T &)> successCallback;
 
-  void logConstructor(const std::string &constructorType,
-                      const std::string &name) const;
-
-  virtual std::string getName(bool quoted = false) const override;
-
-  virtual nlohmann::json getFieldJson(const nlohmann::json &json) const;
-
 public:
-  JsonFieldInfo(const std::string &name_,
+  JsonFieldInfo(const std::string &name,
                 const std::function<void(const T &)> &successCallback_,
                 const std::function<std::string(const T &)> &checkFn_ = nullptr,
                 bool arrayType = false);
-
-  JsonFieldInfo(const JsonFieldInfo &other);
-
-  JsonFieldInfo(JsonFieldInfo &&other) noexcept;
 
   virtual std::optional<std::string> parse(const nlohmann::json &json,
                                            bool finalParse = true) override;

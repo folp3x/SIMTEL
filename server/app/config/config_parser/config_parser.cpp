@@ -1,6 +1,7 @@
 #include "config_parser.h"
 
 #include "common/json/info/json_field_info/json_field_info.h"
+#include "common/json/info/json_object_array_info/json_object_array_info.h"
 #include "common/json/info/json_object_info/json_object_info.h"
 #include "common/validator/validator.h"
 
@@ -41,11 +42,24 @@ void ConfigParser::initSmscConfigField() {
   addParsedObject(std::move(smscConfigObj));
 }
 
+void ConfigParser::initMmeConfigsField() {
+  common::JsonObjectInfo mmeConfigObj{""};
+  mmeConfigObj.addInner(std::make_unique<common::JsonFieldInfo<unsigned int>>(
+      "id", [this](unsigned int id) { curMmeConfig.id = id; }));
+  mmeConfigObj.addInner(std::make_unique<common::JsonFieldInfo<size_t>>(
+      "maxVlrSize", [this](size_t size) { curMmeConfig.maxVlrSize = size; },
+      [](size_t size) { return (size > 0) ? "" : "VLR size cant be 0"; }));
+
+  addParsedObjectArray("mmeConfigs", std::move(mmeConfigObj),
+                       [this]() { config.addMmeConfig(curMmeConfig); });
+}
+
 void ConfigParser::initFields() {
   common::ConfigParser<Config>::initFields();
   initBsFilePathField();
   initEpcFilePathField();
   initSmscConfigField();
+  initMmeConfigsField();
 }
 
 std::unique_ptr<ConfigParser> ConfigParser::create() {

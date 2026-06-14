@@ -6,11 +6,15 @@
 namespace server {
 class ConfigParser : public common::ConfigParser<Config> {
 private:
+  MmeConfig curMmeConfig{};
+  SmscConfig smscConfig;
+
   ConfigParser() = default;
 
   void initBsFilePathField();
   void initEpcFilePathField();
   void initSmscConfigField();
+  void initMmeConfigsField();
 
   virtual void initFields() override;
 

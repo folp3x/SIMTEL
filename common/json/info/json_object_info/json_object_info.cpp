@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace common {
-JsonObjectInfo::JsonObjectInfo(const std::string &name_) : name(name_) {}
+JsonObjectInfo::JsonObjectInfo(const std::string &name) : JsonBaseInfo(name) {}
 
 std::optional<std::string> JsonObjectInfo::parse(const nlohmann::json &json,
                                                  bool finalParse) {
@@ -20,7 +20,7 @@ std::optional<std::string> JsonObjectInfo::parse(const nlohmann::json &json,
   }
 
   for (const auto &field : innerFields) {
-    std::cout << "Parsing " + nameQuoted << std::endl;
+    std::cout << "Object " << nameQuoted << std::endl;
     std::cout << fieldJson.dump() << std::endl;
     auto error = field->parse(fieldJson);
     if (error) {
@@ -33,13 +33,5 @@ std::optional<std::string> JsonObjectInfo::parse(const nlohmann::json &json,
 
 void JsonObjectInfo::addInner(std::unique_ptr<JsonBaseInfo> field) {
   innerFields.push_back(std::move(field));
-}
-
-std::string JsonObjectInfo::getName(bool quoted) const {
-  return quoted ? "'" + name + "'" : name;
-}
-
-nlohmann::json JsonObjectInfo::getFieldJson(const nlohmann::json &json) const {
-  return name.empty() ? json : json[name];
 }
 } // namespace common

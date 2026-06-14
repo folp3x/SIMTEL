@@ -1,18 +1,6 @@
 #include "config.h"
 
-#include <iostream>
-
 namespace server {
-bool Config::isInitialized() const {
-  std::cout << smscConfig.ttlMs << std::endl;
-  std::cout << smscConfig.cdrAccessJsonFilePath << std::endl;
-  return common::Config::isInitialized() && !bsFilePath.empty() &&
-         !epcFilePath.empty();
-
-  // && mmeConfig.maxVlrSize != 0 &&
-  // smscConfig.ttlMs != 0 && !smscConfig.cdrAccessFilePath.empty();
-}
-
 std::string Config::getBsFilePath() const { return bsFilePath; }
 
 void Config::setBsFilePath(const std::string &bsFilePath_) {
@@ -25,24 +13,20 @@ void Config::setEpcFilePath(const std::string &epcFilePath_) {
   epcFilePath = epcFilePath_;
 }
 
-size_t Config::getMmeMaxVlrSize() const { return mmeConfig.maxVlrSize; }
+std::vector<MmeConfig> Config::getMmeConfigs() const { return mmeConfigs; }
 
-void Config::setMmeMaxVlrSize(size_t maxVlrSize) {
-  mmeConfig.maxVlrSize = maxVlrSize;
+void Config::addMmeConfig(const MmeConfig &config) {
+  mmeConfigs.push_back(config);
 }
 
-unsigned int Config::getSmscTtlMs() const { return smscConfig.ttlMs; }
+SmscConfig Config::getSmscConfig() const { return smscConfig; }
 
 void Config::setSmscTtlMs(unsigned int smscTtlMs) {
   smscConfig.ttlMs = smscTtlMs;
 }
 
-std::string Config::getSmsCdrAccessJsonFilePath() const {
-  return smscConfig.cdrAccessJsonFilePath;
-}
-
 void Config::setSmsCdrAccessJsonFilePath(
-    const std::string &smscCdrAccessJsonFilePath_) {
-  smscConfig.cdrAccessJsonFilePath = smscCdrAccessJsonFilePath_;
+    const std::string &smscCdrAccessFilePath_) {
+  smscConfig.cdrAccessJsonFilePath = smscCdrAccessFilePath_;
 }
 } // namespace server

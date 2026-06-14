@@ -12,8 +12,6 @@ set(SOURCES_LIST
     "app/message_holder/message_holder.cpp"
     "app/config/config/config.cpp"
     "app/config/config_parser/config_parser.cpp"
-    "app/config/bs_config/bs_config/bs_config.cpp"
-    "app/config/epc_config/epc_config/epc_config.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST
