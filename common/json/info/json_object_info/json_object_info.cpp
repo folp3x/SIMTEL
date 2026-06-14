@@ -2,8 +2,6 @@
 
 #include "common/json/json_type/json_type.h"
 
-#include <iostream>
-
 namespace common {
 JsonObjectInfo::JsonObjectInfo(const std::string &name) : JsonBaseInfo(name) {}
 
@@ -20,8 +18,6 @@ std::optional<std::string> JsonObjectInfo::parse(const nlohmann::json &json,
   }
 
   for (const auto &field : innerFields) {
-    std::cout << "Object " << nameQuoted << std::endl;
-    std::cout << fieldJson.dump() << std::endl;
     auto error = field->parse(fieldJson);
     if (error) {
       return error;

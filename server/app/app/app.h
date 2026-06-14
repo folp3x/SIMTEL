@@ -3,7 +3,9 @@
 #include "common/app/app/app.h"
 
 #include "common/network/network_address/network_address.h"
+#include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/app/config/config/config.h"
+#include "server/app/config/epc_config/epc_config/epc_config.h"
 #include "server/app/menu/menu/menu.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_listener/simtel_listener.h"
@@ -22,7 +24,9 @@ private:
   void sigintHandler(int signal);
 
 public:
-  App(const common::NetworkAddress &addr, size_t maxUeThreads);
+  App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
+      const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
+      const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig);
 
   virtual void run() override;
 };

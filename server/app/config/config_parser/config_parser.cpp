@@ -36,7 +36,7 @@ void ConfigParser::initSmscConfigField() {
   auto smscConfigObj = std::make_unique<common::JsonObjectInfo>("smscConfig");
   smscConfigObj->addInner(std::make_unique<common::JsonFieldInfo<unsigned int>>(
       "smsTtl_ms", [this](unsigned int ttl) { config.setSmscTtlMs(ttl); },
-      [](unsigned int ttl) { return (ttl > 0) ? "" : "Ttl cant be 0"; }));
+      [](unsigned int ttl) { return (ttl > 0) ? "" : "SMS TTL cant be 0"; }));
   smscConfigObj->addInner(std::move(cdrAccessParamsObj));
 
   addParsedObject(std::move(smscConfigObj));

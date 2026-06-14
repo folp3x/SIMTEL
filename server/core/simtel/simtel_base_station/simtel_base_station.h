@@ -8,6 +8,7 @@
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/network/protocol/protocol.h"
 #include "common/types.h"
+#include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
@@ -21,6 +22,7 @@ private:
 
   const float radius;
   const unsigned int id;
+  const unsigned int mmeId;
   const size_t maxConnections;
   common::Location<> location{};
 
@@ -51,8 +53,7 @@ private:
                  common::Protocol &protocol) const;
 
 public:
-  SimtelBaseStation(unsigned int id_, float radius_, size_t maxConnections_,
-                    const common::Location<> &location_);
+  explicit SimtelBaseStation(const BsConfig &config);
 
   static void addBs(std::unique_ptr<SimtelBaseStation> bs);
 

@@ -90,6 +90,10 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
   return sendError->description;
 }
 
+SimtelBaseStation::SimtelBaseStation(const BsConfig &config)
+    : id(config.id), mmeId(config.mmeId), radius(config.radius),
+      maxConnections(maxConnections), location(config.loc) {}
+
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx) {
@@ -162,12 +166,6 @@ SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
   }
   return it->second.get();
 }
-
-SimtelBaseStation::SimtelBaseStation(unsigned int id_, float radius_,
-                                     size_t maxConnections_,
-                                     const common::Location<> &location_)
-    : id(id_), radius(radius_), maxConnections(maxConnections_),
-      location(location_) {}
 
 void SimtelBaseStation::addBs(std::unique_ptr<SimtelBaseStation> bs) {
   baseStations.emplace(bs->getId(), std::move(bs));

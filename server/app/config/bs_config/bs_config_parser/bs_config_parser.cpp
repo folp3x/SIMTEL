@@ -1,14 +1,29 @@
 #include "bs_config_parser.h"
 
+#include <stdexcept>
+
 #include "common/json/info/json_array_info/json_array_info.h"
 
 namespace server {
+BsConfigParser::BsConfigParser(const std::vector<MmeConfig> &mme_)
+    : mme(mme_) {}
+
 void BsConfigParser::initFields() {
   common::JsonObjectInfo bsConfigObj{""};
   bsConfigObj.addInner(std::make_unique<common::JsonFieldInfo<unsigned int>>(
       "ecgi", [this](unsigned int id) { curConfig.id = id; }));
   bsConfigObj.addInner(std::make_unique<common::JsonFieldInfo<unsigned int>>(
-      "mmeId", [this](unsigned int id) { curConfig.mmeId = id; }));
+      "mmeId", [this](unsigned int id) { curConfig.mmeId = id; },
+      [this](unsigned int id) {
+        bool found = true;
+        for (const auto &mmeInfo : mme) {
+          if (mmeInfo.id == id) {
+            found = true;
+            break;
+          }
+        }
+        return found ? "" : "MME with id " + std::to_string(id) + " not exists";
+      }));
   bsConfigObj.addInner(std::make_unique<common::JsonFieldInfo<float>>(
       "radius", [this](float radius) { curConfig.radius = radius; },
       [](float radius) {
@@ -47,8 +62,9 @@ BsConfigParser::parseJson(const nlohmann::json &json) {
   return configs;
 }
 
-std::unique_ptr<BsConfigParser> BsConfigParser::create() {
-  auto parser = std::unique_ptr<BsConfigParser>(new BsConfigParser());
+std::unique_ptr<BsConfigParser>
+BsConfigParser::create(const std::vector<MmeConfig> &mme) {
+  auto parser = std::unique_ptr<BsConfigParser>(new BsConfigParser(mme));
   parser->initFields();
   return parser;
 }

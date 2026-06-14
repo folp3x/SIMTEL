@@ -2,8 +2,6 @@
 
 #include "common/json/json_type/json_type.h"
 
-#include <iostream>
-
 namespace common {
 JsonObjectArrayInfo::JsonObjectArrayInfo(
     const std::string &name, JsonObjectInfo innerObject_,
@@ -24,15 +22,12 @@ JsonObjectArrayInfo::parse(const nlohmann::json &json, bool finalParse) {
   }
 
   for (size_t i = 0; i < fieldJson.size(); ++i) {
-    std::cout << "Array object field " << i << std::endl;
-    std::cout << fieldJson.dump() << std::endl;
     auto elemJson = fieldJson[i];
     auto error = innerObject.parse(elemJson);
     if (error) {
       return error;
     }
 
-    std::cout << "object parsed" << std::endl;
     objectCallback();
   }
 

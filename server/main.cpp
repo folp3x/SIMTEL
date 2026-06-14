@@ -2,6 +2,7 @@
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/bs_config/bs_config_parser/bs_config_parser.h"
 #include "app/config/config_parser/config_parser.h"
+#include "app/config/epc_config/epc_config_parser/epc_config_parser.h"
 #include "common/logging/logger/logger.h"
 
 int main(int argc, char *argv[]) {
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
       auto configParser = server::ConfigParser::create();
       auto parsedConfig = configParser->parse(*configFilePath);
       if (!parsedConfig) {
-        std::cout << "Error parsing config file: " << parsedConfig.error()
+        std::cout << "Error parsing main config file: " << parsedConfig.error()
                   << std::endl;
         return 1;
       }
@@ -49,17 +50,36 @@ int main(int argc, char *argv[]) {
     // переопределение опций из файла опциями командной строки
     config = cliParser->redefineConfig(config);
 
-    auto bsConfigParser = server::BsConfigParser::create();
-    auto parsedBsConfig = bsConfigParser->parse(config.getBsFilePath());
-    if (!parsedBsConfig) {
-      std::cout << "Error parsing config file: " << parsedBsConfig.error()
+    auto bsConfigParser =
+        server::BsConfigParser::create(config.getMmeConfigs());
+    auto parsedBsConfigs = bsConfigParser->parse(config.getBsFilePath());
+    if (!parsedBsConfigs) {
+      std::cout << "Error parsing BS config file: " << parsedBsConfigs.error()
+                << std::endl;
+      return 1;
+    }
+
+    auto epcConfigParser = server::EpcConfigParser::create();
+    auto parsedEpcConfig = epcConfigParser->parse(config.getEpcFilePath());
+    if (!parsedEpcConfig) {
+      std::cout << "Error parsing EPC config file: " << parsedEpcConfig.error()
                 << std::endl;
       return 1;
     }
 
     common::NetworkAddress addr{"127.0.0.1", config.getPort()};
 
-    server::App app{addr, 20};
+    size_t maxUeThreadsCount = 0;
+    for (const auto &config : *parsedBsConfigs) {
+      maxUeThreadsCount += config.maxConnections;
+    }
+
+    server::App app{addr,
+                    maxUeThreadsCount,
+                    config.getMmeConfigs(),
+                    config.getSmscConfig(),
+                    *parsedBsConfigs,
+                    *parsedEpcConfig};
     app.run();
 
     return 0;

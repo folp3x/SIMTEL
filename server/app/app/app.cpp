@@ -21,12 +21,14 @@ void App::sigintHandler(int signal) {
   }
 }
 
-App::App(const common::NetworkAddress &addr, size_t maxUeThreads)
-    : listener(addr, maxUeThreads) {
-  SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(
-      1, 120, 10, common::Location<>{{-100}}));
-  SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(
-      2, 120, 10, common::Location<>{{100}}));
+App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
+         const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
+         const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
+    : listener(addr, maxUeThreadsCount) {
+  for (const auto &config : bsConfigs) {
+    SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(config));
+  }
+
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }
