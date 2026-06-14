@@ -62,7 +62,6 @@ void UeExchange::handleRequests() {
     }
 
     curProtocol = info.state.protocol;
-
     switch (info.type) {
     case common::RequestType::Rrc_Connection: {
       auto result = handleLocationUpdate(info);

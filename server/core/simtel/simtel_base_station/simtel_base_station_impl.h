@@ -31,7 +31,6 @@ SimtelBaseStation::parseFromBytes(const common::binary_t &bytes,
   if (error) {
     return std::unexpected(*error);
   }
-
   return req;
 }
 } // namespace server

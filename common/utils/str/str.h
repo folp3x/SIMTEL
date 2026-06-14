@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 

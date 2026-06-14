@@ -1,9 +1,9 @@
 #include "distance_calculator.h"
 
 namespace server {
-float DistanceCalculator::calc(const common::Location<> &loc1,
+float DistanceCalculator::calc(const common::Location<> &loc,
                                const common::coords_t<> &coords) {
-  return calc<common::coords_t<>>(loc1, coords);
+  return calc<common::coords_t<>>(loc, coords);
 }
 
 float DistanceCalculator::calc(const common::Location<> &loc1,

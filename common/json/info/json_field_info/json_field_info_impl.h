@@ -1,7 +1,5 @@
 #pragma once
 
-#include <concepts>
-
 namespace common {
 template <typename T>
 template <typename U>

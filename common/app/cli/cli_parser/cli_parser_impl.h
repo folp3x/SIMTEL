@@ -64,13 +64,14 @@ bool CLIParser<T>::parse(int argc, char *argv[], std::string &msg,
   }
 }
 
-template <std::derived_from<Config> T> bool CLIParser<T>::allConfigOptsSet() {
+template <std::derived_from<Config> T>
+bool CLIParser<T>::allConfigOptsSet() const {
   return std::all_of(configOpts.begin(), configOpts.end(),
                      [](CLI::Option *opt) { return isOptSet(opt); });
 }
 
 template <std::derived_from<Config> T>
-std::optional<std::string> CLIParser<T>::getParsedConfigFilePath() const {
+std::optional<std::string> CLIParser<T>::getConfigFilePath() const {
   if (isOptSet(configFileOpt)) {
     return configFilePath;
   }

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
-#include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
-
 namespace client {
 template <typename T>
 std::unique_ptr<common::MenuItem>

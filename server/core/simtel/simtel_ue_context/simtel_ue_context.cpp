@@ -1,7 +1,5 @@
 #include "simtel_ue_context.h"
 
-#include "common/network/binary_serializer/binary_serializer.h"
-#include "common/utils/network/network.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {
@@ -16,6 +14,7 @@ bool SimtelUeContext::setMTimsi(const common::imsi_t &mTimsi_) {
     mTimsiSet = true;
     return true;
   }
+
   return false;
 }
 
@@ -34,6 +33,7 @@ common::binary_t SimtelUeContext::takeBuf() {
   auto copy = buf;
   buf.clear();
   bufCv.notify_one();
+
   return copy;
 }
 

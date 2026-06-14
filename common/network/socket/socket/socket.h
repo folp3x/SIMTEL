@@ -3,7 +3,6 @@
 #include <expected>
 #include <netinet/in.h>
 #include <optional>
-#include <sys/socket.h>
 
 #include "common/constants.h"
 #include "common/network/network_address/network_address.h"
@@ -21,27 +20,27 @@ private:
 protected:
   int sock = INVALID_SOCK;
 
+  Socket() = default;
+  Socket(int sock_);
+
   static std::string getLastError();
 
   static sockaddr_in toSockAddr(const NetworkAddress &address);
 
   static std::expected<int, std::string> initSock();
 
-  Socket() = default;
-  Socket(int sock_);
-
 public:
   virtual ~Socket();
-
-  void closeSock();
-
-  static bool setSendTimeout(int sock, unsigned int timeoutSec);
-  static bool setReceiveTimeout(int sock, unsigned int timeoutSec);
 
   Socket(const Socket &) = delete;
   Socket &operator=(const Socket &) = delete;
   Socket(Socket &&other);
   Socket &operator=(Socket &&other);
+
+  static bool setSendTimeout(int sock, unsigned int timeoutSec);
+  static bool setReceiveTimeout(int sock, unsigned int timeoutSec);
+
+  void closeSock();
 
   std::optional<NetworkError> sendMessage(const binary_t &data) const;
   std::expected<binary_t, NetworkError> receiveMessage() const;

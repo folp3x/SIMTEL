@@ -40,6 +40,7 @@ void SimtelListener::acceptConnections(
       handler(ctx);
       activeThreads--;
     }};
+
     singleClientHandler.detach();
   }
 }

@@ -11,9 +11,8 @@ class JsonArrayInfo : public JsonContainerInfo<std::array<T, S>> {
 private:
   const nlohmann::json::value_t elemType;
 
-  void logConstructor(const std::string &constructorType,
-                      const std::string &name,
-                      nlohmann::json::value_t elemType) const;
+  virtual std::expected<std::array<T, S>, std::string>
+  parseContainer(const nlohmann::json &fieldJson) override;
 
 public:
   JsonArrayInfo(
@@ -22,13 +21,6 @@ public:
       nlohmann::json::value_t elemType_,
       const std::function<std::string(const std::array<T, S> &)> &checkFn =
           nullptr);
-
-  JsonArrayInfo(const JsonArrayInfo &other);
-
-  JsonArrayInfo(JsonArrayInfo &&other) noexcept;
-
-  virtual std::expected<std::array<T, S>, std::string>
-  parseContainer(const nlohmann::json &fieldJson) override;
 };
 } // namespace common
 

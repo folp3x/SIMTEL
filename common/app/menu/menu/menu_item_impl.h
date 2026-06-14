@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/utils/print/print.h"
-
 namespace common {
 void Menu::showMenuHeaderLine() const {
   std::cout << std::string(MENU_HEADER_LINE_LENGTH, '-') << std::endl;

@@ -1,9 +1,5 @@
 #pragma once
 
-#include "common/json/info/json_array_info/json_array_info.h"
-#include "common/json/info/json_object_array_info/json_object_array_info.h"
-#include "common/json/info/json_vector_info/json_vector_info.h"
-
 namespace common {
 template <typename T>
 std::optional<std::string>
@@ -18,7 +14,6 @@ JsonParser<T>::parseFields(const nlohmann::json &json) {
   return std::nullopt;
 }
 
-// добавление в список полей простого JSON-поля
 template <typename T>
 template <typename F>
 void JsonParser<T>::addParsedField(
@@ -30,7 +25,6 @@ void JsonParser<T>::addParsedField(
   fieldsInfo.push_back(std::move(info));
 }
 
-// добавление в список полей JSON-массива
 template <typename T>
 template <typename E, size_t S>
 void JsonParser<T>::addParsedArray(
@@ -43,7 +37,6 @@ void JsonParser<T>::addParsedArray(
   fieldsInfo.push_back(std::move(info));
 }
 
-// добавление в список полей вектора JSON
 template <typename T>
 template <typename E>
 void JsonParser<T>::addParsedVector(

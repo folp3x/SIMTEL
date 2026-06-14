@@ -2,7 +2,6 @@
 
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
 
 namespace common {
 ErrorRequest::ErrorRequest(const std::string &description_)

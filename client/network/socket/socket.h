@@ -1,7 +1,5 @@
 #pragma once
 
-#include <expected>
-
 #include "common/network/socket/socket/socket.h"
 
 namespace client {

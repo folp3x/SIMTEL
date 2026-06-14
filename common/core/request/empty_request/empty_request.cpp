@@ -1,4 +1,4 @@
-#include "attach_accept_request.h"
+#include "empty_request.h"
 
 namespace common {
 std::string EmptyRequest::toStr() const { return "Empty"; }

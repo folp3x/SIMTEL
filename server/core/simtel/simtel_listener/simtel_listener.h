@@ -2,9 +2,7 @@
 
 #include <functional>
 
-#include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
-#include "server/network/socket/socket.h"
 
 namespace server {
 class SimtelListener {

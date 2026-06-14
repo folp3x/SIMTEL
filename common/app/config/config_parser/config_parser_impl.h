@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/validator/validator.h"
-
 namespace common {
 template <std::derived_from<Config> T> void ConfigParser<T>::initPortField() {
   this->template addParsedField<int>(

@@ -11,17 +11,18 @@ namespace server {
 class BsConfigParser : public common::JsonParser<std::vector<BsConfig>> {
 private:
   std::vector<MmeConfig> mme;
+
   std::vector<BsConfig> configs{};
   BsConfig curConfig;
 
   explicit BsConfigParser(const std::vector<MmeConfig> &mme_);
 
-  std::expected<std::vector<BsConfig>, std::string>
-  parseJson(const nlohmann::json &json);
-
-public:
   virtual void initFields() override;
 
+  virtual std::expected<std::vector<BsConfig>, std::string>
+  parseJson(const nlohmann::json &json) override;
+
+public:
   static std::unique_ptr<BsConfigParser>
   create(const std::vector<MmeConfig> &mme);
 };

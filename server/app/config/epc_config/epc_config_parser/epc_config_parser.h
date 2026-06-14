@@ -13,15 +13,16 @@ private:
 
   EpcConfigParser() = default;
 
-  std::expected<EpcConfig, std::string> parseJson(const nlohmann::json &json);
+  virtual void initFields() override;
+
+  virtual std::expected<EpcConfig, std::string>
+  parseJson(const nlohmann::json &json) override;
 
   void initTtlField();
   void initHlrAccessParamsField();
   void initCdrAccessParamsField();
 
 public:
-  virtual void initFields() override;
-
   static std::unique_ptr<EpcConfigParser> create();
 };
 } // namespace server

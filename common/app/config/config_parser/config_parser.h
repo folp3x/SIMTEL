@@ -5,6 +5,7 @@
 #include <concepts>
 
 #include "common/app/config/config/config.h"
+#include "common/validator/validator.h"
 
 namespace common {
 // базовый класс для парсинга конфигурации из JSON
@@ -15,12 +16,12 @@ protected:
 
   ConfigParser() = default;
 
-  void initPortField();
-
   virtual void initFields() override;
 
   virtual std::expected<T, std::string>
   parseJson(const nlohmann::json &json) override;
+
+  void initPortField();
 
 public:
   static std::unique_ptr<ConfigParser> create();

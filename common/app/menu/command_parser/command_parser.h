@@ -4,7 +4,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "common/app/menu/command_info/command_info.h"
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
 
 namespace common {

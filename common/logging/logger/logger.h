@@ -8,11 +8,11 @@ class Logger {
 private:
   std::shared_ptr<spdlog::logger> spdLogger;
 
-  static std::unique_ptr<Logger> ptr;
-  static bool initialized;
-
   Logger(const std::string &loggerName, const std::string &logDirPath,
          const std::string &appName, spdlog::level::level_enum level);
+
+  static std::unique_ptr<Logger> ptr;
+  static bool initialized;
 
 public:
   Logger();

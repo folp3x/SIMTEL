@@ -2,19 +2,17 @@
 
 #include <csignal>
 #include <spdlog/fmt/fmt.h>
-#include <stdexcept>
 #include <thread>
 
+#include "client/app/menu/command_info/command_info.h"
 #include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
 #include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
-#include "client/network/socket/socket.h"
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
-#include "common/utils/str/str.h"
 
 namespace client {
 void App::sigintHandler(int signal) {

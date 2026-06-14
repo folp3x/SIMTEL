@@ -2,14 +2,11 @@
 
 #include "common/app/menu/interactive_menu/interactive_menu.h"
 
-#include <optional>
-
 #include "client/app/menu/command_parser/command_parser.h"
 #include "client/core/ue/ue_active/ue_active.h"
 #include "common/core/location/location/location.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
-#include "common/types.h"
 
 namespace client {
 class Menu : public common::InteractiveMenu<CommandParser> {

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdexcept>
-
 namespace common {
 template <typename T>
   requires std::is_floating_point_v<T>

@@ -24,6 +24,7 @@ JsonContainerInfo<Container>::parse(const nlohmann::json &json,
   if (!field) {
     return nameQuoted + ": " + field.error();
   }
+
   if (finalParse) {
     this->successCallback(*field);
   }

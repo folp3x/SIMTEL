@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
       common::Logger::init("Server logger", "./logs", "server",
                            spdlog::level::debug);
     } catch (const spdlog::spdlog_ex &e) {
-      std::cerr << "Logger initialization error" << e.what() << std::endl;
+      std::cerr << "Logger initialization error: " << e.what() << std::endl;
     }
 
     auto cliParser = server::CLIParser::create("server");
@@ -31,55 +31,54 @@ int main(int argc, char *argv[]) {
     }
 
     server::Config config{};
-    auto configFilePath = cliParser->getParsedConfigFilePath();
-    if (configFilePath) {
-      // парсинг данных из конфигурационного файла
-      auto configParser = server::ConfigParser::create();
-      auto parsedConfig = configParser->parse(*configFilePath);
-      if (!parsedConfig) {
-        std::cout << "Error parsing main config file: " << parsedConfig.error()
-                  << std::endl;
-        return 1;
-      }
-      config = std::move(*parsedConfig);
-    } else {
+    auto filePath = cliParser->getConfigFilePath();
+    if (!filePath) {
       std::cout << "Error: path to config file not specified" << std::endl;
       return 1;
     }
 
+    // парсинг данных из конфигурационного файла
+    auto configParser = server::ConfigParser::create();
+    auto parsedConfig = configParser->parse(*filePath);
+    if (!parsedConfig) {
+      std::cout << "Error parsing main config file: " << parsedConfig.error()
+                << std::endl;
+      return 1;
+    }
+
     // переопределение опций из файла опциями командной строки
-    config = cliParser->redefineConfig(config);
+    config = cliParser->redefineConfig(*parsedConfig);
 
     auto bsConfigParser =
         server::BsConfigParser::create(config.getMmeConfigs());
-    auto parsedBsConfigs = bsConfigParser->parse(config.getBsFilePath());
-    if (!parsedBsConfigs) {
-      std::cout << "Error parsing BS config file: " << parsedBsConfigs.error()
+    auto bsConfigs = bsConfigParser->parse(config.getBsFilePath());
+    if (!bsConfigs) {
+      std::cout << "Error parsing BS config file: " << bsConfigs.error()
                 << std::endl;
       return 1;
     }
 
     auto epcConfigParser = server::EpcConfigParser::create();
-    auto parsedEpcConfig = epcConfigParser->parse(config.getEpcFilePath());
-    if (!parsedEpcConfig) {
-      std::cout << "Error parsing EPC config file: " << parsedEpcConfig.error()
+    auto epcConfig = epcConfigParser->parse(config.getEpcFilePath());
+    if (!epcConfig) {
+      std::cout << "Error parsing EPC config file: " << epcConfig.error()
                 << std::endl;
       return 1;
     }
 
-    common::NetworkAddress addr{"127.0.0.1", config.getPort()};
-
     size_t maxUeThreadsCount = 0;
-    for (const auto &config : *parsedBsConfigs) {
+    for (const auto &config : *bsConfigs) {
       maxUeThreadsCount += config.maxConnections;
     }
+
+    common::NetworkAddress addr{"127.0.0.1", config.getPort()};
 
     server::App app{addr,
                     maxUeThreadsCount,
                     config.getMmeConfigs(),
                     config.getSmscConfig(),
-                    *parsedBsConfigs,
-                    *parsedEpcConfig};
+                    *bsConfigs,
+                    *epcConfig};
     app.run();
 
     return 0;

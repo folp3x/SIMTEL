@@ -2,7 +2,6 @@
 
 #include <arpa/inet.h>
 #include <cmath>
-#include <stdexcept>
 
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
@@ -21,6 +20,7 @@ std::expected<uint64_t, std::string> parseIP(const std::string &str) {
   if (validationInfo.empty()) {
     return ntohl(ip);
   }
+
   return std::unexpected(validationInfo);
 }
 

@@ -1,7 +1,5 @@
 #include "validator.h"
 
-#include "common/validator/validator.h"
-
 namespace client {
 std::string
 Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {

@@ -28,7 +28,6 @@ std::unique_ptr<AddressBookParser> AddressBookParser::create() {
 
 std::expected<std::map<char, common::msisdn_t>, std::string>
 AddressBookParser::parseJson(const nlohmann::json &json) {
-  // очистка конфига
   records.clear();
 
   auto error = this->parseFields(json);

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <concepts>
 #include <functional>
 
 #include "common/json/info/json_base_info/json_base_info.h"
 #include "common/json/json_type/json_type.h"
-#include "common/logging/logger/logger.h"
 
 namespace common {
 // класс с информацией для парсинга простого JSON-поля

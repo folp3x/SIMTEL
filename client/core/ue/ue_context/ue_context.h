@@ -5,9 +5,9 @@
 namespace client {
 class UeContext {
 private:
-  UeState state;
-
   const common::NetworkAddress serverAddr;
+
+  UeState state;
 
   bool inActive = false;
 
@@ -18,15 +18,15 @@ public:
             common::Location<> &location,
             const common::NetworkAddress &serverAddr_);
 
+  common::Location<> getLocation() const;
+  template <typename T> void updateLocation(const std::vector<T> &coords);
+
   common::imsi_t getImsi() const;
 
   common::imei_t getImei() const;
 
   common::imsi_t getMTimsi() const;
   bool setMTimsi(const std::string &mTimsi_);
-
-  common::Location<> getLocation() const;
-  template <typename T> void updateLocation(const std::vector<T> &coords);
 
   common::NetworkAddress getServerAddr() const;
 

@@ -4,6 +4,7 @@
 
 #include <concepts>
 
+#include "common/app/menu/command_info/command_info.h"
 #include "common/app/menu/command_parser/command_parser.h"
 
 namespace common {
@@ -17,6 +18,7 @@ private:
 
 public:
   std::unique_ptr<MenuItem> getCommand(std::string &extraMsg) const;
+
   void showCommandsInfo(const CommandInfoMap &commands) const;
 };
 } // namespace common

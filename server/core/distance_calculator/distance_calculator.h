@@ -12,7 +12,7 @@ public:
              std::ranges::sized_range<Container>
   static float calc(const common::Location<> &loc, const Container &coords);
 
-  static float calc(const common::Location<> &loc1,
+  static float calc(const common::Location<> &loc,
                     const common::coords_t<> &coords);
 
   static float calc(const common::Location<> &loc1,

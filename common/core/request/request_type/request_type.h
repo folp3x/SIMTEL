@@ -1,9 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <expected>
 
-#include "common/network/protocol/protocol.h"
 #include "common/types.h"
 
 namespace common {

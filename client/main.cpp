@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     if (helpCalled) {
       std::cout << msg << std::endl;
       SPDLOG_LOGGER_CRITICAL(common::Logger::instance().getInner(),
-                             "Help showed");
+                             "Help shown");
       return 0;
     }
 
@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
     }
 
     client::Config config{};
-    auto configFilePath = cliParser->getParsedConfigFilePath();
-    if (configFilePath) {
+    auto filePath = cliParser->getConfigFilePath();
+    if (filePath) {
       // парсинг данных из конфигурационного файла
       auto configParser = client::ConfigParser::create();
-      auto parsedConfig = configParser->parse(*configFilePath);
+      auto parsedConfig = configParser->parse(*filePath);
       if (!parsedConfig) {
         std::cout << "Error parsing config file: " << parsedConfig.error()
                   << std::endl;

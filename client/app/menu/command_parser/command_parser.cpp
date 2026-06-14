@@ -6,8 +6,6 @@
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "client/validator/validator.h"
 #include "common/network/protocol/protocol.h"
-#include "common/types.h"
-#include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
 namespace client {

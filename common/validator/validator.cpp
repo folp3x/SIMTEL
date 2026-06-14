@@ -8,7 +8,7 @@
 
 namespace common {
 const std::string Validator::MSISDN_FORMAT_STR =
-    "8" + std::string(MSISDN_LENGTH, ANY_DIGIT);
+    "8" + std::string(MSISDN_LENGTH, MSISDN_ANY_DIGIT);
 
 // проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(std::string_view filePath) {
@@ -116,10 +116,10 @@ std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
   if (msisdn.length() != MSISDN_LENGTH) {
     isCorrect = false;
   } else {
-    for (int i = 0; i < msisdn.length(); i++) {
+    for (int i = 0; i < msisdn.length(); ++i) {
       char formatCh = MSISDN_FORMAT_STR[i];
       if (isdigit(formatCh) && msisdn[i] != formatCh ||
-          formatCh == ANY_DIGIT && !isdigit(msisdn[i])) {
+          formatCh == MSISDN_ANY_DIGIT && !isdigit(msisdn[i])) {
         isCorrect = false;
         break;
       }

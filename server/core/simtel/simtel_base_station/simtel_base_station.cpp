@@ -1,10 +1,8 @@
 #include "simtel_base_station.h"
 
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
-#include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
-#include "common/utils/network/network.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 
 namespace server {
@@ -24,12 +22,13 @@ void SimtelBaseStation::handleConnectionRequest(
     return;
   }
 
-  // начальное получение данных через 1ую вышку
+  // начальное получение данных через первую вышку
   auto *firstBs = baseStations.begin()->second.get();
   ctx->setBs(firstBs);
 
   MessageHolder::instance().addMsg(ctx->toStr() +
                                    " receiving location through first BS");
+
   auto req = firstBs->receiveRequest<common::RrcConnectionRequest>(ctx);
   if (!req) {
     MessageHolder::instance().addErrorMsg("Error receiving location: " +
@@ -97,7 +96,7 @@ SimtelBaseStation::SimtelBaseStation(const BsConfig &config)
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx) {
-  // имитация измерения уровня сигнала до базовых станций
+  // имитация измерения UE уровня сигнала до базовых станций
   auto initialBs = ctx->getBs();
   for (const auto &[id, bs] : baseStations) {
     unsigned int signalLevel = bs->measureSignal(locReq.getLoc());
@@ -249,6 +248,7 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTImsi) {
       createLogMsg(it->second->toStr() + " buffer removed "));
 
   connectedUe.erase(it);
+
   return true;
 }
 
@@ -266,6 +266,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         MessageHolder::instance().addMsg(
             createLogMsg(ctx->toStr() + " disconnected"),
             common::MenuMessageType::INFO);
+
         break;
       } else {
         MessageHolder::instance().addErrorMsg(receiveError->description);
@@ -294,6 +295,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
           MessageHolder::instance().addErrorMsg(*updateError);
           return;
         }
+
         break;
       }
       default:

@@ -5,8 +5,11 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
+#include "common/json/info/json_array_info/json_array_info.h"
 #include "common/json/info/json_field_info/json_field_info.h"
+#include "common/json/info/json_object_array_info/json_object_array_info.h"
 #include "common/json/info/json_object_info/json_object_info.h"
+#include "common/json/info/json_vector_info/json_vector_info.h"
 
 namespace common {
 // абстрактный класс для парсинга данных из JSON
@@ -15,8 +18,6 @@ private:
   std::vector<std::unique_ptr<JsonBaseInfo>> fieldsInfo = {};
 
 protected:
-  std::optional<std::string> parseFields(const nlohmann::json &json);
-
   template <typename F>
   void addParsedField(
       const std::string &name,
@@ -55,6 +56,8 @@ protected:
 
   virtual std::expected<T, std::string>
   parseJson(const nlohmann::json &json) = 0;
+
+  std::optional<std::string> parseFields(const nlohmann::json &json);
 
 public:
   virtual ~JsonParser() = default;

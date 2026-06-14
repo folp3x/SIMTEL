@@ -33,17 +33,17 @@ private:
   std::condition_variable requestsCv{};
   std::queue<RequestInfo> requests = {};
 
-  std::optional<std::string> sendRequest(std::unique_ptr<common::Request> req);
-
-  std::expected<common::binary_t, std::string>
-  receiveResponseData(common::RequestType &type) const;
-
   template <std::derived_from<common::Request> T>
   std::expected<T, std::string> receiveResponse() const;
 
   template <std::derived_from<common::Request> T>
   std::expected<T, std::string>
   parseFromBytes(const common::binary_t &bytes) const;
+
+  std::optional<std::string> sendRequest(std::unique_ptr<common::Request> req);
+
+  std::expected<common::binary_t, std::string>
+  receiveResponseData(common::RequestType &type) const;
 
 public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);

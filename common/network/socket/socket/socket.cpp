@@ -5,9 +5,6 @@
 #include <zpp_bits.h>
 
 #include "common/network/socket/socket_message_header/socket_message_header.h"
-#include "common/utils/network/network.h"
-
-#include <iostream>
 
 namespace common {
 std::optional<NetworkError> Socket::sendAll(const void *data,
@@ -60,7 +57,6 @@ Socket &Socket::operator=(Socket &&other) {
     sock = other.sock;
     other.sock = INVALID_SOCK;
   }
-
   return *this;
 }
 
@@ -71,7 +67,6 @@ std::expected<int, std::string> Socket::initSock() {
   if (inited < 0) {
     return std::unexpected(getLastError());
   }
-
   return inited;
 }
 
@@ -92,7 +87,6 @@ bool Socket::setReceiveTimeout(int sock, unsigned int timeoutSec) {
 }
 
 std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
-  // std::cout << "sent msg: " << toStr(data) << std::endl;
   if (data.empty()) {
     return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
   }
@@ -168,8 +162,6 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   result.reserve(header.size() + content.size());
   result.insert(result.end(), header.begin(), header.end());
   result.insert(result.end(), content.begin(), content.end());
-
-  // std::cout << "received msg: " << toStr(result) << std::endl;
 
   return result;
 }

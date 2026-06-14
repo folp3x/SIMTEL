@@ -18,7 +18,6 @@ protected:
 
   T config{};
 
-  // опции для получения параметров конфигурации
   CLI::Option *portOpt = nullptr;
 
   std::vector<CLI::Option *> configOpts = {};
@@ -27,25 +26,25 @@ protected:
 
   explicit CLIParser(const std::string &appTitle);
 
-  void initPortOpt();
-  void initConfigFileOpt();
-
   virtual void initOptions();
 
   static bool isOptSet(CLI::Option *opt);
+
+  void initPortOpt();
+  void initConfigFileOpt();
 
 public:
   virtual ~CLIParser() = default;
 
   static std::unique_ptr<CLIParser> create(const std::string &cliAppName);
 
+  virtual T redefineConfig(const T &definedConfig) const;
+
   bool parse(int argc, char *argv[], std::string &msg, bool &helpCalled);
 
-  bool allConfigOptsSet();
+  bool allConfigOptsSet() const;
 
-  std::optional<std::string> getParsedConfigFilePath() const;
-
-  virtual T redefineConfig(const T &definedConfig) const;
+  std::optional<std::string> getConfigFilePath() const;
 };
 } // namespace common
 

@@ -1,7 +1,5 @@
 #include "bs_config_parser.h"
 
-#include <stdexcept>
-
 #include "common/json/info/json_array_info/json_array_info.h"
 
 namespace server {

@@ -1,7 +1,6 @@
 #include "socket.h"
 
 #include <arpa/inet.h>
-#include <stdexcept>
 
 namespace server {
 Socket::Socket(int sock_, const sockaddr_in &addr_)
@@ -55,7 +54,7 @@ std::string Socket::getAddrStr() const {
   char buf[INET_ADDRSTRLEN];
 
   if (inet_ntop(AF_INET, &sockAddr.sin_addr, buf, INET_ADDRSTRLEN) == nullptr) {
-    return "invalid";
+    return "invalid addr";
   }
 
   return std::string(buf) + ":" + std::to_string(ntohs(sockAddr.sin_port));

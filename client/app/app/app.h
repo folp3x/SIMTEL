@@ -1,10 +1,5 @@
 #pragma once
 
-#include "common/app/app/app.h"
-
-#include <optional>
-#include <queue>
-
 #include "client/app/config/config/config.h"
 #include "client/app/menu/menu/menu.h"
 #include "client/app/menu/menu_item/menu_item_active/menu_item_active.h"
@@ -17,7 +12,7 @@
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 
 namespace client {
-class App : common::App<Config> {
+class App {
 private:
   static constexpr unsigned int HANDOVER_SIGNAL_THRESHOLD = 40;
 
@@ -32,6 +27,9 @@ private:
 
   std::map<char, common::msisdn_t> addressBook{};
 
+  virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                             bool &exit);
+
   void sigintHandler(int signal);
 
   std::string formChangeMessage(const std::string &paramName,
@@ -44,9 +42,6 @@ private:
   void handleMoveCommand(const MenuItemMove<> &cmd);
   void handleProtocolCommand(const MenuItemProtocol &cmd);
   void handleSmsCommand(const MenuItemSMS &cmd);
-
-  virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                             bool &exit);
 
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 
@@ -62,6 +57,6 @@ public:
   App(const UeContext &ctx_,
       const std::map<char, common::msisdn_t> &addressBook_);
 
-  virtual void run() override;
+  void run();
 };
 } // namespace client

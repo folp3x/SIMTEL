@@ -1,12 +1,18 @@
 #pragma once
 
+#include <algorithm>
 #include <expected>
 #include <nlohmann/json.hpp>
 #include <ranges>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "common/json/json_parser/json_parser.h"
+#include "common/logging/logger/logger.h"
+#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/types.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 template <typename T = float, size_t S = constants::LOCATION_COORDS_COUNT>
@@ -25,6 +31,11 @@ public:
   Location(Location &&other) noexcept;
   Location &operator=(Location &&other) noexcept;
 
+  static std::expected<Location, std::string>
+  fromJsonStr(const std::string &str);
+  static std::expected<Location, std::string>
+  fromBinary(const binary_t &binary);
+
   template <typename Container>
     requires std::ranges::input_range<Container> &&
              std::ranges::sized_range<Container>
@@ -35,18 +46,10 @@ public:
   bool coordsEqual(const std::vector<T> &otherCoords) const;
 
   coords_t<T, S> getCoords() const;
-
   size_t getCoordsCount() const;
 
   nlohmann::json toJson() const;
-
-  static std::expected<Location, std::string>
-  fromJsonStr(const std::string &str);
-
   std::expected<binary_t, std::string> toBinary() const;
-
-  static std::expected<Location, std::string>
-  fromBinary(const binary_t &binary);
 };
 } // namespace common
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/core/request/request/request.h"
-#include "common/types.h"
 
 namespace common {
 class RrcReconfigurationKeepRequest : public Request {
