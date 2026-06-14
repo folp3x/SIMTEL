@@ -5,7 +5,7 @@
 # VS
 .editorconfig
 .vs
-testEnvironments.json
+
 # VS Code
 .vscode
 
@@ -14,6 +14,7 @@ testEnvironments.json
 
 # cmake
 CMakeUserPresets.json
+CMakePresets.json
 
 # Compiled Object files
 *.slo
