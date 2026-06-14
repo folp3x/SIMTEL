@@ -14,6 +14,8 @@ set(SOURCES_LIST
     "app/config/config_parser/config_parser.cpp"
     "app/config/bs_config/bs_config_parser/bs_config_parser.cpp"
     "app/config/epc_config/epc_config_parser/epc_config_parser.cpp"
+    "core/simtel/simtel_mme/simtel_mme.cpp"
+    "core/simtel/simtel_smsc/simtel_smsc.cpp"
 )
 
 # установка библиотек
