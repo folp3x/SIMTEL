@@ -6,6 +6,7 @@
 #include "common/network/protocol/protocol.h"
 #include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/app/message_holder/message_holder.h"
+#include "server/core/simtel/simtel_mme/simtel_mme.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
@@ -21,6 +22,8 @@ private:
   const unsigned int mmeId;
   const size_t maxConnections;
   const common::Location<> location;
+
+  std::shared_ptr<SimtelMme> mme;
 
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
       connectedUe = {};
@@ -49,7 +52,7 @@ private:
   unsigned int measureSignal(const common::Location<> &targetLoc) const;
 
 public:
-  explicit SimtelBaseStation(const BsConfig &config);
+  SimtelBaseStation(const BsConfig &config, std::shared_ptr<SimtelMme> mme_);
 
   static void addBs(std::unique_ptr<SimtelBaseStation> bs);
 

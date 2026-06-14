@@ -1,5 +1,6 @@
 #include "simtel_base_station.h"
 
+#include "common/core/request/error_request/error_request.h"
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
@@ -70,6 +71,11 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
                     : std::round(coef * common::constants::MAX_SIGNAL_LEVEL);
 }
 
+SimtelBaseStation::SimtelBaseStation(const BsConfig &config,
+                                     std::shared_ptr<SimtelMme> mme_)
+    : id(config.id), mmeId(config.mmeId), radius(config.radius),
+      maxConnections(config.maxConnections), location(config.loc), mme(mme_) {}
+
 std::optional<std::string>
 SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
                                 std::unique_ptr<common::Request> req) const {
@@ -88,10 +94,6 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
 
   return sendError->description;
 }
-
-SimtelBaseStation::SimtelBaseStation(const BsConfig &config)
-    : id(config.id), mmeId(config.mmeId), radius(config.radius),
-      maxConnections(maxConnections), location(config.loc) {}
 
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
@@ -181,6 +183,13 @@ bool SimtelBaseStation::canAcceptConnection() const {
 std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     const common::MeasurementReportRequest &req,
     std::shared_ptr<SimtelUeContext> ctx, bool &handover) const {
+  if (!canAcceptConnection()) {
+    auto response = std::make_unique<common::ErrorRequest>("BS busy");
+    auto responseSendError = sendResponse(ctx, std::move(response));
+    if (responseSendError) {
+      return createLogMsg("Error sending error info: " + *responseSendError);
+    }
+  }
 
   // auto errorSendError = sendError("MME error", ctx);
   // return "MME error";
@@ -197,9 +206,9 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   auto curBs = ctx->getBs();
   bool connectedToCur =
       curBs && curBs->getId() == id && ueConnected(ctx->getMTimsi());
-  if (connectedToCur || !canAcceptConnection()) {
-    auto response =
-        std::make_unique<common::RrcReconfigurationKeepRequest>(mTimsi, id);
+  if (connectedToCur) {
+    auto response = std::make_unique<common::RrcReconfigurationKeepRequest>(
+        req.getImei(), id);
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
       return createLogMsg("Error sending BS keep info: " + *responseSendError);

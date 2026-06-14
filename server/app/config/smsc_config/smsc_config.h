@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cstdint>
+#include <string>
 
 namespace server {
 struct SmscConfig {
-  unsigned int ttlMs = 0;
-  std::string cdrAccessJsonFilePath = "";
+  unsigned int smsTtlMs = 0;
+  std::string cdrJsonFilePath = "";
 };
 } // namespace server

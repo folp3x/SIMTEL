@@ -6,6 +6,7 @@
 #include "server/app/config/epc_config/epc_config/epc_config.h"
 #include "server/app/menu/menu/menu.h"
 #include "server/core/simtel/simtel_listener/simtel_listener.h"
+#include "server/core/simtel/simtel_mme/simtel_mme.h"
 
 namespace server {
 class App {
@@ -13,6 +14,10 @@ private:
   static constexpr unsigned int MENU_SLEEP_MS = 100;
 
   SimtelListener listener;
+
+  std::shared_ptr<SimtelRegister> hlr;
+  std::shared_ptr<SimtelSmsc> smsc;
+  std::vector<std::shared_ptr<SimtelMme>> mmeList;
 
   Menu menu;
 

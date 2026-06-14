@@ -24,9 +24,27 @@ void App::sigintHandler(int signal) {
 App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
-    : listener(addr, maxUeThreadsCount) {
+    : listener(addr, maxUeThreadsCount),
+      hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
+      smsc(std::make_shared<SimtelSmsc>(smscConfig)) {
+  for (const auto &config : mmeConfigs) {
+    mmeList.push_back(std::make_shared<SimtelMme>(config, hlr, smsc));
+  }
+
   for (const auto &config : bsConfigs) {
-    SimtelBaseStation::addBs(std::make_unique<SimtelBaseStation>(config));
+    bool mmeFound = false;
+    for (const auto &mme : mmeList) {
+      if (mme->getId() == config.mmeId) {
+        SimtelBaseStation::addBs(
+            std::make_unique<SimtelBaseStation>(config, mme));
+        mmeFound = true;
+        break;
+      }
+    }
+
+    if (!mmeFound) {
+      throw std::runtime_error("Unknown MME id in BS config");
+    }
   }
 
   common::SignalHandler::setHandler(

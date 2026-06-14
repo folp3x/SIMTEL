@@ -22,11 +22,10 @@ void Config::addMmeConfig(const MmeConfig &config) {
 SmscConfig Config::getSmscConfig() const { return smscConfig; }
 
 void Config::setSmscTtlMs(unsigned int smscTtlMs) {
-  smscConfig.ttlMs = smscTtlMs;
+  smscConfig.smsTtlMs = smscTtlMs;
 }
 
-void Config::setSmsCdrAccessJsonFilePath(
-    const std::string &smscCdrAccessFilePath_) {
-  smscConfig.cdrAccessJsonFilePath = smscCdrAccessFilePath_;
+void Config::setSmscCdrJsonFilePath(const std::string &smscCdrJsonFilePath) {
+  smscConfig.cdrJsonFilePath = smscCdrJsonFilePath;
 }
 } // namespace server

@@ -11,7 +11,8 @@ RrcReconfigurationKeepRequest::RrcReconfigurationKeepRequest(
     : imei(imei_), bsId(bsId_) {}
 
 std::string RrcReconfigurationKeepRequest::toStr() const {
-  return "{imei=" + imei + ", bsId=" + std::to_string(bsId) + "}";
+  return "RrcReconfigurationKeep{imei=" + imei +
+         ", bsId=" + std::to_string(bsId) + "}";
 }
 
 RequestType RrcReconfigurationKeepRequest::getType() const {

@@ -16,6 +16,8 @@ set(SOURCES_LIST
     "app/config/epc_config/epc_config_parser/epc_config_parser.cpp"
     "core/simtel/simtel_mme/simtel_mme.cpp"
     "core/simtel/simtel_smsc/simtel_smsc.cpp"
+    "core/simtel/simtel_visitor_list/simtel_visitor_list.cpp"
+    "core/simtel/simtel_register/simtel_register.cpp"
 )
 
 # установка библиотек

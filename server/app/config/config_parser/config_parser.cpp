@@ -30,7 +30,7 @@ void ConfigParser::initSmscConfigField() {
   cdrAccessParamsObj->addInner(
       std::make_unique<common::JsonFieldInfo<std::string>>(
           "jsonFilePath", [this](const std::string &path) {
-            config.setSmsCdrAccessJsonFilePath(path);
+            config.setSmscCdrJsonFilePath(path);
           }));
 
   auto smscConfigObj = std::make_unique<common::JsonObjectInfo>("smscConfig");
