@@ -191,10 +191,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     }
   }
 
-  // auto errorSendError = sendError("MME error", ctx);
-  // return "MME error";
-
-  common::imsi_t mTimsi = "000000000000000";
+  common::imsi_t mTimsi = mme->generateMTimsi();
   MessageHolder::instance().addMsg(
       createLogMsg("received t-imsi from MME: " + mTimsi));
 

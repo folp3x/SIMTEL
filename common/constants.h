@@ -7,4 +7,6 @@ constexpr size_t SOCKET_MESSAGE_HEADER_BYTES = 6;
 constexpr unsigned int MAX_SIGNAL_LEVEL = 100;
 constexpr size_t IMEI_BINARY_BYTES = 8;
 constexpr size_t IMSI_BINARY_BYTES = 8;
+constexpr size_t IMEI_DEFAULT_LENGTH = 15;
+constexpr size_t IMSI_DEFAULT_LENGTH = 15;
 } // namespace common::constants

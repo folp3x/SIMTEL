@@ -7,10 +7,6 @@
 
 namespace common {
 class BinarySerializer {
-private:
-  static constexpr size_t IMEI_DEFAULT_LEGNTH = 15;
-  static constexpr size_t IMSI_DEFAULT_LEGNTH = 15;
-
 public:
   template <typename T>
     requires std::is_arithmetic_v<T>
