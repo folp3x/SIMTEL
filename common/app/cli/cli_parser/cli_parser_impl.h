@@ -21,7 +21,9 @@ template <std::derived_from<Config> T> void CLIParser<T>::initConfigFileOpt() {
       "-k, --config",
       [this](const std::string &filePath) { configFilePath = filePath; },
       "Load config from specified JSON file");
-  configFileOpt->check(Validator::isCorrectConfigPath);
+  configFileOpt->check([](const std::string &filePath) {
+    return Validator::jsonFilePathExists(filePath, "Config");
+  });
   configFileOpt->type_name("string");
 }
 

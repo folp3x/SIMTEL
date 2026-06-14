@@ -5,6 +5,6 @@
 namespace server {
 struct SmscConfig {
   unsigned int ttlMs = 0;
-  std::string cdrAccessFilePath = "";
+  std::string cdrAccessJsonFilePath = "";
 };
 } // namespace server

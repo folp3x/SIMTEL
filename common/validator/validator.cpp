@@ -110,10 +110,6 @@ std::string Validator::isCorrectIMSI(const imsi_t &imsi) {
   return isCorrectDigitStr(imsi, MIN_IMSI_LENGTH, MAX_IMSI_LENGTH, "IMSI");
 }
 
-std::string Validator::isCorrectConfigPath(const std::string &filePath) {
-  return jsonFilePathExists(filePath, "Config");
-}
-
 std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
   bool isCorrect = true;
 

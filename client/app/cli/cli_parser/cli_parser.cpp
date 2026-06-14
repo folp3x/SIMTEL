@@ -54,6 +54,7 @@ void CLIParser::initOptions() {
   initImeiOpt();
   initImsiOpt();
   initIpOpt();
+  initLocOpt();
 }
 
 std::unique_ptr<CLIParser> CLIParser::create() {

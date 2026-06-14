@@ -49,16 +49,23 @@ void App::handleLocationUpdate() {
           return;
         }
 
-        if (auto *bsHandoverResponse =
+        if (auto *handoverResponse =
                 dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
                     response.get())) {
-          bool set = ctx.setMTimsi(bsHandoverResponse->getMTimsi());
-          if (!set) {
-            addErrorMsg(
-                "Handover. New m-timsi received, but it is already set");
-          } else {
-            addMsg("Handover. m-timsi set: " + ctx.getMTimsi());
+          common::imsi_t newMTimsi = handoverResponse->getMTimsi();
+          bool updated = ctx.setMTimsi(newMTimsi);
+          if (!updated) {
+            if (ctx.getMTimsi() != newMTimsi) {
+              addErrorMsg(
+                  "Handover. New m-timsi received, but it is already assigned");
+            } else {
+              addMsg("Handover. Confirmed m-timsi: " + ctx.getMTimsi());
+            }
+
+            return;
           }
+
+          addMsg("Handover. m-timsi set: " + ctx.getMTimsi());
         }
       });
 }
@@ -95,8 +102,12 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   try {
     if (locationChanged) {
       ctx.updateLocation(coords);
-      if (ctx.isInActive() && exchange.hasSignal()) {
-        handleLocationUpdate();
+      if (ctx.isInActive()) {
+        if (!exchange.hasSignal()) {
+          addErrorMsg("No signal. Try to reconnect (active 0, active 1)");
+        } else {
+          handleLocationUpdate();
+        }
       }
     }
 

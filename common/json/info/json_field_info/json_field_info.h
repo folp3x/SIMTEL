@@ -14,7 +14,7 @@ private:
   const std::function<std::string(const T &)> checkFn;
 
   template <typename U>
-  static constexpr nlohmann::json::value_t recognizeType(bool arrayType);
+  static nlohmann::json::value_t recognizeType(bool arrayType);
 
 protected:
   const std::string name = "";
@@ -23,6 +23,10 @@ protected:
 
   void logConstructor(const std::string &constructorType,
                       const std::string &name) const;
+
+  virtual std::string getName(bool quoted = false) const override;
+
+  virtual nlohmann::json getFieldJson(const nlohmann::json &json) const;
 
 public:
   JsonFieldInfo(const std::string &name_,
@@ -36,10 +40,6 @@ public:
 
   virtual std::optional<std::string> parse(const nlohmann::json &json,
                                            bool finalParse = true) override;
-
-  virtual std::string getName(bool quoted = false) const override;
-
-  virtual nlohmann::json getFieldJson(const nlohmann::json &json) const;
 };
 } // namespace common
 

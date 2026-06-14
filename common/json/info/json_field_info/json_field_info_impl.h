@@ -13,8 +13,7 @@ void JsonFieldInfo<T>::logConstructor(const std::string &constructorType,
 
 template <typename T>
 template <typename U>
-constexpr nlohmann::json::value_t
-JsonFieldInfo<T>::recognizeType(bool arrayType) {
+nlohmann::json::value_t JsonFieldInfo<T>::recognizeType(bool arrayType) {
   if constexpr (std::is_same_v<U, std::string>) {
     return nlohmann::json::value_t::string;
   } else if constexpr (std::is_floating_point_v<U>) {

@@ -28,7 +28,9 @@ void ConfigParser::initAddressBookFilePathField() {
       [this](const std::string &filePath) {
         config.setAddressBookFilePath(filePath);
       },
-      client::Validator::isCorrectAddressBookFilePath);
+      [](const std::string &filePath) {
+        return common::Validator::jsonFilePathExists(filePath, "Address book");
+      });
 }
 
 void ConfigParser::initLocField() {

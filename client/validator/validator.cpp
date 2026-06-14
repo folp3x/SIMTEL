@@ -10,9 +10,4 @@ Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {
   }
   return "";
 }
-
-std::string
-Validator::isCorrectAddressBookFilePath(const std::string &filePath) {
-  return common::Validator::jsonFilePathExists(filePath, "Address book");
-}
 } // namespace client

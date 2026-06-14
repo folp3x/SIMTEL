@@ -29,7 +29,7 @@ public:
   unsigned int getSmscTtlMs() const;
   void setSmscTtlMs(unsigned int smscTtlMs);
 
-  std::string getSmsCdrAccessFilePath() const;
-  void setSmsCdrAccessFilePath(const std::string &smscCdrAccessFilePath);
+  std::string getSmsCdrAccessJsonFilePath() const;
+  void setSmsCdrAccessJsonFilePath(const std::string &smscCdrAccessFilePath_);
 };
 } // namespace server

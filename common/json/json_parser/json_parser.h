@@ -1,10 +1,12 @@
 #pragma once
 
 #include <expected>
+#include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
 
 #include "common/json/info/json_field_info/json_field_info.h"
+#include "common/json/info/json_object_info/json_object_info.h"
 
 namespace common {
 // абстрактный класс для парсинга данных из JSON
@@ -37,8 +39,7 @@ protected:
       const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 
-  void addParsedObject(const std::string &name,
-                       std::vector<std::unique_ptr<JsonBaseInfo>> innerFields);
+  void addParsedObject(std::unique_ptr<JsonObjectInfo> info);
 
   virtual void initFields() = 0;
 

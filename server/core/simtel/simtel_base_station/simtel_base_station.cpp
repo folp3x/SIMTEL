@@ -120,9 +120,11 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   if (!chosenBsReq) {
     return "Error receiving BS id: " + chosenBsReq.error();
   }
+
   if (chosenBsReq->getImei() != locReq.getImei()) {
     return "Unknown imei received: " + chosenBsReq->getImei();
   }
+
   auto chosenBs = findBs(chosenBsReq->getBsId());
   if (!chosenBs) {
     return "Requested BS not found";
@@ -190,10 +192,10 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   MessageHolder::instance().addMsg(
       createLogMsg("received t-imsi from MME: " + mTimsi));
 
-  bool set = ctx->setMTimsi(mTimsi);
-  // if (!set) {
-  //   return "UE imsi already set";
-  // }
+  bool updated = ctx->setMTimsi(mTimsi);
+  if (!updated && ctx->getMTimsi() != mTimsi) {
+    return "UE IMSI cant be reassigned";
+  }
 
   auto curBs = ctx->getBs();
   bool connectedToCur =

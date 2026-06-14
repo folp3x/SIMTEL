@@ -45,7 +45,6 @@ public:
   static std::string isCorrectPortStr(const std::string &portStr);
   static std::string isCorrectIMEI(const imei_t &imei);
   static std::string isCorrectIMSI(const imsi_t &imsi);
-  static std::string isCorrectConfigPath(const std::string &filePath);
   static std::string isCorrectMsisdn(const msisdn_t &msisdn);
   static std::string
   isCorrectSpeedDialNumStr(const std::string &speedDialNumStr);

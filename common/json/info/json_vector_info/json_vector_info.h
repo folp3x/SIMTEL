@@ -11,6 +11,9 @@ class JsonVectorInfo : public JsonContainerInfo<std::vector<T>> {
 private:
   const nlohmann::json::value_t elemType;
 
+  virtual std::expected<std::vector<T>, std::string>
+  parseContainer(const nlohmann::json &fieldJson) override;
+
 public:
   JsonVectorInfo(
       const std::string &name,
@@ -18,9 +21,6 @@ public:
       nlohmann::json::value_t elemType_,
       const std::function<std::string(const std::vector<T> &)> &checkFn =
           nullptr);
-
-  virtual std::expected<std::vector<T>, std::string>
-  parseContainer(const nlohmann::json &fieldJson) override;
 };
 } // namespace common
 
