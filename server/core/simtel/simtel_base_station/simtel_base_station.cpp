@@ -1,7 +1,9 @@
 #include "simtel_base_station.h"
 
+#include "common/core/request/attach_accept_request/attach_accept_request.h"
 #include "common/core/request/error_request/error_request.h"
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
+#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "server/app/message_holder/message_holder.h"
@@ -72,6 +74,22 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
                     : std::round(coef * common::constants::MAX_SIGNAL_LEVEL);
 }
 
+std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
+    std::shared_ptr<SimtelUeContext> ctx) const {
+  auto changePathError = mme->handleAuthRequest(ctx->getMTimsi(), id);
+  if (changePathError) {
+    return "Error changing path: " + *changePathError;
+  }
+
+  auto response = std::make_unique<common::AttachAcceptRequest>();
+  auto responseSendError = sendResponse(ctx, std::move(response));
+  if (responseSendError) {
+    return "Error sending attach accept: " + *responseSendError;
+  }
+
+  return std::nullopt;
+}
+
 SimtelBaseStation::SimtelBaseStation(const BsConfig &config,
                                      std::shared_ptr<SimtelMme> mme_)
     : id(config.id), mmeId(config.mmeId), radius(config.radius),
@@ -126,39 +144,46 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   if (!chosenBsReq) {
     return "Error receiving BS id: " + chosenBsReq.error();
   }
-
   if (chosenBsReq->getImei() != locReq.getImei()) {
     return "Unknown imei received: " + chosenBsReq->getImei();
   }
-
   auto chosenBs = findBs(chosenBsReq->getBsId());
   if (!chosenBs) {
     return "Requested BS not found";
   }
 
   bool handover = false;
-  auto error = chosenBs->handleMeasurementReport(*chosenBsReq, ctx, handover);
-  if (error) {
-    return error;
+  auto handleError =
+      chosenBs->handleMeasurementReport(*chosenBsReq, ctx, handover);
+  if (handleError) {
+    return handleError;
   }
 
+  std::shared_ptr<SimtelUeContext> ue = nullptr;
   if (handover) {
-    auto ue = ctx->getBs()->copyUe(ctx->getMTimsi());
+    ue = ctx->getBs()->copyUe(ctx->getMTimsi());
     // если UE еще не подключен к какой-либо вышке
     if (!ue) {
       ue = ctx;
     }
+  }
 
-    // rrc_reconfigure_complete
+  auto configureConfirm =
+      chosenBs->receiveRequest<common::RrcReconfigurationCompleteRequest>(ctx);
+  if (!configureConfirm) {
+    return "Error receiving configure confirm: " + chosenBsReq.error();
+  }
+  if (configureConfirm->getMTimsi() != ctx->getMTimsi()) {
+    return "Unknown m-timsi received: " + configureConfirm->getMTimsi();
+  }
 
+  if (handover) {
     ctx->getBs()->removeUe(ctx->getMTimsi());
     ue->setBs(chosenBs);
     chosenBs->addUe(std::move(ue));
   }
 
-  // attach_accept
-
-  return std::nullopt;
+  return chosenBs->handleConfigureComplete(ctx);
 }
 
 SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
@@ -188,17 +213,16 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     auto response = std::make_unique<common::ErrorRequest>("BS busy");
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
-      return createLogMsg("Error sending error info: " + *responseSendError);
+      return "Error sending error info: " + *responseSendError;
     }
   }
 
-  auto mTimsi =
-      mme->handleAttachRequest(req.getImsi(), req.getImei(), req.getBsId());
+  auto mTimsi = mme->handleAttachRequest(req.getImsi(), req.getImei());
   if (!mTimsi) {
     auto response = std::make_unique<common::ErrorRequest>(mTimsi.error());
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
-      return createLogMsg("Error sending error info: " + *responseSendError);
+      return "Error sending error info: " + *responseSendError;
     }
   }
 
@@ -218,15 +242,14 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
         req.getImei(), id);
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
-      return createLogMsg("Error sending BS keep info: " + *responseSendError);
+      return "Error sending BS keep info: " + *responseSendError;
     }
   } else {
     auto response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
         *mTimsi, id);
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
-      return createLogMsg("Error sending BS handover info: " +
-                          *responseSendError);
+      return "Error sending BS handover info: " + *responseSendError;
     } else {
       handover = true;
     }

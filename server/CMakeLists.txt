@@ -18,6 +18,7 @@ set(SOURCES_LIST
     "core/simtel/simtel_smsc/simtel_smsc.cpp"
     "core/simtel/simtel_visitor_list/simtel_visitor_list.cpp"
     "core/simtel/simtel_register/simtel_register.cpp"
+    "core/simtel/ttl_manager/ttl_manager.cpp"
 )
 
 # установка библиотек

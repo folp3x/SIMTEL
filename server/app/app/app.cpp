@@ -26,7 +26,7 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
     : listener(addr, maxUeThreadsCount),
       hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
-      smsc(std::make_shared<SimtelSmsc>(smscConfig)) {
+      smsc(std::make_shared<SimtelSmsc>(smscConfig)), ttlSec(epcConfig.ttlSec) {
   for (const auto &config : mmeConfigs) {
     mmeList.push_back(std::make_shared<SimtelMme>(config, hlr, smsc));
   }
@@ -63,7 +63,7 @@ void App::run() {
     });
   }};
 
-  while (isRunning) {
+    while (isRunning) {
     std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS));
 
     while (true) {

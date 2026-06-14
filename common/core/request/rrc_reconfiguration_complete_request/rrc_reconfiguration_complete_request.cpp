@@ -26,6 +26,7 @@ RrcReconfigurationCompleteRequest::fromJsonStr(const std::string &jsonStr) {
   if (!parsedMTimsi) {
     return parsedMTimsi.error();
   }
+  mTimsi = *parsedMTimsi;
 
   return std::nullopt;
 }
@@ -47,6 +48,7 @@ RrcReconfigurationCompleteRequest::fromBinary(const common::binary_t &binary) {
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
+  mTimsi = *parsedMTimsi;
 
   return std::nullopt;
 }

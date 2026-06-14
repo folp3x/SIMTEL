@@ -33,7 +33,9 @@ public:
   unsigned int getId() const;
 
   std::expected<common::imsi_t, std::string>
-  handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei,
-                      unsigned int bsId);
+  handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei);
+
+  std::optional<std::string> handleAuthRequest(const common::imsi_t &mTimsi,
+                                               unsigned int bsId);
 };
 } // namespace server

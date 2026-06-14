@@ -1,9 +1,11 @@
 #include "ue_exchange.h"
 
+#include "common/core/request/attach_accept_request/attach_accept_request.h"
 #include "common/core/request/error_request/error_request.h"
 #include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 
@@ -144,6 +146,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     return std::unexpected(data.error());
   }
 
+  common::imsi_t newMTimsi = info.state.mTimsi;
   unsigned int newBsId;
   std::unique_ptr<common::Request> response;
   switch (responseType) {
@@ -165,6 +168,7 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
       return std::unexpected(receivedResponse.error());
     }
     newBsId = receivedResponse->getBsId();
+    newMTimsi = receivedResponse->getMTimsi();
     response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
         *receivedResponse);
     break;
@@ -177,13 +181,27 @@ UeExchange::handleLocationUpdate(const RequestInfo &info) {
     return std::unexpected("Unexpected request type");
   }
 
-  if (newBsId == bestSignalResponse.getBsId()) {
-    signalLevel = bestSignalResponse.getSignal();
-  } else {
+  if (newBsId != bestSignalResponse.getBsId()) {
     return std::unexpected("Unexpected BS id in info: " +
                            std::to_string(newBsId));
   }
 
+  auto configureCompleteReq =
+      std::make_unique<common::RrcReconfigurationCompleteRequest>(newMTimsi);
+  auto configureCompleteSendError =
+      sendRequest(std::move(configureCompleteReq));
+  if (configureCompleteSendError) {
+    return std::unexpected("Failed to send configure confirm - " +
+                           *configureCompleteSendError);
+  }
+
+  auto acceptResponse = receiveResponse<common::AttachAcceptRequest>();
+  if (!acceptResponse) {
+    return std::unexpected("Failed to receive accept response - " +
+                           acceptResponse.error());
+  }
+
+  signalLevel = bestSignalResponse.getSignal();
   return response;
 }
 

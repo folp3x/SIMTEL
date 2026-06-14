@@ -50,6 +50,9 @@ private:
 
   unsigned int measureSignal(const common::Location<> &targetLoc) const;
 
+  std::optional<std::string>
+  handleConfigureComplete(std::shared_ptr<SimtelUeContext> ctx) const;
+
 public:
   SimtelBaseStation(const BsConfig &config, std::shared_ptr<SimtelMme> mme_);
 

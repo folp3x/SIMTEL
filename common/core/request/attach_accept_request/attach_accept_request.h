@@ -3,7 +3,7 @@
 #include "common/core/request/empty_request/empty_request.h"
 
 namespace common {
-class AttachAcceptRequest : public Request {
+class AttachAcceptRequest : public EmptyRequest {
 public:
   virtual std::string toStr() const override;
 
