@@ -5,6 +5,7 @@
 #include "client/app/menu/command_parser/command_parser.h"
 #include "client/core/ue/ue_active/ue_active.h"
 #include "common/core/location/location/location.h"
+#include "common/core/sms/sms.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
 
@@ -25,5 +26,9 @@ public:
                       unsigned int signalLevel) const;
 
   void showAddressBook(const std::map<char, common::msisdn_t> &book) const;
+
+  void showSentSms(const common::Sms &sms) const;
+  void showReceivedSms(const common::Sms &sms) const;
+  void showError(const std::string &error) const;
 };
 } // namespace client

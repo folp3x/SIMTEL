@@ -1,11 +1,11 @@
 #include "app.h"
 
 #include <csignal>
+#include <iostream>
 #include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #include "client/app/menu/command_info/command_info.h"
-#include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
 #include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
@@ -143,6 +143,7 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
     auto foundMsisdn = findBySpeedDialNum(cmd.getSpeedDialNum());
     if (!foundMsisdn) {
       addErrorMsg("Unknown speed dial num");
+      return;
     } else {
       targetMsisdn = std::move(*foundMsisdn);
     }
@@ -155,6 +156,7 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
     smsContent = menu.getMessageContent();
     if (smsContent.empty()) {
       addErrorMsg("SMS content cant be empty");
+      return;
     } else {
       // удаление '\n'
       smsContent.pop_back();
@@ -162,6 +164,54 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
   }
 
   addMsg("SMS: " + targetMsisdn + ", " + smsContent);
+}
+
+void App::handleDialogCommand(const MenuItemDialog &cmd) const {
+  bool showed = false;
+  for (const auto &sms : smsList) {
+    menu.showMenuHeaderLine();
+    if (sms.receiver == cmd.getMsisdn()) {
+      menu.showSentSms(sms);
+      showed = true;
+    } else if (sms.sender == cmd.getMsisdn()) {
+      menu.showReceivedSms(sms);
+      showed = true;
+    }
+  }
+
+  if (!showed) {
+    menu.showError("No dialog found");
+  }
+}
+
+void App::handleReceivedCommand() const {
+  bool showed = false;
+  for (const auto &sms : smsList) {
+    if (sms.receiver.empty()) {
+      menu.showMenuHeaderLine();
+      menu.showReceivedSms(sms);
+      showed = true;
+    }
+  }
+
+  if (!showed) {
+    menu.showError("No received sms");
+  }
+}
+
+void App::handleSentCommand() const {
+  bool showed = false;
+  for (const auto &sms : smsList) {
+    menu.showMenuHeaderLine();
+    if (!sms.receiver.empty()) {
+      menu.showSentSms(sms);
+      showed = true;
+    }
+  }
+
+  if (!showed) {
+    menu.showError("No sent sms");
+  }
 }
 
 void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
@@ -188,11 +238,11 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
     handleSmsCommand(*smsCmd);
   } else if (auto *sentCmd = dynamic_cast<MenuItemSent *>(cmd.get())) {
-    addMsg("SENT");
+    handleSentCommand();
   } else if (auto *receivedCmd = dynamic_cast<MenuItemReceived *>(cmd.get())) {
-    addMsg("RECEIVED");
+    handleReceivedCommand();
   } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
-    addMsg("DIALOG");
+    handleDialogCommand(*dialogCmd);
   } else if (auto *emptyCmd =
                  dynamic_cast<common::MenuItemEmpty *>(cmd.get())) {
     return;

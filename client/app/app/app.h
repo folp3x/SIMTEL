@@ -3,6 +3,7 @@
 #include "client/app/config/config/config.h"
 #include "client/app/menu/menu/menu.h"
 #include "client/app/menu/menu_item/menu_item_active/menu_item_active.h"
+#include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
@@ -10,6 +11,7 @@
 #include "client/core/ue/ue_context/ue_context.h"
 #include "client/core/ue/ue_exchange/ue_exchange.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/sms/sms.h"
 
 namespace client {
 class App {
@@ -26,6 +28,7 @@ private:
   std::priority_queue<common::MenuMessage> messages{};
 
   std::map<char, common::msisdn_t> addressBook{};
+  std::vector<common::Sms> smsList{};
 
   virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                              bool &exit);
@@ -42,6 +45,9 @@ private:
   void handleMoveCommand(const MenuItemMove<> &cmd);
   void handleProtocolCommand(const MenuItemProtocol &cmd);
   void handleSmsCommand(const MenuItemSMS &cmd);
+  void handleDialogCommand(const MenuItemDialog &cmd) const;
+  void handleReceivedCommand() const;
+  void handleSentCommand() const;
 
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 

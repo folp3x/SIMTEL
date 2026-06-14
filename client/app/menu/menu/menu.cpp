@@ -58,4 +58,20 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
     std::cout << speedDialNum << " - " << msisdn << std::endl;
   }
 }
+
+void Menu::showSentSms(const common::Sms &sms) const {
+  std::cout << "To " << sms.receiver << " ";
+  common::printTime(sms.timeSent);
+  std::cout << std::endl << sms.content << std::endl;
+}
+
+void Menu::showReceivedSms(const common::Sms &sms) const {
+  std::cout << "From " << sms.sender << " ";
+  common::printTime(sms.timeReceived);
+  std::cout << std::endl << sms.content << std::endl;
+}
+
+void Menu::showError(const std::string &error) const {
+  showMessage({error, common::MenuMessageType::ERR});
+}
 } // namespace client
