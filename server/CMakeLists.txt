@@ -16,8 +16,22 @@ set(SOURCES_LIST
     "app/config/epc_config/epc_config_parser/epc_config_parser.cpp"
 )
 
+# установка библиотек
+include(FetchContent)
+
+fetchcontent_declare(
+    sqlite_orm
+    URL https://github.com/fnc12/sqlite_orm/archive/refs/tags/v1.9.1.tar.gz
+	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+fetchcontent_makeavailable(sqlite_orm)
+
+find_package(SQLite3 REQUIRED)
+
 set(CLIENT_LIBRARIES_LIST
 	common_lib
+    SQLite::SQLite3
+    sqlite_orm
 )
 
 # создание библиотеки
