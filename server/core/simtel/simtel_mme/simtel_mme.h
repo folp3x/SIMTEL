@@ -45,5 +45,10 @@ public:
 
   std::optional<std::string> handleAuthResponse(const common::imsi_t &mTimsi,
                                                 unsigned int bsId);
+
+  void handleSmSubmit(const common::imsi_t &mTimsi, unsigned int smsId);
+
+  bool handleMoForwardSM(const common::imsi_t &mTimsi, unsigned int smsId,
+                         const std::string &smsText);
 };
 } // namespace server

@@ -65,6 +65,17 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   return "m-timsi not found in VLR";
 }
 
+void SimtelMme::handleSmSubmit(const common::imsi_t &mTimsi,
+                               unsigned int smsId) {
+  smsc->handleSmSubmit(mTimsi, smsId);
+}
+
+bool SimtelMme::handleMoForwardSM(const common::imsi_t &mTimsi,
+                                  unsigned int smsId,
+                                  const std::string &smsText) {
+  return smsc->handleMoForwardSM(mTimsi, smsId, smsText);
+}
+
 common::imsi_t SimtelMme::generateMTimsi() {
   curMTimsi++;
   if (curMTimsi > MAX_MTIMSI) {
