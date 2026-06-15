@@ -43,7 +43,7 @@ public:
   std::expected<common::imsi_t, std::string>
   handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei);
 
-  std::optional<std::string> handleAuthRequest(const common::imsi_t &mTimsi,
-                                               unsigned int bsId);
+  std::optional<std::string> handleAuthResponse(const common::imsi_t &mTimsi,
+                                                unsigned int bsId);
 };
 } // namespace server

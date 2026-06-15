@@ -60,8 +60,8 @@ std::string Socket::getAddrStr() const {
   return std::string(buf) + ":" + std::to_string(ntohs(sockAddr.sin_port));
 }
 
-bool Socket::setReceiveTimeout(unsigned int timeoutSec) {
-  return common::Socket::setReceiveTimeout(sock, timeoutSec);
+bool Socket::setReceiveTimeout(unsigned int timeoutMsec) {
+  return common::Socket::setReceiveTimeout(sock, timeoutMsec);
 }
 
 bool Socket::removeReceiveTimeout() {

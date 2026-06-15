@@ -37,7 +37,7 @@ public:
   Socket(Socket &&other);
   Socket &operator=(Socket &&other);
 
-  static bool setSendTimeout(int sock, unsigned int timeoutSec);
+  static bool setSendTimeout(int sock, unsigned int timeoutMsec);
   static bool setReceiveTimeout(int sock, unsigned int timeoutSec);
 
   void closeSock();

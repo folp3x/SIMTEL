@@ -106,6 +106,7 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
   std::lock_guard lock(receiveMtx);
+  sock.setReceiveTimeout(HANDLE_LOCATION_UPDATE_TIMEOUT_MSEC);
 
   auto locationReq = std::make_unique<common::RrcConnectionRequest>(
       info.state.imei, info.state.location);
@@ -227,7 +228,10 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
     {
       std::lock_guard lock(receiveMtx);
       common::RequestType responseType;
+
+      sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
       auto data = receiveResponseData(responseType);
+
       if (!data) {
         std::this_thread::sleep_for(
             std::chrono::milliseconds(NO_SMS_INFO_SLEEP_MS));

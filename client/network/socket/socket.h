@@ -5,12 +5,11 @@
 namespace client {
 class Socket : public common::Socket {
 private:
-  static constexpr int SEND_TIMEOUT_SEC = 10;
-  static constexpr int RECEIVE_TIMEOUT_SEC = 2;
-
-  static std::expected<int, std::string> initSock();
+  static constexpr unsigned int SEND_TIMEOUT_SEC = 10;
 
 public:
   std::optional<std::string> connectTo(const common::NetworkAddress &address);
+
+  bool setReceiveTimeout(unsigned int timeoutMsec);
 };
 } // namespace client

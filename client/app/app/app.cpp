@@ -278,15 +278,15 @@ void App::run() {
   isRunning = true;
 
   std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
-  std::jthread smsInfoReceiver{[this]() {
-    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
-                                   const std::string &error) {
-      if (!error.empty()) {
-        addErrorMsg("Error: " + error);
-        return;
-      }
-    });
-  }};
+  // std::jthread smsInfoReceiver{[this]() {
+  //   exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
+  //                                  const std::string &error) {
+  //     if (!error.empty()) {
+  //       addErrorMsg("Error: " + error);
+  //       return;
+  //     }
+  //   });
+  // }};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
@@ -308,7 +308,10 @@ void App::run() {
 
     bool exit = false;
     handleCommand(cmd, exit);
-    menu.showMessages(messages);
+    {
+      std::lock_guard lock(messagesMtx);
+      menu.showMessages(messages);
+    }
 
     if (exit) {
       isRunning = false;
@@ -336,10 +339,12 @@ void App::logCommandProcess(std::string_view commandName,
 }
 
 void App::addMsg(const std::string &content, common::MenuMessageType type) {
+  std::lock_guard lock(messagesMtx);
   messages.emplace(content, type);
 }
 
 void App::addErrorMsg(const std::string &content) {
+  std::lock_guard lock(messagesMtx);
   addMsg(content, common::MenuMessageType::ERR);
 }
 } // namespace client

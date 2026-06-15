@@ -81,8 +81,10 @@ bool Socket::setSendTimeout(int sock, unsigned int timeoutSec) {
   return setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) == 0;
 }
 
-bool Socket::setReceiveTimeout(int sock, unsigned int timeoutSec) {
-  timeval tv = {timeoutSec, 0};
+bool Socket::setReceiveTimeout(int sock, unsigned int timeoutMsec) {
+  timeval tv;
+  tv.tv_sec = timeoutMsec / 1000;
+  tv.tv_usec = (timeoutMsec % 1000) * 1000;
   return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == 0;
 }
 

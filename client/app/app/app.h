@@ -25,6 +25,7 @@ private:
 
   bool isRunning = false;
 
+  std::mutex messagesMtx{};
   std::priority_queue<common::MenuMessage> messages{};
 
   std::map<char, common::msisdn_t> addressBook{};

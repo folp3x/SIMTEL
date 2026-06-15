@@ -85,7 +85,7 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
 
 std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
     std::shared_ptr<SimtelUeContext> ctx) const {
-  auto changePathError = mme->handleAuthRequest(ctx->getMTimsi(), id);
+  auto changePathError = mme->handleAuthResponse(ctx->getMTimsi(), id);
   if (changePathError) {
     return "Error changing path: " + *changePathError;
   }
@@ -236,6 +236,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     if (responseSendError) {
       return "Error sending error info: " + *responseSendError;
     }
+    return std::nullopt;
   }
 
   MessageHolder::instance().addMsg(

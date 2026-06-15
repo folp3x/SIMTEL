@@ -21,8 +21,18 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
   MessageHolder::instance().addMsg(
       createLogMsg("received Attach{imsi=" + imsi + ", imei=" + imei + "}"));
 
-  auto result = vlr.getImsiByMTimsi(imsi);
-  if (!result) {
+  common::imsi_t realImsi = imsi;
+  auto found = vlr.getImsiByMTimsi(imsi);
+  if (found) {
+    realImsi = *found;
+  }
+
+  auto error = hlr->handleAuthInfoRequest(realImsi, imei);
+  if (error) {
+    return std::unexpected(*error);
+  }
+
+  if (!found) {
     auto mTimsi = generateMTimsi();
     vlr.setRecord({mTimsi, imsi, imei, "msisdn", nullptr});
     return mTimsi;
@@ -33,7 +43,7 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
 }
 
 std::optional<std::string>
-SimtelMme::handleAuthRequest(const common::imsi_t &mTimsi, unsigned int bsId) {
+SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   MessageHolder::instance().addMsg(
       createLogMsg("received Auth{mTmsi=" + mTimsi +
                    ", bsId=" + std::to_string(bsId) + "}"));
@@ -44,7 +54,12 @@ SimtelMme::handleAuthRequest(const common::imsi_t &mTimsi, unsigned int bsId) {
   }
 
   if (vlr.changePath(mTimsi, bs)) {
-    return std::nullopt;
+    auto imsi = vlr.getImsiByMTimsi(mTimsi);
+    if (!imsi) {
+      return "IMSI not found in VLR";
+    }
+
+    return hlr->handleUpdateLocationRequest(*imsi, id);
   }
 
   return "m-timsi not found in VLR";

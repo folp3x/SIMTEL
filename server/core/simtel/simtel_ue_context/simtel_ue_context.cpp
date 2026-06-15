@@ -70,7 +70,7 @@ std::string SimtelUeContext::toStr() const {
 }
 
 bool SimtelUeContext::setReceiveTimeout() {
-  return sock->setReceiveTimeout(SOCK_RECEIVE_TIMEOUT_SEC);
+  return sock->setReceiveTimeout(SOCK_RECEIVE_TIMEOUT_MSEC);
 }
 
 bool SimtelUeContext::removeReceiveTimeout() {

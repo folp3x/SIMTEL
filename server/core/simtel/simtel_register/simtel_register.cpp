@@ -1,6 +1,7 @@
 #include "simtel_register.h"
 
 #include "server/app/message_holder/message_holder.h"
+#include "server/core/simtel/subscriber_status/subscriber_status.h"
 
 namespace server {
 auto SimtelRegister::createStorage(const std::string &filePath) {
@@ -29,19 +30,22 @@ SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
 }
 
 void SimtelRegister::insertData() {
-  storage.insert(HlrRecord{0, "100000000000000", "200000000000000",
-                           "89990000001", "active", std::nullopt});
-  storage.insert(HlrRecord{0, "300000000000000", "400000000000000",
-                           "89990000002", "active", std::nullopt});
-  storage.insert(HlrRecord{0, "500000000000000", "600000000000000",
-                           "89990000003", "banned", std::nullopt});
+  storage.insert(
+      HlrRecord{0, "100000000000000", "200000000000000", "89990000001",
+                subscriberStatusToStr(SubscriberStatus::ACTIVE), std::nullopt});
+  storage.insert(
+      HlrRecord{0, "300000000000000", "400000000000000", "89990000002",
+                subscriberStatusToStr(SubscriberStatus::ACTIVE), std::nullopt});
+  storage.insert(
+      HlrRecord{0, "500000000000000", "600000000000000", "89990000003",
+                subscriberStatusToStr(SubscriberStatus::BANNED), std::nullopt});
 }
 
 bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }
 
 std::optional<std::string>
-SimtelRegister::handleAuthRequest(const common::imsi_t &imsi,
-                                  const common::imei_t &imei) {
+SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
+                                      const common::imei_t &imei) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
@@ -51,7 +55,7 @@ SimtelRegister::handleAuthRequest(const common::imsi_t &imsi,
     }
 
     HlrRecord record = records[0];
-    if (record.status == "banned") {
+    if (record.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
       return "UE is banned";
     }
 
@@ -83,8 +87,9 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
         sqlite_orm::set(sqlite_orm::c(&HlrRecord::mmeId) = mmeId),
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
-    MessageHolder::instance().addMsg(createLogMsg(
-        "updated record: imsi " + imsi + " mmeId = " + std::to_string(mmeId)));
+    MessageHolder::instance().addMsg(
+        createLogMsg("updated record: [imsi=" + imsi +
+                     ", mmeId=" + std::to_string(mmeId) + "]"));
 
     return std::nullopt;
   } catch (const std::exception &e) {
