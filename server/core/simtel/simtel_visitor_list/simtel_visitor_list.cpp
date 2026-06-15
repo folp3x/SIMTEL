@@ -1,6 +1,7 @@
 #include "simtel_visitor_list.h"
 
 #include "server/app/message_holder/message_holder.h"
+#include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {
 std::string SimtelVisitorList::createLogMsg(const std::string &content) const {
@@ -15,32 +16,29 @@ SimtelVisitorList::getRecord(const common::imsi_t &mTimsi) const {
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("found record with m-timsi = " + mTimsi));
+      createLogMsg("found record: " + it->second.toStr()));
 
   return it->second;
 }
 
-void SimtelVisitorList::setRecord(const common::imsi_t &mTimsi,
-                                  const common::imei_t &imei,
-                                  const common::msisdn_t &msisdn,
-                                  std::optional<unsigned int> bsId) {
+void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
-      createLogMsg("set record with m-timsi = " + mTimsi));
-  records.insert({mTimsi, {mTimsi, imei, msisdn, bsId}});
+      createLogMsg("set record:" + record.toStr()));
+  records.insert({record.mTimsi, record});
 }
 
 bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
-                                   std::optional<unsigned int> bsId) {
+                                   std::shared_ptr<SimtelBaseStation> bs) {
   auto it = records.find(mTimsi);
   if (it == records.end()) {
     return false;
   }
 
-  MessageHolder::instance().addMsg(
-      createLogMsg("changed path of m-timsi = " + mTimsi + " to BS_" +
-                   std::to_string(*bsId)));
+  MessageHolder::instance().addMsg(createLogMsg("changed path of m-timsi " +
+                                                mTimsi + " to BS_" +
+                                                std::to_string(bs->getId())));
 
-  it->second.bsId = *bsId;
+  it->second.bs = bs;
   return true;
 }
 

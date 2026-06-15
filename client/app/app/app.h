@@ -49,6 +49,8 @@ private:
   void handleReceivedCommand() const;
   void handleSentCommand() const;
 
+  void exitApp();
+
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 
   void logCommandProcess(std::string_view commandName,

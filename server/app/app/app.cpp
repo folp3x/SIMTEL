@@ -9,22 +9,26 @@
 namespace server {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
-    listener.stop();
-    isRunning = false;
-
-    if (common::Logger::isInitialized()) {
-      common::Logger::instance().getInner()->flush();
-    }
-
-    std::cout << std::endl << "Exiting app..." << std::endl;
+    exitApp();
     std::exit(signal);
   }
+}
+
+void App::exitApp() {
+  listener.stop();
+
+  if (common::Logger::isInitialized()) {
+    common::Logger::instance().getInner()->flush();
+  }
+
+  std::cout << "Exiting app..." << std::endl;
 }
 
 App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
-    : listener(addr, maxUeThreadsCount),
+    : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec)),
+      listener(addr, maxUeThreadsCount, ttlManager),
       hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
       smsc(std::make_shared<SimtelSmsc>(smscConfig)), ttlSec(epcConfig.ttlSec) {
   for (const auto &config : mmeConfigs) {
@@ -35,8 +39,9 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     bool mmeFound = false;
     for (const auto &mme : mmeList) {
       if (mme->getId() == config.mmeId) {
-        SimtelBaseStation::addBs(
-            std::make_unique<SimtelBaseStation>(config, mme));
+        auto bs =
+            std::make_shared<SimtelBaseStation>(config, mme.get(), ttlManager);
+        SimtelBaseStation::addBs(bs);
         mmeFound = true;
         break;
       }
@@ -63,7 +68,12 @@ void App::run() {
     });
   }};
 
-    while (isRunning) {
+  ttlManager->setActive(true);
+  while (isRunning) {
+    if (ttlManager->isActive() && ttlManager->isExpired()) {
+      break;
+    }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS));
 
     while (true) {
@@ -75,6 +85,8 @@ void App::run() {
       }
     }
   }
+
+  exitApp();
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }

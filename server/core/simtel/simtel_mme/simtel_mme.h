@@ -23,12 +23,20 @@ private:
 
   std::shared_ptr<SimtelRegister> hlr;
   std::shared_ptr<SimtelSmsc> smsc;
+  std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
+      baseStations;
 
   common::imsi_t generateMTimsi();
+
+  std::shared_ptr<SimtelBaseStation> findBsById(unsigned int id) const;
+
+  std::string createLogMsg(const std::string &content) const;
 
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
             std::shared_ptr<SimtelSmsc> smsc_);
+
+  void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   unsigned int getId() const;
 

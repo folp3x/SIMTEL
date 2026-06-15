@@ -2,8 +2,9 @@
 
 namespace server {
 SimtelListener::SimtelListener(const common::NetworkAddress &addr,
-                               size_t maxUeThreads_)
-    : maxUeThreads(maxUeThreads_) {
+                               size_t maxUeThreads_,
+                               std::shared_ptr<TtlManager> ttlManager_)
+    : maxUeThreads(maxUeThreads_), ttlManager(ttlManager_) {
   auto createResult = Socket::create(addr);
   if (!createResult) {
     throw std::runtime_error("Error creating socket: " + createResult.error());
@@ -34,6 +35,7 @@ void SimtelListener::acceptConnections(
       continue;
     }
 
+    ttlManager->update();
     auto ctx = std::make_shared<SimtelUeContext>(std::move(*acceptResult));
     std::thread singleClientHandler{[this, handler, ctx]() {
       activeThreads++;

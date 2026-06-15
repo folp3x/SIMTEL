@@ -26,7 +26,7 @@ public:
   common::imei_t getImei() const;
 
   common::imsi_t getMTimsi() const;
-  bool setMTimsi(const std::string &mTimsi_);
+  bool setMTimsi(const std::string &mTimsi);
 
   common::NetworkAddress getServerAddr() const;
 
@@ -34,7 +34,7 @@ public:
   void setInActive(bool inActive_);
 
   common::Protocol getProtocol() const;
-  void setProtocol(common::Protocol protocol_);
+  void setProtocol(common::Protocol protocol);
 
   UeState getState() const;
 };

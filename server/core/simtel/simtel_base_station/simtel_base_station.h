@@ -7,13 +7,12 @@
 #include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
+#include "server/core/ttl_manager/ttl_manager.h"
 
 namespace server {
-class SimtelUeContext;
-
 class SimtelBaseStation {
 private:
-  static std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
+  static std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
 
   const float radius;
@@ -22,10 +21,12 @@ private:
   const size_t maxConnections;
   const common::Location<> location;
 
-  std::shared_ptr<SimtelMme> mme;
+  SimtelMme *mme;
 
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
       connectedUe = {};
+
+  std::shared_ptr<TtlManager> ttlManager;
 
   static std::optional<std::string>
   handleLocationUpdate(const common::RrcConnectionRequest &req,
@@ -54,9 +55,10 @@ private:
   handleConfigureComplete(std::shared_ptr<SimtelUeContext> ctx) const;
 
 public:
-  SimtelBaseStation(const BsConfig &config, std::shared_ptr<SimtelMme> mme_);
+  SimtelBaseStation(const BsConfig &config, SimtelMme *mme_,
+                    std::shared_ptr<TtlManager> ttlManager_);
 
-  static void addBs(std::unique_ptr<SimtelBaseStation> bs);
+  static void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 

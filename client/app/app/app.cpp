@@ -17,13 +17,8 @@
 namespace client {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
-    exchange.stop();
-
-    if (common::Logger::isInitialized()) {
-      common::Logger::instance().getInner()->flush();
-    }
-
-    std::cout << std::endl << "Exiting app..." << std::endl;
+    std::cout << std::endl;
+    exitApp();
     std::exit(signal);
   }
 }
@@ -214,6 +209,16 @@ void App::handleSentCommand() const {
   }
 }
 
+void App::exitApp() {
+  exchange.stop();
+
+  if (common::Logger::isInitialized()) {
+    common::Logger::instance().getInner()->flush();
+  }
+
+  std::cout << "Exiting app..." << std::endl;
+}
+
 void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                         bool &exit) {
   std::string cmdNameUpper = common::uppercased(cmd->getName());
@@ -227,7 +232,6 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
     isCorrectCommand = false;
   } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
     logCommandProcess(cmdNameUpper);
-    addMsg("Exiting app...");
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
     handleActiveCommand(*activeCmd);
@@ -264,7 +268,7 @@ std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
 
 App::App(const UeContext &ctx_,
          const std::map<char, common::msisdn_t> &addressBook_)
-    : ctx(ctx_), addressBook(addressBook_), exchange(ctx_.getServerAddr()) {
+    : ctx(ctx_), addressBook(addressBook_), exchange(ctx.getServerAddr()) {
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }
@@ -304,7 +308,7 @@ void App::run() {
     }
   }
 
-  exchange.stop();
+  exitApp();
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }

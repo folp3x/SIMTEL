@@ -7,7 +7,7 @@ std::expected<T, std::string> JsonDeserializer::deserializeValue(
     const std::function<std::string(const T &)> &checkFn) {
   T value;
   auto valueInfo = std::make_unique<JsonFieldInfo<T>>(
-      name, [&](const T &value_) { value = value_; }, checkFn);
+      name, [&](const T &val) { value = val; }, checkFn);
 
   auto error = JsonParser<T>::parseField(std::move(valueInfo), jsonStr);
   if (error) {

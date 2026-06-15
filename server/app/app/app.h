@@ -21,11 +21,15 @@ private:
   std::shared_ptr<SimtelSmsc> smsc;
   std::vector<std::shared_ptr<SimtelMme>> mmeList;
 
+  std::shared_ptr<TtlManager> ttlManager;
+
   Menu menu;
 
   bool isRunning = false;
 
   void sigintHandler(int signal);
+
+  void exitApp();
 
 public:
   App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,

@@ -8,9 +8,10 @@
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/distance_calculator/distance_calculator.h"
+#include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
-std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
+std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
 
 std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
@@ -90,10 +91,11 @@ std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
   return std::nullopt;
 }
 
-SimtelBaseStation::SimtelBaseStation(const BsConfig &config,
-                                     std::shared_ptr<SimtelMme> mme_)
+SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_,
+                                     std::shared_ptr<TtlManager> ttlManager_)
     : id(config.id), mmeId(config.mmeId), radius(config.radius),
-      maxConnections(config.maxConnections), location(config.loc), mme(mme_) {}
+      maxConnections(config.maxConnections), location(config.loc), mme(mme_),
+      ttlManager(ttlManager_) {}
 
 std::optional<std::string>
 SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
@@ -194,8 +196,8 @@ SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
   return it->second.get();
 }
 
-void SimtelBaseStation::addBs(std::unique_ptr<SimtelBaseStation> bs) {
-  baseStations.emplace(bs->getId(), std::move(bs));
+void SimtelBaseStation::addBs(std::shared_ptr<SimtelBaseStation> bs) {
+  baseStations.emplace(bs->getId(), bs);
 }
 
 bool SimtelBaseStation::ueConnected(const common::imsi_t &mTimsi) const {

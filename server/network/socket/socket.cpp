@@ -3,8 +3,8 @@
 #include <arpa/inet.h>
 
 namespace server {
-Socket::Socket(int sock_, const sockaddr_in &addr_)
-    : common::Socket(sock_), sockAddr(addr_) {}
+Socket::Socket(int sock_, const sockaddr_in &sockAddr_)
+    : common::Socket(sock_), sockAddr(sockAddr_) {}
 
 std::expected<std::unique_ptr<Socket>, std::string>
 Socket::create(const common::NetworkAddress &address) {

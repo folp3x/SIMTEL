@@ -8,12 +8,12 @@
 
 namespace common {
 std::optional<NetworkError> Socket::sendAll(const void *data,
-                                            size_t size_) const {
+                                            size_t size) const {
   const char *ptr = static_cast<const char *>(data);
-  size_t size = size_;
+  size_t leftSize = size;
 
   while (size > 0) {
-    ssize_t sent = send(sock, ptr, size, MSG_NOSIGNAL);
+    ssize_t sent = send(sock, ptr, leftSize, MSG_NOSIGNAL);
     if (sent < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
         return NetworkError{NetworkErrorType::SEND_TIMEOUT, "Send timeout"};
@@ -25,7 +25,7 @@ std::optional<NetworkError> Socket::sendAll(const void *data,
     }
 
     ptr += sent;
-    size -= sent;
+    leftSize -= sent;
   }
 
   return std::nullopt;

@@ -15,11 +15,9 @@ private:
 public:
   std::optional<VlrRecord> getRecord(const common::imsi_t &mTimsi) const;
 
-  void setRecord(const common::imsi_t &mTimsi, const common::imei_t &imei,
-                 const common::msisdn_t &msisdn,
-                 std::optional<unsigned int> bsId);
+  void setRecord(const VlrRecord &record);
 
   bool changePath(const common::imsi_t &mTimsi,
-                  std::optional<unsigned int> bsId);
+                  std::shared_ptr<SimtelBaseStation> bs);
 };
 } // namespace server

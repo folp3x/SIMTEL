@@ -12,9 +12,9 @@ common::imei_t UeContext::getImei() const { return state.imei; }
 
 common::imsi_t UeContext::getMTimsi() const { return state.mTimsi; }
 
-bool UeContext::setMTimsi(const std::string &mTimsi_) {
+bool UeContext::setMTimsi(const std::string &mTimsi) {
   if (!mTimsiSet) {
-    state.mTimsi = mTimsi_;
+    state.mTimsi = mTimsi;
     mTimsiSet = true;
     return true;
   }
@@ -31,8 +31,8 @@ void UeContext::setInActive(bool inActive_) { inActive = inActive_; }
 
 common::Protocol UeContext::getProtocol() const { return state.protocol; }
 
-void UeContext::setProtocol(common::Protocol protocol_) {
-  state.protocol = protocol_;
+void UeContext::setProtocol(common::Protocol protocol) {
+  state.protocol = protocol;
 }
 
 UeState UeContext::getState() const { return state; }

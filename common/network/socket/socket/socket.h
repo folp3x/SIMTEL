@@ -15,7 +15,7 @@ private:
   static constexpr uint32_t MAX_MSG_SIZE = constants::BYTES_IN_MB;
   static constexpr int INVALID_SOCK = -1;
 
-  std::optional<NetworkError> sendAll(const void *data, size_t size_) const;
+  std::optional<NetworkError> sendAll(const void *data, size_t size) const;
 
 protected:
   int sock = INVALID_SOCK;
