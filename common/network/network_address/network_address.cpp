@@ -3,8 +3,8 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 
-#include "common/utils/network/network.h"
 #include "common/logging/logger/logger.h"
+#include "common/utils/network/network.h"
 
 namespace common {
 void NetworkAddress::setIP(const std::string &ipStr) {
@@ -74,7 +74,7 @@ NetworkAddress &NetworkAddress::operator=(NetworkAddress &&other) noexcept {
 
 void NetworkAddress::logOperation(const std::string &operationName, uint32_t ip,
                                   uint16_t port) const {
-  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
                       "common::NetworkAddress {} called: ip={:#x}, port={}",
                       operationName, ip, port);
 }

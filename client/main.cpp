@@ -1,23 +1,11 @@
-#include <csignal>
-
 #include "app/app/app.h"
 #include "app/cli/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "common/logging/logger/logger.h"
-
-static void exitHandler(int signal) {
-  if (signal == SIGINT) {
-    if (common::Logger::isInitialized()) {
-      common::Logger::instance().getInner()->flush();
-    }
-    std::exit(signal);
-  }
-}
+#include "core/address_book/address_book_parser/address_book_parser.h"
 
 int main(int argc, char *argv[]) {
   try {
-    std::signal(SIGINT, exitHandler);
-
     try {
       common::Logger::init("Client logger", "./logs", "client",
                            spdlog::level::debug);
@@ -34,7 +22,7 @@ int main(int argc, char *argv[]) {
     if (helpCalled) {
       std::cout << msg << std::endl;
       SPDLOG_LOGGER_CRITICAL(common::Logger::instance().getInner(),
-                             "Help showed");
+                             "Help shown");
       return 0;
     }
 
@@ -46,21 +34,21 @@ int main(int argc, char *argv[]) {
     }
 
     client::Config config{};
-    if (auto configFilePathParseResult = cliParser->getParsedConfigFilePath()) {
+    auto filePath = cliParser->getConfigFilePath();
+    if (filePath) {
       // парсинг данных из конфигурационного файла
-      std::string configFilePath = *configFilePathParseResult;
       auto configParser = client::ConfigParser::create();
-      auto configParseResult = configParser->parse(configFilePath);
-      if (!configParseResult) {
-        std::cout << "Error parsing config file: " << configParseResult.error()
+      auto parsedConfig = configParser->parse(*filePath);
+      if (!parsedConfig) {
+        std::cout << "Error parsing config file: " << parsedConfig.error()
                   << std::endl;
         SPDLOG_LOGGER_CRITICAL(common::Logger::instance().getInner(),
                                "Config file parse error: {}",
-                               configParseResult.error());
+                               parsedConfig.error());
         return 1;
       }
 
-      config = *configParseResult;
+      config = std::move(*parsedConfig);
     } else if (!cliParser->allConfigOptsSet()) {
       std::cout
           << "If --config is not specified all config options are required"
@@ -79,10 +67,23 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
+    auto addressBookParser = client::AddressBookParser::create();
+    auto addressBook =
+        addressBookParser->parse(config.getAddressBookFilePath());
+
+    if (addressBook) {
+    } else {
+      std::cout << "Error loading address book: " << addressBook.error()
+                << std::endl;
+    }
+
     common::Location<> location(config.getLoc());
     common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
 
-    client::App app{location, config.getImsi(), config.getImei(), serverAddr};
+    client::UeContext ctx{config.getImsi(), config.getImei(), location,
+                          serverAddr};
+
+    client::App app{ctx, *addressBook};
     app.run();
 
     return 0;

@@ -13,6 +13,6 @@ private:
 public:
   explicit ArgsSplitter(const std::string &argsStr);
 
-  int argc();
-  char **argv();
+  int argc() const;
+  char **argv() const;
 };

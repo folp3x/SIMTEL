@@ -9,6 +9,13 @@ private:
   common::imei_t imei = "";
   common::imsi_t imsi = "";
 
+  std::string ip = "";
+
+  std::string addressBookFilePath = "";
+
+  common::coords_t<> loc = {0};
+  bool locationSet = false;
+
 public:
   virtual bool isInitialized() const override;
 
@@ -17,5 +24,14 @@ public:
 
   std::string getImsi() const;
   void setImsi(const common::imsi_t &imsi_);
+
+  std::string getIP() const;
+  void setIP(const std::string &ip_);
+
+  std::string getAddressBookFilePath() const;
+  void setAddressBookFilePath(const std::string &addressBookFilePath_);
+
+  common::coords_t<> getLoc() const;
+  void setLoc(const common::coords_t<> &loc_);
 };
 } // namespace client

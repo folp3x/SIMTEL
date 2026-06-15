@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdexcept>
-
 namespace common {
 template <typename T>
   requires std::is_floating_point_v<T>
@@ -47,7 +45,7 @@ std::string toStr(Iterator begin, Iterator end,
 
   for (auto it = begin; it != end; ++it) {
     if constexpr (std::is_floating_point_v<U>) {
-      str += common::toStr<U>(*it, precision);
+      str += toStr<U>(*it, precision);
     } else {
       str += std::to_string(*it);
     }
@@ -72,9 +70,11 @@ std::expected<T, std::string> fromString(const std::string &str) {
     else
       return stold(str);
   } catch (std::invalid_argument &e) {
-    return std::unexpected("not a valid number");
+    return std::unexpected("Not a valid number");
   } catch (std::out_of_range &e) {
-    return std::unexpected("value out of range");
+    return std::unexpected("Value out of range");
+  } catch (std::exception &e) {
+    return std::unexpected("Failed to deserialize number");
   }
 }
 } // namespace common

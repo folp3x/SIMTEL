@@ -11,31 +11,67 @@ void Menu::logInput(const std::string &input) const {
                      "Received input: {}", input);
 }
 
-void Menu::showStatus(AppState state, const common::imsi_t &imsi,
-                      const common::Location<> &location,
-                      common::Protocol protocol) const {
-  std::cout << "IMSI: " << imsi << std::endl;
-
-  // текущее состояние
-  std::cout << "State: ";
-  std::string statusStr = appStateToStr(state);
-  switch (state) {
-  case AppState::ACTIVE:
-    common::printColored(statusStr, rang::fg::green);
-    break;
-  case AppState::INACTIVE:
-    common::printColored(statusStr, rang::fg::red);
-    break;
+std::string Menu::getMessageContent() const {
+  std::string content;
+  std::string line;
+  std::cout << "Write content (empty line means end of sms):" << std::endl;
+  while (std::getline(std::cin, line)) {
+    if (line.empty()) {
+      break;
+    }
+    content += line + "\n";
   }
 
-  std::cout << "Location: " << location.toStr() << std::endl;
-  std::cout << "Protocol: " << common::protocolToStr(protocol) << std::endl;
+  return content;
 }
 
-void Menu::showDistance(const common::NetworkAddress &serverAddr,
-                        std::optional<float> distance) const {
-  std::string serverAddrStr = serverAddr.toStr();
-  std::string distStr = distance ? common::toStr(*distance) : "unknown";
-  std::cout << "Distance to " + serverAddrStr + ": " + distStr << std::endl;
+void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
+                      common::Protocol protocol) const {
+  std::cout << "IMSI: " << imsi;
+
+  // текущее состояние
+  std::cout << ", state: ";
+  std::string statusStr = ueActiveToStr(inActive);
+  if (inActive) {
+    common::printColored(statusStr, rang::fg::green, "");
+  } else {
+    common::printColored(statusStr, rang::fg::red, "");
+  }
+
+  std::cout << ", protocol: " << common::protocolToStr(protocol) << std::endl;
+}
+
+void Menu::showSignalInfo(const common::Location<> &location,
+                          unsigned int signalLevel) const {
+  std::string levelStr =
+      (signalLevel > 0)
+          ? std::to_string(signalLevel) + "/" +
+                std::to_string(common::constants::MAX_SIGNAL_LEVEL)
+          : "no signal";
+  std::cout << "Location: " << location.toStr() << ", signal: " << levelStr
+            << std::endl;
+}
+
+void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
+  std::cout << "Address book: " << std::endl;
+  for (const auto &[speedDialNum, msisdn] : book) {
+    std::cout << speedDialNum << " - " << msisdn << std::endl;
+  }
+}
+
+void Menu::showSentSms(const common::Sms &sms) const {
+  std::cout << "To " << sms.receiver << " ";
+  common::printTime(sms.timeSent);
+  std::cout << std::endl << sms.content << std::endl;
+}
+
+void Menu::showReceivedSms(const common::Sms &sms) const {
+  std::cout << "From " << sms.sender << " ";
+  common::printTime(sms.timeReceived);
+  std::cout << std::endl << sms.content << std::endl;
+}
+
+void Menu::showError(const std::string &error) const {
+  showMessage({error, common::MenuMessageType::ERR});
 }
 } // namespace client

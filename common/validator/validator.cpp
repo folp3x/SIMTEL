@@ -7,6 +7,9 @@
 #include "common/utils/str/str.h"
 
 namespace common {
+const std::string Validator::MSISDN_FORMAT_STR =
+    "8" + std::string(MSISDN_LENGTH, MSISDN_ANY_DIGIT);
+
 // проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(std::string_view filePath) {
   size_t jsonExtLen = std::strlen(".json");
@@ -99,15 +102,46 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
   return parseResult.error();
 }
 
-std::string Validator::isCorrectIMEI(const common::imei_t &imei) {
+std::string Validator::isCorrectIMEI(const imei_t &imei) {
   return isCorrectDigitStr(imei, MIN_IMEI_LENGTH, MAX_IMEI_LENGTH, "IMEI");
 }
 
-std::string Validator::isCorrectIMSI(const common::imsi_t &imsi) {
+std::string Validator::isCorrectIMSI(const imsi_t &imsi) {
   return isCorrectDigitStr(imsi, MIN_IMSI_LENGTH, MAX_IMSI_LENGTH, "IMSI");
 }
 
-std::string Validator::isCorrectConfigPath(const std::string &filePath) {
-  return jsonFilePathExists(filePath, "Config");
+std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
+  bool isCorrect = true;
+
+  if (msisdn.length() != MSISDN_LENGTH) {
+    isCorrect = false;
+  } else {
+    for (int i = 0; i < msisdn.length(); ++i) {
+      char formatCh = MSISDN_FORMAT_STR[i];
+      if (isdigit(formatCh) && msisdn[i] != formatCh ||
+          formatCh == MSISDN_ANY_DIGIT && !isdigit(msisdn[i])) {
+        isCorrect = false;
+        break;
+      }
+    }
+  }
+
+  return isCorrect ? "" : "MSISDN must have format: " + MSISDN_FORMAT_STR;
+}
+
+std::string
+Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {
+  if (speedDialNumStr.size() != 1) {
+    return "Speed dial num must contain only 1 digit";
+  }
+  return "";
+}
+
+std::string Validator::isCorrectSignal(unsigned int signal) {
+  if (signal > common::constants::MAX_SIGNAL_LEVEL) {
+    return "Signal cant be bigger than " +
+           std::to_string(common::constants::MAX_SIGNAL_LEVEL);
+  }
+  return "";
 }
 } // namespace common

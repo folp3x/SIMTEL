@@ -24,10 +24,37 @@ void CLIParser::initImsiOpt() {
   configOpts.push_back(imsiOpt);
 }
 
+void CLIParser::initIpOpt() {
+  ipOpt = cliApp.add_option_function<std::string>(
+      "-a, --ip", [this](const std::string &ip) { config.setIP(ip); },
+      "Set IP address");
+  ipOpt->check(common::Validator::isCorrectIpStr);
+  ipOpt->type_name("IPv4");
+  configOpts.push_back(ipOpt);
+}
+
+void CLIParser::initLocOpt() {
+  if constexpr (common::constants::LOCATION_COORDS_COUNT == 1) {
+    locOpt = cliApp.add_option_function<float>(
+        "-l, --loc", [this](float x) { config.setLoc({x}); },
+        "Set position vector");
+    locOpt->type_name("x (real)");
+  } else {
+    locOpt = cliApp.add_option_function<common::coords_t<>>(
+        "-l, --loc",
+        [this](const common::coords_t<> &loc) { config.setLoc(loc); },
+        "Set position vector");
+    locOpt->type_name("coords (real)");
+  }
+  configOpts.push_back(locOpt);
+}
+
 void CLIParser::initOptions() {
   common::CLIParser<Config>::initOptions();
   initImeiOpt();
   initImsiOpt();
+  initIpOpt();
+  initLocOpt();
 }
 
 std::unique_ptr<CLIParser> CLIParser::create() {
@@ -44,6 +71,10 @@ Config CLIParser::redefineConfig(const Config &definedConfig) const {
     redefinedConfig.setImei(config.getImei());
   if (isOptSet(imsiOpt))
     redefinedConfig.setImsi(config.getImsi());
+  if (isOptSet(ipOpt))
+    redefinedConfig.setIP(config.getIP());
+  if (isOptSet(locOpt))
+    redefinedConfig.setLoc(config.getLoc());
 
   return redefinedConfig;
 }

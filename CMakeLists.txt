@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project("app")
+project("lte")
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -48,10 +48,8 @@ fetchcontent_declare(
 )
 fetchcontent_makeavailable(zpp_bits)
 
-if(NOT TARGET zpp_bits)
-    add_library(zpp_bits INTERFACE)
-    target_include_directories(zpp_bits INTERFACE ${zpp_bits_SOURCE_DIR})
-endif()
+add_library(zpp_bits INTERFACE)
+target_include_directories(zpp_bits INTERFACE ${zpp_bits_SOURCE_DIR})
 
 set(LIBRARIES_LIST
 	rang

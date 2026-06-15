@@ -1,0 +1,8 @@
+{
+  "ip": "127.0.0.1",
+  "port": 60000,
+  "imei": "100000000000000",
+  "imsi": "200000000000000",
+  "loc": [ -120 ],
+  "addressBookFilePath": "./data/address_book.json"
+}

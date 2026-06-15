@@ -4,7 +4,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "common/app/menu/command_info/command_info.h"
 #include "common/app/menu/menu_item/menu_item/menu_item.h"
 
 namespace common {
@@ -17,9 +16,6 @@ protected:
                              const std::vector<std::string> &, std::string &)>>;
 
   virtual ArgsParsersMap getArgsParsers() const = 0;
-
-  static std::unique_ptr<MenuItem>
-  parseExitArgs(const std::vector<std::string> &args, std::string &extraMsg);
 
 public:
   virtual ~CommandParser() = default;

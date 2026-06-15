@@ -7,8 +7,12 @@ inline const auto &getCommandsInfo() {
   static const common::CommandInfoMap info = {
       {"exit", {"exit <>", "exit program"}},
       {"active", {"active <1|true|0|false>", "set status"}},
-      {"move", {"move <x> [y] [z]", "change location (y and z are optional)"}},
-      {"protocol", {"protocol <b|binary|j|json>", "set data transfer method"}}};
+      {"move", {"move <x>", "change location"}},
+      {"protocol", {"protocol <b|binary|j|json>", "set data transfer method"}},
+      {"sms", {"sms <msisdn|@speed_dial> [content]", "send sms"}},
+      {"sent", {"sent <>", "show all sent sms"}},
+      {"received", {"received <>", "show all received sms"}},
+      {"dialog", {"dialog <msisdn|@speed_dial>", "show sms converstaion"}}};
   return info;
 }
 } // namespace client

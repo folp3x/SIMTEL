@@ -1,0 +1,39 @@
+#include "ue_context.h"
+
+namespace client {
+UeContext::UeContext(const common::imsi_t &imsi, const common::imei_t &imei,
+                     common::Location<> &location,
+                     const common::NetworkAddress &serverAddr_)
+    : state(imsi, imei, location), serverAddr(serverAddr_) {}
+
+common::imsi_t UeContext::getImsi() const { return state.imsi; }
+
+common::imei_t UeContext::getImei() const { return state.imei; }
+
+common::imsi_t UeContext::getMTimsi() const { return state.mTimsi; }
+
+bool UeContext::setMTimsi(const std::string &mTimsi) {
+  if (!mTimsiSet) {
+    state.mTimsi = mTimsi;
+    mTimsiSet = true;
+    return true;
+  }
+  return false;
+}
+
+common::Location<> UeContext::getLocation() const { return state.location; }
+
+common::NetworkAddress UeContext::getServerAddr() const { return serverAddr; }
+
+bool UeContext::isInActive() const { return inActive; }
+
+void UeContext::setInActive(bool inActive_) { inActive = inActive_; }
+
+common::Protocol UeContext::getProtocol() const { return state.protocol; }
+
+void UeContext::setProtocol(common::Protocol protocol) {
+  state.protocol = protocol;
+}
+
+UeState UeContext::getState() const { return state; }
+} // namespace client

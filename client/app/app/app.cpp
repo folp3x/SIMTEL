@@ -1,73 +1,92 @@
 #include "app.h"
 
+#include <csignal>
 #include <iostream>
 #include <spdlog/fmt/fmt.h>
-#include <stdexcept>
 #include <thread>
 
-#include "client/app/menu/menu/menu.h"
-#include "client/network/socket/socket.h"
-#include "common/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
+#include "client/app/menu/command_info/command_info.h"
+#include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
+#include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+#include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+#include "common/app/signals/signal_handler/signal_handler.h"
+#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
+#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
+#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
+#include "common/core/request/sm_transfer_request/sm_transfer_request.h"
 
 namespace client {
-common::MenuMessage App::formChangeMessage(const std::string &paramName,
-                                           const std::string &valueStr,
-                                           bool changed) const {
+void App::sigintHandler(int signal) {
+  if (signal == SIGINT) {
+    std::cout << std::endl;
+    exitApp();
+    std::exit(signal);
+  }
+}
+
+std::string App::formChangeMessage(const std::string &paramName,
+                                   const std::string &valueStr,
+                                   bool changed) const {
   std::string content = paramName;
   content += changed ? " changed to " : " already set to ";
   content += valueStr;
-  return common::MenuMessage{content};
+  return content;
 }
 
-std::expected<float, std::string> App::fetchDistance() {
-  Socket sock{};
-  auto connectError = sock.connectTo(serverAddr);
-  if (connectError) {
-    return std::unexpected("Error connecting to server: " + *connectError);
-  }
+void App::handleLocationUpdate() {
+  auto req = std::make_unique<common::RrcConnectionRequest>(ctx.getImei(),
+                                                            ctx.getLocation());
+  exchange.addRequest(
+      ctx.getState(), std::move(req),
+      [this](std::unique_ptr<common::Request> response,
+             const std::string &error) {
+        if (!error.empty()) {
+          addErrorMsg("Error: " + error);
+          return;
+        }
 
-  auto sendError = sock.sendLocation(protocol, location);
-  if (sendError) {
-    return std::unexpected("Error sending location to server: " + *sendError);
-  }
+        if (auto *handoverResponse =
+                dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
+                    response.get())) {
+          common::imsi_t newMTimsi = handoverResponse->getMTimsi();
+          bool updated = ctx.setMTimsi(newMTimsi);
+          if (!updated) {
+            if (ctx.getMTimsi() != newMTimsi) {
+              addErrorMsg(
+                  "Handover. New m-timsi received, but it is already assigned");
+            } else {
+              addMsg("Handover. Confirmed m-timsi: " + ctx.getMTimsi());
+            }
 
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Location sent to server: {}", location.toStr());
+            return;
+          }
 
-  auto receiveResult = sock.receiveDistance(protocol);
-  if (!receiveResult) {
-    return std::unexpected("Error receiving distance from server: " +
-                           receiveResult.error());
-  }
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Distance received from server: {}",
-                     common::toStr(*receiveResult));
-
-  return *receiveResult;
+          addMsg("Handover. m-timsi set: " + ctx.getMTimsi());
+        }
+      });
 }
 
 void App::handleActiveCommand(const MenuItemActive &cmd) {
   logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
 
-  AppState newState = cmd.getActive() ? AppState::ACTIVE : AppState::INACTIVE;
-  bool stateChanged = newState != state;
+  bool newActive = cmd.getActive();
+  bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
-    state = newState;
+    auto updateError = exchange.updateConnection(newActive);
+    if (updateError) {
+      addErrorMsg("Error updating connection: " + *updateError);
+      return;
+    }
 
-    if (state == AppState::ACTIVE) {
-      auto fetchResult = fetchDistance();
-      if (fetchResult) {
-        std::lock_guard lock(distanceMtx);
-        distance = *fetchResult;
-      } else {
-        messages.push({fetchResult.error(), common::MenuMessageType::ERR});
-      }
+    ctx.setInActive(newActive);
+    if (ctx.isInActive()) {
+      handleLocationUpdate();
     }
   }
 
-  messages.push(formChangeMessage("State", appStateToStr(state), stateChanged));
+  addMsg(formChangeMessage("State", ueActiveToStr(ctx.isInActive()),
+                           stateChanged));
 }
 
 void App::handleMoveCommand(const MenuItemMove<> &cmd) {
@@ -76,26 +95,23 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
       cmd.getName(),
       fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
 
-  bool locationChanged = !location.coordsEqual(coords);
+  bool locationChanged = !ctx.getLocation().coordsEqual(coords);
   try {
     if (locationChanged) {
-      location.move(coords);
-
-      if (state == AppState::ACTIVE) {
-        auto fetchResult = fetchDistance();
-        if (fetchResult) {
-          std::lock_guard lock(distanceMtx);
-          distance = *fetchResult;
+      ctx.updateLocation(coords);
+      if (ctx.isInActive()) {
+        if (!exchange.hasSignal()) {
+          addErrorMsg("No signal. Try to reconnect (active 0, active 1)");
         } else {
-          messages.push({fetchResult.error(), common::MenuMessageType::ERR});
+          handleLocationUpdate();
         }
       }
     }
 
-    messages.push(
-        formChangeMessage("Location", location.toStr(), locationChanged));
+    addMsg(formChangeMessage("Location", ctx.getLocation().toStr(),
+                             locationChanged));
   } catch (const std::invalid_argument &e) {
-    messages.push({"Location coords count is invalid"});
+    addErrorMsg("Location coords count is invalid");
   }
 }
 
@@ -103,21 +119,148 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
   logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
-  auto protocolParseResult = common::protocolFromStr(protocolStr);
-  if (protocolParseResult) {
-    common::Protocol newProtocol = *protocolParseResult;
+  auto parsedProtocol = common::protocolFromStr(protocolStr);
+  if (parsedProtocol) {
+    common::Protocol newProtocol = std::move(*parsedProtocol);
 
-    bool protocolChanged = newProtocol != protocol;
+    bool protocolChanged = newProtocol != ctx.getProtocol();
     if (protocolChanged) {
-      protocol = newProtocol;
+      ctx.setProtocol(newProtocol);
     }
 
-    messages.push({formChangeMessage("Protocol", protocolToStr(protocol),
-                                     protocolChanged)});
+    addMsg(formChangeMessage("Protocol", protocolToStr(ctx.getProtocol()),
+                             protocolChanged));
     return;
   }
 
-  messages.push({"Invalid protocol"});
+  addErrorMsg("Invalid protocol");
+}
+
+void App::handleSmsCommand(const MenuItemSMS &cmd) {
+  if (!exchange.hasSignal()) {
+    addErrorMsg("No signal. Cant send SMS");
+    return;
+  }
+
+  common::msisdn_t targetMsisdn = "";
+  if (cmd.getSpeedDialNum() != constants::EMPTY_SPEED_DIAL_NUM) {
+    auto foundMsisdn = findBySpeedDialNum(cmd.getSpeedDialNum());
+    if (!foundMsisdn) {
+      addErrorMsg("Unknown speed dial num");
+      return;
+    } else {
+      targetMsisdn = std::move(*foundMsisdn);
+    }
+  }
+
+  std::string smsContent = "";
+  if (!cmd.getContent().empty()) {
+    smsContent = cmd.getContent();
+  } else {
+    smsContent = menu.getMessageContent();
+    if (smsContent.empty()) {
+      addErrorMsg("SMS content cant be empty");
+      return;
+    } else {
+      // удаление '\n'
+      smsContent.pop_back();
+    }
+  }
+
+  unsigned int smsId = generateSmsId();
+  auto req = std::make_unique<common::SmTransferRequest>(
+      ctx.getMTimsi(), smsId, targetMsisdn, smsContent);
+
+  exchange.addRequest(
+      ctx.getState(), std::move(req),
+      [this, targetMsisdn, smsContent](
+          std::unique_ptr<common::Request> response, const std::string &error) {
+        if (!error.empty()) {
+          addErrorMsg("Error: " + error);
+          return;
+        }
+
+        common::Sms sms{std::chrono::time_point_cast<std::chrono::seconds>(
+                            std::chrono::system_clock::now()),
+                        {},
+                        "",
+                        targetMsisdn,
+                        smsContent,
+                        false};
+
+        {
+          std::lock_guard lock(smsListMtx);
+          smsList.push_back(sms);
+        }
+
+        addMsg("SMS sent");
+      });
+}
+
+void App::handleDialogCommand(const MenuItemDialog &cmd) const {
+  bool showed = false;
+  for (const auto &sms : smsList) {
+    menu.showMenuHeaderLine();
+    if (sms.receiver == cmd.getMsisdn()) {
+      menu.showSentSms(sms);
+      showed = true;
+    } else if (sms.sender == cmd.getMsisdn()) {
+      menu.showReceivedSms(sms);
+      showed = true;
+    }
+  }
+
+  if (!showed) {
+    menu.showError("No dialog found");
+  }
+}
+
+void App::handleReceivedCommand() const {
+  bool showed = false;
+  for (const auto &sms : smsList) {
+    if (sms.receiver.empty()) {
+      menu.showMenuHeaderLine();
+      menu.showReceivedSms(sms);
+      showed = true;
+    }
+  }
+
+  if (!showed) {
+    menu.showError("No received sms");
+  }
+}
+
+void App::handleSentCommand() const {
+  bool showed = false;
+  for (const auto &sms : smsList) {
+    menu.showMenuHeaderLine();
+    if (!sms.receiver.empty()) {
+      menu.showSentSms(sms);
+      showed = true;
+    }
+  }
+
+  if (!showed) {
+    menu.showError("No sent sms");
+  }
+}
+
+void App::exitApp() {
+  exchange.stop();
+
+  if (common::Logger::isInitialized()) {
+    common::Logger::instance().getInner()->flush();
+  }
+
+  std::cout << "Exiting app..." << std::endl;
+}
+
+unsigned int App::generateSmsId() {
+  curSmsId++;
+  if (curSmsId > MAX_SMS_ID) {
+    curSmsId = 0;
+  }
+  return curSmsId;
 }
 
 void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
@@ -129,12 +272,10 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
     SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
                        "Received invalid command: {}", invalidCmd->getError());
-    messages.push(
-        {"Error! " + invalidCmd->getError(), common::MenuMessageType::ERR});
+    addErrorMsg("Error! " + invalidCmd->getError());
     isCorrectCommand = false;
-  } else if (dynamic_cast<common::MenuItemExit *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
     logCommandProcess(cmdNameUpper);
-    messages.push({"Exiting app..."});
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
     handleActiveCommand(*activeCmd);
@@ -142,6 +283,17 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
     handleMoveCommand(*moveCmd);
   } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
     handleProtocolCommand(*protocolCmd);
+  } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
+    handleSmsCommand(*smsCmd);
+  } else if (auto *sentCmd = dynamic_cast<MenuItemSent *>(cmd.get())) {
+    handleSentCommand();
+  } else if (auto *receivedCmd = dynamic_cast<MenuItemReceived *>(cmd.get())) {
+    handleReceivedCommand();
+  } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
+    handleDialogCommand(*dialogCmd);
+  } else if (auto *emptyCmd =
+                 dynamic_cast<common::MenuItemEmpty *>(cmd.get())) {
+    return;
   }
 
   if (isCorrectCommand) {
@@ -150,42 +302,53 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   }
 }
 
-void App::updateDistance(int updateFreqSec) {
-  while (true) {
-    if (state == AppState::ACTIVE) {
-      auto fetchResult = fetchDistance();
-      if (fetchResult) {
-        std::lock_guard lock(distanceMtx);
-        distance = *fetchResult;
-        continue;
-      }
-
-      SPDLOG_LOGGER_WARN(common::Logger::instance().getInner(),
-                         "Error updating distance: {}", fetchResult.error());
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(updateFreqSec));
+std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
+  auto it = addressBook.find(num);
+  if (it == addressBook.end()) {
+    return std::nullopt;
   }
+  return it->second;
 }
 
-App::App(const common::Location<> &location_, const common::imsi_t &imsi_,
-         const common::imei_t &imei_, const common::NetworkAddress &serverAddr_)
-    : common::App<Config>(location_), imsi(imsi_), imei(imei_),
-      serverAddr(serverAddr_) {}
+App::App(const UeContext &ctx_,
+         const std::map<char, common::msisdn_t> &addressBook_)
+    : ctx(ctx_), addressBook(addressBook_), exchange(ctx.getServerAddr()) {
+  common::SignalHandler::setHandler(
+      SIGINT, [this](int signal) { sigintHandler(signal); });
+}
 
 void App::run() {
-  Menu menu;
   messages = {};
   isRunning = true;
+
+  std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
+  std::jthread smsInfoReceiver{[this]() {
+    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
+                                   const std::string &error) {
+      if (!error.empty()) {
+        addErrorMsg("Error: " + error);
+        return;
+      }
+
+      if (auto *deliverResponse =
+              dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
+        addMsg(deliverResponse->getMsisdn());
+      } else if (auto *reportResponse =
+                     dynamic_cast<common::SmDeliveryReportRequest *>(
+                         response.get())) {
+        addMsg(reportResponse->getMsisdn());
+      }
+    });
+  }};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
-    menu.showStatus(state, imsi, location, protocol);
+    menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
     menu.showMenuHeaderLine();
-    {
-      std::lock_guard lock(distanceMtx);
-      menu.showDistance(serverAddr, distance);
-    }
+    menu.showSignalInfo(ctx.getLocation(), exchange.getSignalLevel());
+    menu.showMenuHeaderLine();
+    menu.showAddressBook(addressBook);
     menu.showMenuHeaderLine();
     menu.showCommandsInfo(getCommandsInfo());
 
@@ -198,7 +361,10 @@ void App::run() {
 
     bool exit = false;
     handleCommand(cmd, exit);
-    menu.showMessages(messages);
+    {
+      std::lock_guard lock(messagesMtx);
+      menu.showMessages(messages);
+    }
 
     if (exit) {
       isRunning = false;
@@ -206,6 +372,31 @@ void App::run() {
       std::cout << std::endl;
     }
   }
+
+  exitApp();
+
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
+}
+
+void App::logCommandProcess(std::string_view commandName,
+                            std::string_view argsStr) const {
+  std::string nameUpper = common::uppercased(commandName);
+  if (!argsStr.empty()) {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Processing command {} with args: {}", nameUpper,
+                       argsStr);
+  } else {
+    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
+                       "Processing command {}", nameUpper);
+  }
+}
+
+void App::addMsg(const std::string &content, common::MenuMessageType type) {
+  std::lock_guard lock(messagesMtx);
+  messages.emplace(content, type);
+}
+
+void App::addErrorMsg(const std::string &content) {
+  addMsg(content, common::MenuMessageType::ERR);
 }
 } // namespace client

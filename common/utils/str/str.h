@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,7 @@ std::optional<bool> parseBool(std::string_view str);
 bool allDigits(std::string_view str);
 std::string ltrimmed(std::string_view str);
 std::vector<std::string> split(const std::string &str);
+std::string imsiToStr(uint64_t imsi);
 
 template <typename T>
   requires std::is_floating_point_v<T>

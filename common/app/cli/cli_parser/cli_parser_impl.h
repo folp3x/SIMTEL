@@ -8,16 +8,7 @@ namespace common {
 template <std::derived_from<Config> T>
 CLIParser<T>::CLIParser(const std::string &appTitle) : cliApp(appTitle) {}
 
-template <std::derived_from<Config> T> void CLIParser<T>::initIpOption() {
-  ipOpt = cliApp.add_option_function<std::string>(
-      "-a, --ip", [this](const std::string &ip) { config.setIP(ip); },
-      "Set IP address");
-  ipOpt->check(Validator::isCorrectIpStr);
-  ipOpt->type_name("IPv4");
-  configOpts.push_back(ipOpt);
-}
-
-template <std::derived_from<Config> T> void CLIParser<T>::initPortOption() {
+template <std::derived_from<Config> T> void CLIParser<T>::initPortOpt() {
   portOpt = cliApp.add_option_function<int>(
       "-p, --port", [this](int port) { config.setPort(port); }, "Set port");
   portOpt->check(Validator::isCorrectPortStr);
@@ -25,30 +16,20 @@ template <std::derived_from<Config> T> void CLIParser<T>::initPortOption() {
   configOpts.push_back(portOpt);
 }
 
-template <std::derived_from<Config> T> void CLIParser<T>::initLocOption() {
-  locOpt = cliApp.add_option_function<common::coords_t<>>(
-      "-l, --loc",
-      [this](const common::coords_t<> &loc) { config.setLoc(loc); },
-      "Set position vector");
-  locOpt->type_name("x y z (real)");
-  configOpts.push_back(locOpt);
-}
-
-template <std::derived_from<Config> T>
-void CLIParser<T>::initConfigFileOption() {
+template <std::derived_from<Config> T> void CLIParser<T>::initConfigFileOpt() {
   configFileOpt = cliApp.add_option_function<std::string>(
       "-k, --config",
       [this](const std::string &filePath) { configFilePath = filePath; },
       "Load config from specified JSON file");
-  configFileOpt->check(Validator::isCorrectConfigPath);
+  configFileOpt->check([](const std::string &filePath) {
+    return Validator::jsonFilePathExists(filePath, "Config");
+  });
   configFileOpt->type_name("string");
 }
 
 template <std::derived_from<Config> T> void CLIParser<T>::initOptions() {
-  initIpOption();
-  initPortOption();
-  initLocOption();
-  initConfigFileOption();
+  initPortOpt();
+  initConfigFileOpt();
 }
 
 template <std::derived_from<Config> T>
@@ -59,7 +40,7 @@ bool CLIParser<T>::isOptSet(CLI::Option *opt) {
 template <std::derived_from<Config> T>
 std::unique_ptr<CLIParser<T>>
 CLIParser<T>::create(const std::string &cliAppName) {
-  auto parser = std::make_unique<CLIParser<T>>(cliAppName);
+  auto parser = std::unique_ptr<CLIParser<T>>(new CLIParser<T>(cliAppName));
   parser->initOptions();
   return parser;
 }
@@ -83,13 +64,14 @@ bool CLIParser<T>::parse(int argc, char *argv[], std::string &msg,
   }
 }
 
-template <std::derived_from<Config> T> bool CLIParser<T>::allConfigOptsSet() {
+template <std::derived_from<Config> T>
+bool CLIParser<T>::allConfigOptsSet() const {
   return std::all_of(configOpts.begin(), configOpts.end(),
                      [](CLI::Option *opt) { return isOptSet(opt); });
 }
 
 template <std::derived_from<Config> T>
-std::optional<std::string> CLIParser<T>::getParsedConfigFilePath() const {
+std::optional<std::string> CLIParser<T>::getConfigFilePath() const {
   if (isOptSet(configFileOpt)) {
     return configFilePath;
   }
@@ -100,12 +82,8 @@ template <std::derived_from<Config> T>
 T CLIParser<T>::redefineConfig(const T &definedConfig) const {
   T redefinedConfig = definedConfig;
 
-  if (isOptSet(ipOpt))
-    redefinedConfig.setIP(config.getIP());
   if (isOptSet(portOpt))
     redefinedConfig.setPort(config.getPort());
-  if (isOptSet(locOpt))
-    redefinedConfig.setLoc(config.getLoc());
 
   return redefinedConfig;
 }
