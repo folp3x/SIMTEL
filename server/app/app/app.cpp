@@ -29,31 +29,36 @@ void App::exitApp() {
 App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
-    : ttlManager(std::make_shared<TtlManager>(5)),
+    : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec,
+                                              TTL_WARNING_PERIOD_SEC)),
       listener(addr, maxUeThreadsCount),
       hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
-      smsc(std::make_shared<SimtelSmsc>(smscConfig)) {
+      smsc(std::make_unique<SimtelSmsc>(smscConfig)) {
   SimtelBaseStation::setTtlManager(ttlManager);
   listener.setTtlManager(ttlManager);
 
+  std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> mmeList{};
+
   for (const auto &config : mmeConfigs) {
-    mmeList.push_back(std::make_shared<SimtelMme>(config, hlr, smsc));
+    mmeList.insert(
+        {config.id, std::make_shared<SimtelMme>(config, hlr, smsc.get())});
   }
 
   for (const auto &config : bsConfigs) {
-    bool mmeFound = false;
-    for (const auto &mme : mmeList) {
-      if (mme->getId() == config.mmeId) {
-        auto bs = std::make_unique<SimtelBaseStation>(config, nullptr);
-        SimtelBaseStation::addBs(std::move(bs));
-        mmeFound = true;
-        break;
-      }
-    }
-
-    if (!mmeFound) {
+    auto it = mmeList.find(config.mmeId);
+    if (it == mmeList.end()) {
       throw std::runtime_error("Unknown MME id in BS config");
     }
+
+    auto bs = std::make_shared<SimtelBaseStation>(config, it->second.get());
+    it->second->addBs(bs);
+    SimtelBaseStation::addBs(bs);
+  }
+
+  smsc->setMmeList(mmeList);
+
+  if (!hlr->hasData()) {
+    hlr->insertData();
   }
 
   common::SignalHandler::setHandler(
@@ -72,14 +77,19 @@ void App::run() {
     });
   }};
 
-  // ttlManager->update();
-  // ttlManager->setActive(true);
-  while (isRunning) {
-    // if (ttlManager->isActive() && ttlManager->isExpired()) {
-    //   break;
-    // }
+  ttlManager->update();
+  ttlManager->setActive(true);
 
-    // std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS));
+  while (isRunning) {
+    if (ttlManager->isActive() && ttlManager->isExpired()) {
+      break;
+    }
+
+    auto warningSec = ttlManager->getWarningSec();
+    if (warningSec) {
+      menu.showMessage({"TTL: " + std::to_string(*warningSec) + " seconds left",
+                        common::MenuMessageType::INFO});
+    }
 
     while (true) {
       auto msg = MessageHolder::instance().takeMsg();
@@ -89,6 +99,8 @@ void App::run() {
         break;
       }
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS * 10));
   }
 
   exitApp();

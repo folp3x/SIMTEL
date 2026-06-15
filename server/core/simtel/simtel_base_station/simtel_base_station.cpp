@@ -11,7 +11,7 @@
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
-std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
+std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
 
 std::shared_ptr<TtlManager> SimtelBaseStation::ttlManager = nullptr;
@@ -22,11 +22,11 @@ std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
 
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
-  // if (!ttlManager) {
-  //   throw std::runtime_error("TTL manager not set");
-  // }
+  if (!ttlManager) {
+    throw std::runtime_error("TTL manager not set");
+  }
 
-  // ttlManager->setActive(false);
+  ttlManager->setActive(false);
 
   bool timeoutSet = ctx->setReceiveTimeout();
   if (!timeoutSet) {
@@ -202,8 +202,8 @@ SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
   return it->second.get();
 }
 
-void SimtelBaseStation::addBs(std::unique_ptr<SimtelBaseStation> bs) {
-  baseStations.emplace(bs->getId(), std::move(bs));
+void SimtelBaseStation::addBs(std::shared_ptr<SimtelBaseStation> bs) {
+  baseStations.emplace(bs->getId(), bs);
 }
 
 void SimtelBaseStation::setTtlManager(std::shared_ptr<TtlManager> ttlManager_) {
@@ -307,8 +307,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
   MessageHolder::instance().addMsg(
       createLogMsg("started handling requests from " + ctx->toStr()));
 
-  // ttlManager->update();
-  // ttlManager->setActive(true);
+  ttlManager->update();
+  ttlManager->setActive(true);
 
   while (true) {
     auto receiveError = ctx->receiveData();
@@ -327,7 +327,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         MessageHolder::instance().addErrorMsg(receiveError->description);
       }
     } else {
-      // ttlManager->setActive(false);
+      ttlManager->setActive(false);
+      MessageHolder::instance().addMsg("\n");
 
       common::binary_t data = ctx->takeBuf();
       auto reqType = common::parseRequestType(data);
@@ -358,8 +359,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         MessageHolder::instance().addErrorMsg("Unexpected request type");
       }
 
-      // ttlManager->update();
-      // ttlManager->setActive(false);
+      ttlManager->update();
+      ttlManager->setActive(false);
     }
   }
 }

@@ -12,12 +12,12 @@ namespace server {
 class App {
 private:
   static constexpr unsigned int MENU_SLEEP_MS = 100;
+  static constexpr unsigned int TTL_WARNING_PERIOD_SEC = 30;
 
   SimtelListener listener;
 
   std::shared_ptr<SimtelRegister> hlr;
-  std::shared_ptr<SimtelSmsc> smsc;
-  std::vector<std::shared_ptr<SimtelMme>> mmeList;
+  std::unique_ptr<SimtelSmsc> smsc;
 
   std::shared_ptr<TtlManager> ttlManager;
 

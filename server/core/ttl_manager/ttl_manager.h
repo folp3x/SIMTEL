@@ -3,17 +3,23 @@
 #include <atomic>
 #include <chrono>
 #include <mutex>
+#include <optional>
 
 namespace server {
 class TtlManager {
 private:
+  const unsigned int warningPeriod = 0;
+  std::chrono::seconds timeout{};
+
   mutable std::mutex lastActivityMtx;
   std::chrono::steady_clock::time_point lastActivity;
-  std::chrono::seconds timeout{};
   std::atomic<bool> active{false};
+  unsigned int lastWarningNum = 0;
+
+  unsigned int getLeftSec() const;
 
 public:
-  explicit TtlManager(unsigned int timeoutSec);
+  TtlManager(unsigned int timeoutSec, unsigned int warningPeriod_);
 
   void update();
 
@@ -21,5 +27,7 @@ public:
 
   void setActive(bool isActive);
   bool isActive() const;
+
+  std::optional<unsigned int> getWarningSec();
 };
 } // namespace server

@@ -12,7 +12,7 @@
 namespace server {
 class SimtelBaseStation {
 private:
-  static std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
+  static std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
 
   static std::shared_ptr<TtlManager> ttlManager;
@@ -57,7 +57,7 @@ private:
 public:
   SimtelBaseStation(const BsConfig &config, SimtelMme *mme_);
 
-  static void addBs(std::unique_ptr<SimtelBaseStation> bs);
+  static void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   static void setTtlManager(std::shared_ptr<TtlManager> ttlManager_);
 

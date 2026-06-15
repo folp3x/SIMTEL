@@ -12,7 +12,7 @@ std::optional<NetworkError> Socket::sendAll(const void *data,
   const char *ptr = static_cast<const char *>(data);
   size_t leftSize = size;
 
-  while (size > 0) {
+  while (leftSize > 0) {
     ssize_t sent = send(sock, ptr, leftSize, MSG_NOSIGNAL);
     if (sent < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -60,9 +60,7 @@ Socket &Socket::operator=(Socket &&other) {
   return *this;
 }
 
-Socket::~Socket() {
-  closeSock();
-}
+Socket::~Socket() { closeSock(); }
 
 std::expected<int, std::string> Socket::initSock() {
   int inited = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);

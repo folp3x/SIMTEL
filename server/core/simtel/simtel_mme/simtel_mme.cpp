@@ -6,8 +6,7 @@
 
 namespace server {
 SimtelMme::SimtelMme(const MmeConfig &config,
-                     std::shared_ptr<SimtelRegister> hlr_,
-                     std::shared_ptr<SimtelSmsc> smsc_)
+                     std::shared_ptr<SimtelRegister> hlr_, SimtelSmsc *smsc_)
     : id(config.id), maxVlrSize(config.maxVlrSize), hlr(hlr_), smsc(smsc_) {}
 
 void SimtelMme::addBs(std::shared_ptr<SimtelBaseStation> bs) {
@@ -25,7 +24,7 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
   auto record = vlr.getRecord(imsi);
   if (!record) {
     auto mTimsi = generateMTimsi();
-    vlr.setRecord({mTimsi, imei, "msisdn", nullptr});
+    vlr.setRecord({mTimsi, imsi, imei, "msisdn", nullptr});
     return mTimsi;
   }
 
@@ -69,6 +68,6 @@ SimtelMme::findBsById(unsigned int id) const {
 }
 
 std::string SimtelMme::createLogMsg(const std::string &content) const {
-  return "MME_" + std::to_string(id) + " " + content;
+  return "MME_" + std::to_string(id) + ": " + content;
 }
 } // namespace server

@@ -20,6 +20,7 @@ set(SOURCES_LIST
     "core/simtel/simtel_register/simtel_register.cpp"
     "core/ttl_manager/ttl_manager.cpp"
     "core/simtel/vlr_record/vlr_record.cpp"
+    "core/simtel/subscriber_status/subscriber_status.cpp"
 )
 
 # установка библиотек

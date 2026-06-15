@@ -32,8 +32,9 @@ void EpcConfigParser::initHlrAccessParamsField() {
       std::make_unique<common::JsonObjectInfo>("hlrAccessParams");
   hlrAccessParamsObj->addInner(
       std::make_unique<common::JsonFieldInfo<std::string>>(
-          "sqliteFilePath",
-          [this](const std::string &path) { config.cdrJsonFilePath = path; }));
+          "sqliteFilePath", [this](const std::string &path) {
+            config.hlrSqliteFilePath = path;
+          }));
 
   addParsedObject(std::move(hlrAccessParamsObj));
 }
