@@ -11,7 +11,7 @@ SmDeliveryReportRequest::SmDeliveryReportRequest(const msisdn_t &msisdn_,
     : msisdn(msisdn_), smsId(smsId_) {}
 
 std::string SmDeliveryReportRequest::toStr() const {
-  return "SM_Transfer{msisdn=" + msisdn + "smsId=" + std::to_string(smsId) +
+  return "SM_Transfer{msisdn=" + msisdn + ", smsId=" + std::to_string(smsId) +
          "}";
 }
 
@@ -81,5 +81,4 @@ SmDeliveryReportRequest::fromBinary(const binary_t &binary) {
 msisdn_t SmDeliveryReportRequest::getMsisdn() const { return msisdn; }
 
 unsigned int SmDeliveryReportRequest::getSmsId() const { return smsId; }
-
 } // namespace common

@@ -12,7 +12,9 @@
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
-#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
+#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
+#include "common/core/request/sm_transfer_request/sm_transfer_request.h"
 
 namespace client {
 void App::sigintHandler(int signal) {
@@ -135,6 +137,11 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
 }
 
 void App::handleSmsCommand(const MenuItemSMS &cmd) {
+  if (!exchange.hasSignal()) {
+    addErrorMsg("No signal. Cant send SMS");
+    return;
+  }
+
   common::msisdn_t targetMsisdn = "";
   if (cmd.getSpeedDialNum() != constants::EMPTY_SPEED_DIAL_NUM) {
     auto foundMsisdn = findBySpeedDialNum(cmd.getSpeedDialNum());
@@ -159,6 +166,35 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
       smsContent.pop_back();
     }
   }
+
+  unsigned int smsId = generateSmsId();
+  auto req = std::make_unique<common::SmTransferRequest>(
+      ctx.getMTimsi(), smsId, targetMsisdn, smsContent);
+
+  exchange.addRequest(
+      ctx.getState(), std::move(req),
+      [this, targetMsisdn, smsContent](
+          std::unique_ptr<common::Request> response, const std::string &error) {
+        if (!error.empty()) {
+          addErrorMsg("Error: " + error);
+          return;
+        }
+
+        common::Sms sms{std::chrono::time_point_cast<std::chrono::seconds>(
+                            std::chrono::system_clock::now()),
+                        {},
+                        "",
+                        targetMsisdn,
+                        smsContent,
+                        false};
+
+        {
+          std::lock_guard lock(smsListMtx);
+          smsList.push_back(sms);
+        }
+
+        addMsg("SMS sent");
+      });
 }
 
 void App::handleDialogCommand(const MenuItemDialog &cmd) const {
@@ -286,15 +322,24 @@ void App::run() {
   isRunning = true;
 
   std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
-  // std::jthread smsInfoReceiver{[this]() {
-  //   exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
-  //                                  const std::string &error) {
-  //     if (!error.empty()) {
-  //       addErrorMsg("Error: " + error);
-  //       return;
-  //     }
-  //   });
-  // }};
+  std::jthread smsInfoReceiver{[this]() {
+    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
+                                   const std::string &error) {
+      if (!error.empty()) {
+        addErrorMsg("Error: " + error);
+        return;
+      }
+
+      if (auto *deliverResponse =
+              dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
+        addMsg(deliverResponse->getMsisdn());
+      } else if (auto *reportResponse =
+                     dynamic_cast<common::SmDeliveryReportRequest *>(
+                         response.get())) {
+        addMsg(reportResponse->getMsisdn());
+      }
+    });
+  }};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
@@ -352,7 +397,6 @@ void App::addMsg(const std::string &content, common::MenuMessageType type) {
 }
 
 void App::addErrorMsg(const std::string &content) {
-  std::lock_guard lock(messagesMtx);
   addMsg(content, common::MenuMessageType::ERR);
 }
 } // namespace client

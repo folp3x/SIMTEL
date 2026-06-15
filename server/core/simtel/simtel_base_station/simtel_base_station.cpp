@@ -6,6 +6,9 @@
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
+#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
+#include "common/core/request/sm_transfer_request/sm_transfer_request.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
@@ -353,6 +356,27 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         if (updateError) {
           MessageHolder::instance().addErrorMsg(*updateError);
         }
+
+        break;
+      }
+      case common::RequestType::SM_Transfer: {
+        common::Protocol protocol;
+        auto req = parseFromBytes<common::SmTransferRequest>(data, protocol);
+        if (!req) {
+          MessageHolder::instance().addErrorMsg(req.error());
+        }
+
+        ctx->setProtocol(protocol);
+        MessageHolder::instance().addMsg(
+            createLogMsg("req from " + ctx->toStr() + " = " + req->toStr()));
+
+        auto deliveryResponse = std::make_unique<common::SmDeliveryRequest>(
+            "000000000000001", 0, "msisdn1", "");
+        sendResponse(ctx, std::move(deliveryResponse));
+
+        auto reportResponse =
+            std::make_unique<common::SmDeliveryReportRequest>("msisdn2", 0);
+        sendResponse(ctx, std::move(reportResponse));
 
         break;
       }

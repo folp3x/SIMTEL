@@ -29,10 +29,12 @@ private:
 
   bool isRunning = false;
 
-  std::mutex messagesMtx{};
+  std::mutex messagesMtx;
   std::priority_queue<common::MenuMessage> messages{};
 
   std::map<char, common::msisdn_t> addressBook{};
+
+  std::mutex smsListMtx;
   std::vector<common::Sms> smsList{};
 
   virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,

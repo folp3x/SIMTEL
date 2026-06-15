@@ -8,6 +8,8 @@
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
+#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 
 namespace client {
 std::optional<std::string>
@@ -56,7 +58,6 @@ void UeExchange::handleRequests() {
 
     RequestInfo info = std::move(requests.front());
     requests.pop();
-    lock.unlock();
 
     if (info.req->getType() != common::RequestType::Rrc_Connection &&
         signalLevel == 0) {
@@ -77,9 +78,18 @@ void UeExchange::handleRequests() {
       }
       break;
     }
+    case common::RequestType::SM_Transfer: {
+      auto sendError = sendRequest(std::move(info.req));
+      if (sendError) {
+        callback(nullptr, "Failed to send sms - " + *sendError);
+      }
+      break;
+    }
     default:
       callback(nullptr, "Unknown request type");
     }
+
+    callback(nullptr, "");
   }
 }
 
@@ -108,7 +118,6 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(RequestInfo info) {
-  std::lock_guard lock(receiveMtx);
   sock.setReceiveTimeout(HANDLE_LOCATION_UPDATE_TIMEOUT_MSEC);
 
   auto locationSendError = sendRequest(std::move(info.req));
@@ -241,18 +250,36 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
 
       std::unique_ptr<common::Request> response;
       switch (responseType) {
-      case common::RequestType::Rrc_Reconfiguration_Keep: {
+      case common::RequestType::SM_Delivery: {
         auto receivedResponse =
-            parseFromBytes<common::RrcReconfigurationKeepRequest>(*data);
+            parseFromBytes<common::SmDeliveryRequest>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
+          continue;
         }
 
+        response =
+            std::make_unique<common::SmDeliveryRequest>(*receivedResponse);
+        break;
+      }
+      case common::RequestType::SM_Delivery_Report: {
+        auto receivedResponse =
+            parseFromBytes<common::SmDeliveryReportRequest>(*data);
+        if (!receivedResponse) {
+          callback(nullptr, receivedResponse.error());
+          continue;
+        }
+
+        response = std::make_unique<common::SmDeliveryReportRequest>(
+            *receivedResponse);
         break;
       }
       default:
         callback(nullptr, "Unexpected request type");
+        continue;
       }
+
+      callback(std::move(response), "");
     }
   }
 }

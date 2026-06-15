@@ -19,7 +19,7 @@ private:
     CallbackType callback{};
   };
 
-  static constexpr unsigned int NO_SMS_INFO_SLEEP_MS = 1000;
+  static constexpr unsigned int NO_SMS_INFO_SLEEP_MS = 2000;
   static constexpr unsigned int RECEIVE_SMS_INFO_TIMEOUT_MSEC = 10;
   static constexpr unsigned int HANDLE_LOCATION_UPDATE_TIMEOUT_MSEC = 2000;
 
