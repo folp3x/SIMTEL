@@ -3,9 +3,13 @@
 namespace server {
 TtlManager::TtlManager(unsigned int timeoutSec) : timeout(timeoutSec) {}
 
-void TtlManager::update() { lastActivity = std::chrono::steady_clock::now(); }
+void TtlManager::update() {
+  std::lock_guard lock(lastActivityMtx);
+  lastActivity = std::chrono::steady_clock::now();
+}
 
 bool TtlManager::isExpired() const {
+  std::lock_guard lock(lastActivityMtx);
   return std::chrono::steady_clock::now() - lastActivity >= timeout;
 }
 

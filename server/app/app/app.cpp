@@ -9,12 +9,14 @@
 namespace server {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
+    std::cout << std::endl;
     exitApp();
     std::exit(signal);
   }
 }
 
 void App::exitApp() {
+  isRunning = false;
   listener.stop();
 
   if (common::Logger::isInitialized()) {
@@ -27,10 +29,13 @@ void App::exitApp() {
 App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
-    : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec)),
-      listener(addr, maxUeThreadsCount, ttlManager),
+    : ttlManager(std::make_shared<TtlManager>(5)),
+      listener(addr, maxUeThreadsCount),
       hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
-      smsc(std::make_shared<SimtelSmsc>(smscConfig)), ttlSec(epcConfig.ttlSec) {
+      smsc(std::make_shared<SimtelSmsc>(smscConfig)) {
+  SimtelBaseStation::setTtlManager(ttlManager);
+  listener.setTtlManager(ttlManager);
+
   for (const auto &config : mmeConfigs) {
     mmeList.push_back(std::make_shared<SimtelMme>(config, hlr, smsc));
   }
@@ -39,9 +44,8 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     bool mmeFound = false;
     for (const auto &mme : mmeList) {
       if (mme->getId() == config.mmeId) {
-        auto bs =
-            std::make_shared<SimtelBaseStation>(config, mme.get(), ttlManager);
-        SimtelBaseStation::addBs(bs);
+        auto bs = std::make_unique<SimtelBaseStation>(config, nullptr);
+        SimtelBaseStation::addBs(std::move(bs));
         mmeFound = true;
         break;
       }
@@ -68,13 +72,14 @@ void App::run() {
     });
   }};
 
-  ttlManager->setActive(true);
+  // ttlManager->update();
+  // ttlManager->setActive(true);
   while (isRunning) {
-    if (ttlManager->isActive() && ttlManager->isExpired()) {
-      break;
-    }
+    // if (ttlManager->isActive() && ttlManager->isExpired()) {
+    //   break;
+    // }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS));
 
     while (true) {
       auto msg = MessageHolder::instance().takeMsg();

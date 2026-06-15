@@ -38,7 +38,7 @@ SimtelMme::handleAuthRequest(const common::imsi_t &mTimsi, unsigned int bsId) {
       createLogMsg("received Auth{mTmsi=" + mTimsi +
                    ", bsId=" + std::to_string(bsId) + "}"));
 
-  auto bs = findBsById(id);
+  auto bs = findBsById(bsId);
   if (!bs) {
     return "BS not known by MME";
   }

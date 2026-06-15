@@ -12,8 +12,10 @@
 namespace server {
 class SimtelBaseStation {
 private:
-  static std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
+  static std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
       baseStations;
+
+  static std::shared_ptr<TtlManager> ttlManager;
 
   const float radius;
   const unsigned int id;
@@ -25,8 +27,6 @@ private:
 
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
       connectedUe = {};
-
-  std::shared_ptr<TtlManager> ttlManager;
 
   static std::optional<std::string>
   handleLocationUpdate(const common::RrcConnectionRequest &req,
@@ -55,10 +55,11 @@ private:
   handleConfigureComplete(std::shared_ptr<SimtelUeContext> ctx) const;
 
 public:
-  SimtelBaseStation(const BsConfig &config, SimtelMme *mme_,
-                    std::shared_ptr<TtlManager> ttlManager_);
+  SimtelBaseStation(const BsConfig &config, SimtelMme *mme_);
 
-  static void addBs(std::shared_ptr<SimtelBaseStation> bs);
+  static void addBs(std::unique_ptr<SimtelBaseStation> bs);
+
+  static void setTtlManager(std::shared_ptr<TtlManager> ttlManager_);
 
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 

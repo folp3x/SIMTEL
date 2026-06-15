@@ -13,8 +13,6 @@ class App {
 private:
   static constexpr unsigned int MENU_SLEEP_MS = 100;
 
-  const unsigned int ttlSec;
-
   SimtelListener listener;
 
   std::shared_ptr<SimtelRegister> hlr;

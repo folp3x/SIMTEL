@@ -2,10 +2,12 @@
 
 #include <atomic>
 #include <chrono>
+#include <mutex>
 
 namespace server {
 class TtlManager {
 private:
+  mutable std::mutex lastActivityMtx;
   std::chrono::steady_clock::time_point lastActivity;
   std::chrono::seconds timeout{};
   std::atomic<bool> active{false};

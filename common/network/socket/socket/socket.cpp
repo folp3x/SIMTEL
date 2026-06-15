@@ -60,7 +60,9 @@ Socket &Socket::operator=(Socket &&other) {
   return *this;
 }
 
-Socket::~Socket() { closeSock(); }
+Socket::~Socket() {
+  closeSock();
+}
 
 std::expected<int, std::string> Socket::initSock() {
   int inited = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);

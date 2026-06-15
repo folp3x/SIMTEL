@@ -11,8 +11,10 @@
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
-std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
+std::unordered_map<unsigned int, std::unique_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
+
+std::shared_ptr<TtlManager> SimtelBaseStation::ttlManager = nullptr;
 
 std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
   return "BS_" + std::to_string(id) + ": " + content;
@@ -20,6 +22,12 @@ std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
 
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
+  // if (!ttlManager) {
+  //   throw std::runtime_error("TTL manager not set");
+  // }
+
+  // ttlManager->setActive(false);
+
   bool timeoutSet = ctx->setReceiveTimeout();
   if (!timeoutSet) {
     MessageHolder::instance().addErrorMsg(ctx->toStr() +
@@ -91,11 +99,9 @@ std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
   return std::nullopt;
 }
 
-SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_,
-                                     std::shared_ptr<TtlManager> ttlManager_)
+SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_)
     : id(config.id), mmeId(config.mmeId), radius(config.radius),
-      maxConnections(config.maxConnections), location(config.loc), mme(mme_),
-      ttlManager(ttlManager_) {}
+      maxConnections(config.maxConnections), location(config.loc), mme(mme_) {}
 
 std::optional<std::string>
 SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
@@ -196,8 +202,12 @@ SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
   return it->second.get();
 }
 
-void SimtelBaseStation::addBs(std::shared_ptr<SimtelBaseStation> bs) {
-  baseStations.emplace(bs->getId(), bs);
+void SimtelBaseStation::addBs(std::unique_ptr<SimtelBaseStation> bs) {
+  baseStations.emplace(bs->getId(), std::move(bs));
+}
+
+void SimtelBaseStation::setTtlManager(std::shared_ptr<TtlManager> ttlManager_) {
+  ttlManager = ttlManager_;
 }
 
 bool SimtelBaseStation::ueConnected(const common::imsi_t &mTimsi) const {
@@ -296,6 +306,10 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTImsi) {
 void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
   MessageHolder::instance().addMsg(
       createLogMsg("started handling requests from " + ctx->toStr()));
+
+  // ttlManager->update();
+  // ttlManager->setActive(true);
+
   while (true) {
     auto receiveError = ctx->receiveData();
 
@@ -313,6 +327,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         MessageHolder::instance().addErrorMsg(receiveError->description);
       }
     } else {
+      // ttlManager->setActive(false);
+
       common::binary_t data = ctx->takeBuf();
       auto reqType = common::parseRequestType(data);
       if (!reqType) {
@@ -334,7 +350,6 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         auto updateError = handleLocationUpdate(*req, ctx);
         if (updateError) {
           MessageHolder::instance().addErrorMsg(*updateError);
-          return;
         }
 
         break;
@@ -342,6 +357,9 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       default:
         MessageHolder::instance().addErrorMsg("Unexpected request type");
       }
+
+      // ttlManager->update();
+      // ttlManager->setActive(false);
     }
   }
 }

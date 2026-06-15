@@ -19,8 +19,9 @@ private:
   std::shared_ptr<TtlManager> ttlManager;
 
 public:
-  SimtelListener(const common::NetworkAddress &addr, size_t maxUeThreads_,
-                 std::shared_ptr<TtlManager> ttlManager_);
+  SimtelListener(const common::NetworkAddress &addr, size_t maxUeThreads);
+
+  void setTtlManager(std::shared_ptr<TtlManager> ttlManager_);
 
   void acceptConnections(
       const std::function<void(std::shared_ptr<SimtelUeContext> ctx)> &handler);
