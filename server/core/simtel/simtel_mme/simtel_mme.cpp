@@ -80,6 +80,10 @@ bool SimtelMme::handleMoForwardSM(const common::imsi_t &mTimsi,
   return smsc->handleMoForwardSM(mTimsi, smsId, smsText);
 }
 
+void SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d) {
+  auto record = hlr->handleRoutingInfoSM(msisdn_d);
+}
+
 common::imsi_t SimtelMme::generateMTimsi() {
   curMTimsi++;
   if (curMTimsi > MAX_MTIMSI) {

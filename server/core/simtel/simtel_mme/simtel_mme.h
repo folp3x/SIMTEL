@@ -50,5 +50,7 @@ public:
 
   bool handleMoForwardSM(const common::imsi_t &mTimsi, unsigned int smsId,
                          const std::string &smsText);
+
+  void sendRoutingInfoSm(const common::msisdn_t &msisdn_d);
 };
 } // namespace server
