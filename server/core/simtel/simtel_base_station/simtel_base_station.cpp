@@ -333,10 +333,12 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
     } else {
       ttlManager->setActive(false);
 
-      common::binary_t data = ctx->takeBuf();
+      common::binary_t data = ctx->copyBuf();
       auto reqType = common::parseRequestType(data);
       if (!reqType) {
         MessageHolder::instance().addErrorMsg(reqType.error());
+        ctx->clearBuf();
+        continue;
       }
 
       switch (*reqType) {
@@ -345,6 +347,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         auto req = parseFromBytes<common::RrcConnectionRequest>(data, protocol);
         if (!req) {
           MessageHolder::instance().addErrorMsg(req.error());
+          ctx->clearBuf();
+          continue;
         }
 
         ctx->setProtocol(protocol);
@@ -356,6 +360,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
           MessageHolder::instance().addErrorMsg(*updateError);
         }
 
+        ctx->clearBuf();
         break;
       }
       case common::RequestType::SM_Transfer: {
@@ -363,7 +368,11 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         auto req = parseFromBytes<common::SmTransferRequest>(data, protocol);
         if (!req) {
           MessageHolder::instance().addErrorMsg(req.error());
+          ctx->clearBuf();
+          continue;
         }
+
+        ctx->clearBuf();
 
         ctx->setProtocol(protocol);
         MessageHolder::instance().addMsg(

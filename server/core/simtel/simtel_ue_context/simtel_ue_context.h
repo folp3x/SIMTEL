@@ -21,7 +21,7 @@ private:
 
   SimtelBaseStation *bs = nullptr;
 
-  std::mutex bufMtx;
+  mutable std::mutex bufMtx;
   std::condition_variable bufCv{};
   common::binary_t buf = {};
 
@@ -39,6 +39,9 @@ public:
 
   common::binary_t takeBuf();
   void setBuf(const common::binary_t &buf_);
+
+  common::binary_t copyBuf() const;
+  void clearBuf();
 
   std::optional<common::NetworkError> receiveData();
   std::optional<common::NetworkError> sendBufToUe();

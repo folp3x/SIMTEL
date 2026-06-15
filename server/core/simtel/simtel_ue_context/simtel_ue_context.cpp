@@ -45,6 +45,21 @@ void SimtelUeContext::setBuf(const common::binary_t &buf_) {
                                    std::to_string(buf.size()) + " bytes)");
 }
 
+common::binary_t SimtelUeContext::copyBuf() const {
+  std::lock_guard lock(bufMtx);
+  MessageHolder::instance().addMsg(toStr() + " buf copied (" +
+                                   std::to_string(buf.size()) + " bytes)");
+  return buf;
+}
+
+void SimtelUeContext::clearBuf() {
+  std::lock_guard lock(bufMtx);
+  MessageHolder::instance().addMsg(toStr() + " buf cleared (" +
+                                   std::to_string(buf.size()) + " bytes)");
+  buf.clear();
+  bufCv.notify_one();
+}
+
 std::optional<common::NetworkError> SimtelUeContext::receiveData() {
   auto binary = sock->receiveMessage();
   if (!binary) {
