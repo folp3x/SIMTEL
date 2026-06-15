@@ -105,6 +105,8 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(const RequestInfo &info) {
+  std::lock_guard lock(receiveMtx);
+
   auto locationReq = std::make_unique<common::RrcConnectionRequest>(
       info.state.imei, info.state.location);
   auto locationSendError = sendRequest(std::move(locationReq));
@@ -218,5 +220,35 @@ void UeExchange::stop() {
   running = false;
   requestsCv.notify_all();
   closeConnection();
+}
+
+void UeExchange::receiveSmsInfo(const CallbackType &callback) {
+  while (running) {
+    {
+      std::lock_guard lock(receiveMtx);
+      common::RequestType responseType;
+      auto data = receiveResponseData(responseType);
+      if (!data) {
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(NO_SMS_INFO_SLEEP_MS));
+        continue;
+      }
+
+      std::unique_ptr<common::Request> response;
+      switch (responseType) {
+      case common::RequestType::Rrc_Reconfiguration_Keep: {
+        auto receivedResponse =
+            parseFromBytes<common::RrcReconfigurationKeepRequest>(*data);
+        if (!receivedResponse) {
+          callback(nullptr, receivedResponse.error());
+        }
+
+        break;
+      }
+      default:
+        callback(nullptr, "Unexpected request type");
+      }
+    }
+  }
 }
 } // namespace client

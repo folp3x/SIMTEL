@@ -13,7 +13,8 @@ private:
   std::string createLogMsg(const std::string &content) const;
 
 public:
-  std::optional<VlrRecord> getRecord(const common::imsi_t &mTimsi) const;
+  std::optional<common::imsi_t>
+  getImsiByMTimsi(const common::imsi_t &mTimsi) const;
 
   void setRecord(const VlrRecord &record);
 

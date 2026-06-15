@@ -10,7 +10,7 @@ class SimtelBaseStation;
 
 class SimtelUeContext {
 private:
-  static constexpr int SOCK_RECEIVE_TIMEOUT_SEC = 4;
+  static constexpr int SOCK_RECEIVE_TIMEOUT_SEC = 10;
 
   bool mTimsiSet = false;
   common::imsi_t mTimsi;

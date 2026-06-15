@@ -8,8 +8,8 @@ std::string SimtelVisitorList::createLogMsg(const std::string &content) const {
   return "VLR: " + content;
 }
 
-std::optional<VlrRecord>
-SimtelVisitorList::getRecord(const common::imsi_t &mTimsi) const {
+std::optional<common::imsi_t>
+SimtelVisitorList::getImsiByMTimsi(const common::imsi_t &mTimsi) const {
   auto it = records.find(mTimsi);
   if (it == records.end()) {
     return std::nullopt;
@@ -18,7 +18,7 @@ SimtelVisitorList::getRecord(const common::imsi_t &mTimsi) const {
   MessageHolder::instance().addMsg(
       createLogMsg("found record: " + it->second.toStr()));
 
-  return it->second;
+  return it->second.imsi;
 }
 
 void SimtelVisitorList::setRecord(const VlrRecord &record) {

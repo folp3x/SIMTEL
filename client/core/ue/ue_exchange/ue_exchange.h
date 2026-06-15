@@ -19,12 +19,15 @@ private:
     CallbackType callback{};
   };
 
+  static constexpr unsigned int NO_SMS_INFO_SLEEP_MS = 1000;
+
   bool running = true;
 
   common::Protocol curProtocol;
 
   unsigned int signalLevel = 0;
 
+  std::mutex receiveMtx;
   Socket sock{};
   common::NetworkAddress serverAddr;
 
@@ -64,6 +67,8 @@ public:
   bool hasSignal() const;
 
   void stop();
+
+  void receiveSmsInfo(const CallbackType &callback);
 };
 } // namespace client
 

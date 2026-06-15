@@ -278,6 +278,15 @@ void App::run() {
   isRunning = true;
 
   std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
+  std::jthread smsInfoReceiver{[this]() {
+    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
+                                   const std::string &error) {
+      if (!error.empty()) {
+        addErrorMsg("Error: " + error);
+        return;
+      }
+    });
+  }};
 
   SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {

@@ -21,14 +21,15 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
   MessageHolder::instance().addMsg(
       createLogMsg("received Attach{imsi=" + imsi + ", imei=" + imei + "}"));
 
-  auto record = vlr.getRecord(imsi);
-  if (!record) {
+  auto result = vlr.getImsiByMTimsi(imsi);
+  if (!result) {
     auto mTimsi = generateMTimsi();
     vlr.setRecord({mTimsi, imsi, imei, "msisdn", nullptr});
     return mTimsi;
   }
 
-  return record->mTimsi;
+  // если клиент уже зарегистрирован и прислал свой m-timsi
+  return imsi;
 }
 
 std::optional<std::string>
