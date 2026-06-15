@@ -66,10 +66,10 @@ MeasurementReportRequest::toBinary() const {
 }
 
 std::optional<std::string>
-MeasurementReportRequest::fromBinary(const common::binary_t &binary) {
+MeasurementReportRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
@@ -79,7 +79,7 @@ MeasurementReportRequest::fromBinary(const common::binary_t &binary) {
   }
   imei = *parsedImei;
 
-  auto imsiBinary = it.getNext(common::constants::IMSI_BINARY_BYTES);
+  auto imsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
   if (!imsiBinary) {
     return "Binary too short for IMSI";
   }

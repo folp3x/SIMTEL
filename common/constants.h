@@ -9,4 +9,5 @@ constexpr size_t IMEI_BINARY_BYTES = 8;
 constexpr size_t IMSI_BINARY_BYTES = 8;
 constexpr size_t IMEI_DEFAULT_LENGTH = 15;
 constexpr size_t IMSI_DEFAULT_LENGTH = 15;
+constexpr size_t MSISDN_BINARY_BYTES = 8;
 } // namespace common::constants

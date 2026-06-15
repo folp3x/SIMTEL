@@ -19,7 +19,7 @@ public:
   virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
 
   virtual std::expected<binary_t, std::string> toBinary() const;
-  virtual std::optional<std::string> fromBinary(const common::binary_t &binary);
+  virtual std::optional<std::string> fromBinary(const binary_t &binary);
 
   imsi_t getMTimsi() const;
 };

@@ -26,9 +26,8 @@ public:
   virtual std::optional<std::string>
   fromJsonStr(const std::string &jsonStr) = 0;
 
-  virtual std::expected<common::binary_t, std::string> toBinary() const = 0;
-  virtual std::optional<std::string>
-  fromBinary(const common::binary_t &binary) = 0;
+  virtual std::expected<binary_t, std::string> toBinary() const = 0;
+  virtual std::optional<std::string> fromBinary(const binary_t &binary) = 0;
 
   virtual std::expected<binary_t, std::string> toBytes(Protocol protocol) const;
   virtual std::optional<std::string> fromBytes(const binary_t &bytes,

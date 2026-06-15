@@ -67,10 +67,10 @@ MeasurementControlRequest::toBinary() const {
 }
 
 std::optional<std::string>
-MeasurementControlRequest::fromBinary(const common::binary_t &binary) {
+MeasurementControlRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }

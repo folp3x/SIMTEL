@@ -219,6 +219,14 @@ void App::exitApp() {
   std::cout << "Exiting app..." << std::endl;
 }
 
+unsigned int App::generateSmsId() {
+  curSmsId++;
+  if (curSmsId > MAX_SMS_ID) {
+    curSmsId = 0;
+  }
+  return curSmsId;
+}
+
 void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                         bool &exit) {
   std::string cmdNameUpper = common::uppercased(cmd->getName());

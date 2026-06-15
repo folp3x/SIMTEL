@@ -28,6 +28,12 @@ JsonDeserializer::bsIdFromJsonStr(const std::string &str,
   return deserializeValue<unsigned int>(name, str);
 }
 
+std::expected<unsigned int, std::string>
+JsonDeserializer::smsIdFromJsonStr(const std::string &str,
+                                   const std::string &name) {
+  return deserializeValue<unsigned int>(name, str);
+}
+
 std::expected<std::string, std::string>
 JsonDeserializer::strFromJsonStr(const std::string &str,
                                  const std::string &name) {

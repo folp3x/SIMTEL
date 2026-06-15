@@ -1,17 +1,16 @@
 #pragma once
 
-#include "common/core/location/location/location.h"
 #include "common/core/request/request/request.h"
 
 namespace common {
-class RrcConnectionRequest : public Request {
+class SmDeliveryReportRequest : public Request {
 private:
-  imei_t imei = "";
-  Location<> loc{};
+  msisdn_t msisdn = "";
+  unsigned int smsId = 0;
 
 public:
-  RrcConnectionRequest() = default;
-  RrcConnectionRequest(const imei_t &imei_, const Location<> &loc_);
+  SmDeliveryReportRequest() = default;
+  SmDeliveryReportRequest(const common::msisdn_t &msisdn_, unsigned int smsId_);
 
   virtual std::string toStr() const override;
 
@@ -23,7 +22,7 @@ public:
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const binary_t &binary);
 
-  imei_t getImei() const;
-  Location<> getLoc() const;
+  msisdn_t getMsisdn() const;
+  unsigned int getSmsId() const;
 };
 } // namespace common

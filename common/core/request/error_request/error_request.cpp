@@ -33,8 +33,7 @@ std::expected<binary_t, std::string> ErrorRequest::toBinary() const {
   return BinarySerializer::strToBinary(description);
 }
 
-std::optional<std::string>
-ErrorRequest::fromBinary(const common::binary_t &binary) {
+std::optional<std::string> ErrorRequest::fromBinary(const binary_t &binary) {
   description = BinarySerializer::strFromBinary(binary);
 
   return std::nullopt;

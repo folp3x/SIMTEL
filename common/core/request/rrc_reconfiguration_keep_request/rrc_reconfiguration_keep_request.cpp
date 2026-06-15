@@ -70,7 +70,7 @@ RrcReconfigurationKeepRequest::fromBinary(const common::binary_t &binary) {
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {
-    return "Binary too short for IMEI";
+    return "Binary too short for BS id";
   }
   auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
   if (!parsedBsId) {

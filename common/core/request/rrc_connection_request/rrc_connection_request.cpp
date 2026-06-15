@@ -55,10 +55,10 @@ std::expected<binary_t, std::string> RrcConnectionRequest::toBinary() const {
 }
 
 std::optional<std::string>
-RrcConnectionRequest::fromBinary(const common::binary_t &binary) {
+RrcConnectionRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
@@ -70,7 +70,7 @@ RrcConnectionRequest::fromBinary(const common::binary_t &binary) {
 
   auto locBinary = it.getRemaining();
   if (!locBinary) {
-    return "Binary too short for IMEI";
+    return "Binary too short for location";
   }
   auto parsedLoc = Location<>::fromBinary(*locBinary);
   if (!parsedLoc) {

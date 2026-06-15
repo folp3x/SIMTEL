@@ -18,6 +18,10 @@ class App {
 private:
   static constexpr unsigned int HANDOVER_SIGNAL_THRESHOLD = 40;
 
+  static constexpr unsigned int MAX_SMS_ID = 9999;
+
+  unsigned int curSmsId = 0;
+
   UeContext ctx;
   UeExchange exchange;
 
@@ -51,6 +55,8 @@ private:
   void handleSentCommand() const;
 
   void exitApp();
+
+  unsigned int generateSmsId();
 
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 

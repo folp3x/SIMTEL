@@ -3,14 +3,22 @@
 #include "common/core/request/request/request.h"
 
 namespace common {
-class RrcReconfigurationHandoverRequest : public Request {
+class SmTransferRequest : public Request {
 private:
+  static constexpr size_t TEXT_CHARS_SHOWED = 10;
+
   imsi_t mTimsi = "";
-  unsigned int bsId = 0;
+  unsigned int smsId = 0;
+  msisdn_t msisdn = "";
+  std::string text = "";
+
+protected:
+  std::string getValuesStr() const;
 
 public:
-  RrcReconfigurationHandoverRequest() = default;
-  RrcReconfigurationHandoverRequest(const imsi_t &mTimsi_, unsigned int bsId_);
+  SmTransferRequest() = default;
+  SmTransferRequest(const imsi_t &mTimsi_, unsigned int smsId_,
+                    const common::msisdn_t &msisdn_, const std::string &text_);
 
   virtual std::string toStr() const override;
 
@@ -23,6 +31,8 @@ public:
   virtual std::optional<std::string> fromBinary(const binary_t &binary);
 
   imsi_t getMTimsi() const;
-  unsigned int getBsId() const;
+  unsigned int getSmsId() const;
+  msisdn_t getMsisdn() const;
+  std::string getText() const;
 };
 } // namespace common

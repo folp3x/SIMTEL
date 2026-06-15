@@ -55,12 +55,12 @@ RrcReconfigurationHandoverRequest::toBinary() const {
 }
 
 std::optional<std::string>
-RrcReconfigurationHandoverRequest::fromBinary(const common::binary_t &binary) {
+RrcReconfigurationHandoverRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto mTimsiBinary = it.getNext(common::constants::IMSI_BINARY_BYTES);
+  auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
   if (!mTimsiBinary) {
-    return "Binary too short for m-TIMSI";
+    return "Binary too short for m-timsi";
   }
   auto parsedMTimsi = BinarySerializer::imsiFromBinary(*mTimsiBinary);
   if (!parsedMTimsi) {
@@ -70,7 +70,7 @@ RrcReconfigurationHandoverRequest::fromBinary(const common::binary_t &binary) {
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {
-    return "Binary too short for m-TIMSI";
+    return "Binary too short for BS id";
   }
   auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
   if (!parsedBsId) {

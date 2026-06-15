@@ -42,7 +42,7 @@ RrcReconfigurationCompleteRequest::toBinary() const {
 }
 
 std::optional<std::string>
-RrcReconfigurationCompleteRequest::fromBinary(const common::binary_t &binary) {
+RrcReconfigurationCompleteRequest::fromBinary(const binary_t &binary) {
   binary_t mTimsiBinary(binary.begin(), binary.end());
   auto parsedMTimsi = BinarySerializer::imsiFromBinary(mTimsiBinary);
   if (!parsedMTimsi) {

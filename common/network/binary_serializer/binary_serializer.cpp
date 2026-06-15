@@ -70,4 +70,22 @@ std::optional<imsi_t> BinarySerializer::imsiFromBinary(const binary_t &binary) {
 
   return imsi;
 }
+
+std::optional<binary_t> BinarySerializer::msisdnToBinary(const msisdn_t &imsi) {
+  auto msisdnNum = fromString<uint64_t>(imsi);
+  if (!msisdnNum) {
+    return std::nullopt;
+  }
+  return toBinary<>(*msisdnNum);
+}
+
+std::optional<msisdn_t>
+BinarySerializer::msisdnFromBinary(const binary_t &binary) {
+  auto deserialized = fromBinary<uint64_t>(binary);
+  if (!deserialized) {
+    return std::nullopt;
+  }
+
+  return std::to_string(*deserialized);
+}
 } // namespace common
