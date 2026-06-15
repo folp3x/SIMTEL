@@ -74,10 +74,14 @@ std::expected<binary_t, std::string> SmTransferRequest::toBinary() const {
     return std::unexpected("SMS id serialize error");
   }
 
-  auto binMsisdn = BinarySerializer::strToBinary(msisdn);
+  auto binMsisdn = BinarySerializer::msisdnToBinary(msisdn);
+  if (!binMsisdn) {
+    return std::unexpected("MSISDN serialize error");
+  }
+
   auto binText = BinarySerializer::strToBinary(text);
 
-  return mergeBinary(*binMTimsi, *binSmsId, binMsisdn, binText);
+  return mergeBinary(*binMTimsi, *binSmsId, *binMsisdn, binText);
 }
 
 std::optional<std::string>

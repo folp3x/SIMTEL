@@ -332,7 +332,6 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       }
     } else {
       ttlManager->setActive(false);
-      MessageHolder::instance().addMsg("\n");
 
       common::binary_t data = ctx->takeBuf();
       auto reqType = common::parseRequestType(data);
@@ -371,12 +370,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
             createLogMsg("req from " + ctx->toStr() + " = " + req->toStr()));
 
         auto deliveryResponse = std::make_unique<common::SmDeliveryRequest>(
-            "000000000000001", 0, "msisdn1", "");
+            "000000000000001", 1, "80000000000", "test");
         sendResponse(ctx, std::move(deliveryResponse));
-
-        auto reportResponse =
-            std::make_unique<common::SmDeliveryReportRequest>("msisdn2", 0);
-        sendResponse(ctx, std::move(reportResponse));
 
         break;
       }

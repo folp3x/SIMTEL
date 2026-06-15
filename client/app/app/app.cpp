@@ -200,11 +200,12 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
 void App::handleDialogCommand(const MenuItemDialog &cmd) const {
   bool showed = false;
   for (const auto &sms : smsList) {
-    menu.showMenuHeaderLine();
     if (sms.receiver == cmd.getMsisdn()) {
+      menu.showMenuHeaderLine();
       menu.showSentSms(sms);
       showed = true;
     } else if (sms.sender == cmd.getMsisdn()) {
+      menu.showMenuHeaderLine();
       menu.showReceivedSms(sms);
       showed = true;
     }
@@ -233,8 +234,8 @@ void App::handleReceivedCommand() const {
 void App::handleSentCommand() const {
   bool showed = false;
   for (const auto &sms : smsList) {
-    menu.showMenuHeaderLine();
     if (!sms.receiver.empty()) {
+      menu.showMenuHeaderLine();
       menu.showSentSms(sms);
       showed = true;
     }
@@ -332,11 +333,23 @@ void App::run() {
 
       if (auto *deliverResponse =
               dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
-        addMsg(deliverResponse->getMsisdn());
+
+        addMsg("Sms received");
+
+        common::Sms sms{{},
+                        std::chrono::time_point_cast<std::chrono::seconds>(
+                            std::chrono::system_clock::now()),
+                        deliverResponse->getMsisdn(),
+                        "",
+                        deliverResponse->getText(),
+                        true};
+
+        std::lock_guard lock(smsListMtx);
+        smsList.push_back(sms);
       } else if (auto *reportResponse =
                      dynamic_cast<common::SmDeliveryReportRequest *>(
                          response.get())) {
-        addMsg(reportResponse->getMsisdn());
+        return;
       }
     });
   }};

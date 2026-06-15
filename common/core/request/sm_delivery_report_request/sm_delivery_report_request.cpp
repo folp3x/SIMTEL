@@ -41,14 +41,17 @@ SmDeliveryReportRequest::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string> SmDeliveryReportRequest::toBinary() const {
-  auto binMsisdn = BinarySerializer::strToBinary(msisdn);
+  auto binMsisdn = BinarySerializer::msisdnToBinary(msisdn);
+  if (!binMsisdn) {
+    return std::unexpected("MSISDN serialize error");
+  }
 
   auto binSmsId = BinarySerializer::toBinary(smsId);
   if (!binSmsId) {
     return std::unexpected("SMS id serialize error");
   }
 
-  return mergeBinary(binMsisdn, *binSmsId);
+  return mergeBinary(*binMsisdn, *binSmsId);
 }
 
 std::optional<std::string>
