@@ -20,5 +20,7 @@ public:
 
   bool changePath(const common::imsi_t &mTimsi,
                   std::shared_ptr<SimtelBaseStation> bs);
+
+  size_t getSize() const;
 };
 } // namespace server

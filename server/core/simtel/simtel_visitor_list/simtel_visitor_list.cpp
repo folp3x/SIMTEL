@@ -42,4 +42,6 @@ bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
   return true;
 }
 
+size_t SimtelVisitorList::getSize() const { return records.size(); }
+
 } // namespace server

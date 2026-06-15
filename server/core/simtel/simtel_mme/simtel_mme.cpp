@@ -33,6 +33,10 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
   }
 
   if (!found) {
+    if (vlr.getSize() >= maxVlrSize) {
+      return "VLR cant accept more records";
+    }
+
     auto mTimsi = generateMTimsi();
     vlr.setRecord({mTimsi, imsi, imei, "msisdn", nullptr});
     return mTimsi;

@@ -104,7 +104,9 @@ std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
 
 SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_)
     : id(config.id), mmeId(config.mmeId), radius(config.radius),
-      maxConnections(config.maxConnections), location(config.loc), mme(mme_) {}
+      maxConnections(config.maxConnections), location(config.loc), mme(mme_) {
+  connectedUe.reserve(maxConnections);
+}
 
 std::optional<std::string>
 SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
