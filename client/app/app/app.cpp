@@ -33,8 +33,10 @@ std::string App::formChangeMessage(const std::string &paramName,
 }
 
 void App::handleLocationUpdate() {
+  auto req = std::make_unique<common::RrcConnectionRequest>(ctx.getImei(),
+                                                            ctx.getLocation());
   exchange.addRequest(
-      ctx.getState(), common::RequestType::Rrc_Connection,
+      ctx.getState(), std::move(req),
       [this](std::unique_ptr<common::Request> response,
              const std::string &error) {
         if (!error.empty()) {
@@ -157,8 +159,6 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
       smsContent.pop_back();
     }
   }
-
-  addMsg("SMS: " + targetMsisdn + ", " + smsContent);
 }
 
 void App::handleDialogCommand(const MenuItemDialog &cmd) const {

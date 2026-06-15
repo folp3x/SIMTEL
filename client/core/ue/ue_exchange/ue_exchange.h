@@ -15,7 +15,7 @@ private:
 
   struct RequestInfo {
     UeState state;
-    common::RequestType type = common::RequestType::Unknown;
+    std::unique_ptr<common::Request> req;
     CallbackType callback{};
   };
 
@@ -54,11 +54,11 @@ public:
   explicit UeExchange(const common::NetworkAddress &serverAddr_);
 
   std::expected<std::unique_ptr<common::Request>, std::string>
-  handleLocationUpdate(const RequestInfo &info);
+  handleLocationUpdate(RequestInfo info);
 
   void handleRequests();
 
-  void addRequest(const UeState &state, common::RequestType type,
+  void addRequest(const UeState &state, std::unique_ptr<common::Request> req,
                   const CallbackType &callback);
 
   std::optional<std::string> updateConnection(bool ueActive);

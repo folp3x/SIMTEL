@@ -54,38 +54,41 @@ void UeExchange::handleRequests() {
       break;
     }
 
-    RequestInfo info = requests.front();
+    RequestInfo info = std::move(requests.front());
     requests.pop();
     lock.unlock();
 
-    if (info.type != common::RequestType::Rrc_Connection && signalLevel == 0) {
+    if (info.req->getType() != common::RequestType::Rrc_Connection &&
+        signalLevel == 0) {
       info.callback(nullptr, "Not connected");
       continue;
     }
 
+    CallbackType callback = info.callback;
     curProtocol = info.state.protocol;
-    switch (info.type) {
+    switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
-      auto result = handleLocationUpdate(info);
+      auto result = handleLocationUpdate(std::move(info));
       if (!result) {
         signalLevel = 0;
-        info.callback(nullptr, result.error());
+        callback(nullptr, result.error());
       } else {
-        info.callback(std::move(*result), "");
+        callback(std::move(*result), "");
       }
       break;
     }
     default:
-      info.callback(nullptr, "Unknown request type");
+      callback(nullptr, "Unknown request type");
     }
   }
 }
 
-void UeExchange::addRequest(const UeState &state, common::RequestType type,
+void UeExchange::addRequest(const UeState &state,
+                            std::unique_ptr<common::Request> req,
                             const CallbackType &callback) {
   {
     std::lock_guard lock(requestsMtx);
-    requests.push({state, type, callback});
+    requests.push({state, std::move(req), callback});
   }
   requestsCv.notify_one();
 }
@@ -104,13 +107,11 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 }
 
 std::expected<std::unique_ptr<common::Request>, std::string>
-UeExchange::handleLocationUpdate(const RequestInfo &info) {
+UeExchange::handleLocationUpdate(RequestInfo info) {
   std::lock_guard lock(receiveMtx);
   sock.setReceiveTimeout(HANDLE_LOCATION_UPDATE_TIMEOUT_MSEC);
 
-  auto locationReq = std::make_unique<common::RrcConnectionRequest>(
-      info.state.imei, info.state.location);
-  auto locationSendError = sendRequest(std::move(locationReq));
+  auto locationSendError = sendRequest(std::move(info.req));
   if (locationSendError) {
     return std::unexpected("Failed to send location - " + *locationSendError);
   }
