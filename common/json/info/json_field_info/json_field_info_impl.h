@@ -32,15 +32,15 @@ JsonFieldInfo<T>::JsonFieldInfo(
 template <typename T>
 std::optional<std::string> JsonFieldInfo<T>::parse(const nlohmann::json &json,
                                                    bool finalParse) {
-  std::string nameQuoted = getName(true);
+  std::string showedName = name.empty() ? "root element" : getName(true);
 
   if (!name.empty() && !json.contains(name)) {
-    return nameQuoted + " is required";
+    return showedName + " is required";
   }
 
   const auto &fieldJson = getFieldJson(json);
   if (!hasJsonType(fieldJson, type)) {
-    return nameQuoted + " must have a type '" + jsonTypeToStr(type) + "'";
+    return showedName + " must have a type '" + jsonTypeToStr(type) + "'";
   }
 
   T field = fieldJson.template get<T>();

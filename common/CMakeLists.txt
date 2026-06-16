@@ -38,6 +38,7 @@ set(SOURCES_LIST
 	"core/request/sm_transfer_request/sm_transfer_request.cpp"
 	"core/request/sm_delivery_request/sm_delivery_request.cpp"
 	"core/request/sm_delivery_report_request/sm_delivery_report_request.cpp"
+	"core/request/sm_delivery_ack_request/sm_delivery_ack_request.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

@@ -68,12 +68,14 @@ int main(int argc, char *argv[]) {
     }
 
     auto addressBookParser = client::AddressBookParser::create();
-    auto addressBook =
+    auto parsedAddressBook =
         addressBookParser->parse(config.getAddressBookFilePath());
 
-    if (addressBook) {
+    std::map<char, common::msisdn_t> addressBook;
+    if (parsedAddressBook) {
+      addressBook = std::move(*parsedAddressBook);
     } else {
-      std::cout << "Error loading address book: " << addressBook.error()
+      std::cout << "Error loading address book: " << parsedAddressBook.error()
                 << std::endl;
     }
 
@@ -83,7 +85,7 @@ int main(int argc, char *argv[]) {
     client::UeContext ctx{config.getImsi(), config.getImei(), location,
                           serverAddr};
 
-    client::App app{ctx, *addressBook};
+    client::App app{ctx, addressBook};
     app.run();
 
     return 0;

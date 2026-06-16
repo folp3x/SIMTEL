@@ -11,14 +11,14 @@ JsonObjectArrayInfo::JsonObjectArrayInfo(
 
 std::optional<std::string>
 JsonObjectArrayInfo::parse(const nlohmann::json &json, bool finalParse) {
-  std::string nameQuoted = getName(true);
+  std::string showedName = name.empty() ? "root element" : getName(true);
   if (!name.empty() && !json.contains(name)) {
-    return nameQuoted + " is required";
+    return showedName + " is required";
   }
 
   const auto &fieldJson = getFieldJson(json);
   if (!hasJsonType(fieldJson, nlohmann::json::value_t::array)) {
-    return nameQuoted + " must have a type 'array'";
+    return showedName + " must have a type 'array'";
   }
 
   for (size_t i = 0; i < fieldJson.size(); ++i) {

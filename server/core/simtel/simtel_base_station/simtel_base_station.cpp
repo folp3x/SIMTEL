@@ -219,11 +219,13 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     const common::MeasurementReportRequest &req,
     std::shared_ptr<SimtelUeContext> ctx, bool &handover) const {
   if (!canAcceptConnection()) {
-    auto response = std::make_unique<common::ErrorRequest>("BS busy");
+    std::string error = "BS busy";
+    auto response = std::make_unique<common::ErrorRequest>(error);
     auto responseSendError = sendResponse(ctx, std::move(response));
     if (responseSendError) {
       return "Error sending error info: " + *responseSendError;
     }
+    return error;
   }
 
   auto mTimsi = mme->handleAttachRequest(req.getImsi(), req.getImei());
@@ -233,7 +235,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     if (responseSendError) {
       return "Error sending error info: " + *responseSendError;
     }
-    return std::nullopt;
+    return mTimsi.error();
   }
 
   MessageHolder::instance().addMsg(
@@ -390,6 +392,13 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         auto error = handleSmTransfer(ctx, *req);
         if (error) {
           MessageHolder::instance().addErrorMsg(*error);
+          auto response =
+              std::make_unique<common::ErrorRequest>("Failed to deliver SMS");
+          auto responseSendError = sendResponse(ctx, std::move(response));
+          if (responseSendError) {
+            MessageHolder::instance().addErrorMsg("Error sending error info: " +
+                                                  *responseSendError);
+          }
         }
 
         break;

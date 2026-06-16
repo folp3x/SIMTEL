@@ -7,14 +7,14 @@ JsonObjectInfo::JsonObjectInfo(const std::string &name) : JsonBaseInfo(name) {}
 
 std::optional<std::string> JsonObjectInfo::parse(const nlohmann::json &json,
                                                  bool finalParse) {
-  std::string nameQuoted = getName(true);
+  std::string showedName = name.empty() ? "root element" : getName(true);
   if (!name.empty() && !json.contains(name)) {
-    return nameQuoted + " is required";
+    return showedName + " is required";
   }
 
   const auto &fieldJson = getFieldJson(json);
   if (!hasJsonType(fieldJson, nlohmann::json::value_t::object)) {
-    return nameQuoted + " must have a type 'object'";
+    return showedName + " must have a type 'object'";
   }
 
   for (const auto &field : innerFields) {

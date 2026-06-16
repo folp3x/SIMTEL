@@ -3,14 +3,16 @@
 #include "common/core/request/request/request.h"
 
 namespace common {
-class SmDeliveryReportRequest : public Request {
+class SmDeliveryAckRequest : public Request {
 private:
   imsi_t mTimsi = "";
   unsigned int smsId = 0;
+  msisdn_t msisdn = "";
 
 public:
-  SmDeliveryReportRequest() = default;
-  SmDeliveryReportRequest(const common::imsi_t &mTimsi_, unsigned int smsId_);
+  SmDeliveryAckRequest() = default;
+  SmDeliveryAckRequest(const imsi_t &mTimsi_, unsigned int smsId_,
+                       const common::msisdn_t &msisdn_);
 
   virtual RequestType getType() const override;
 
@@ -22,5 +24,6 @@ public:
 
   imsi_t getMTimsi() const;
   unsigned int getSmsId() const;
+  msisdn_t getMsisdn() const;
 };
 } // namespace common

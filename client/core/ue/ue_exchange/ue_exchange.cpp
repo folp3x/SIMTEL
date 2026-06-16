@@ -278,6 +278,11 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
             *receivedResponse);
         break;
       }
+      case common::RequestType::Error: {
+        auto error = parseFromBytes<common::ErrorRequest>(*data);
+        return callback(nullptr,
+                        error ? error->getDescription() : error.error());
+      }
       default:
         callback(nullptr,
                  "Unexpected request type received while receiving SMS info");
