@@ -30,8 +30,8 @@ void SimtelVisitorList::setRecord(const VlrRecord &record) {
 }
 
 void SimtelVisitorList::removeRecord(const common::imsi_t &mTimsi) {
-  bool removed = records.erase(mTimsi);
-  if (removed) {
+  size_t removedCount = records.erase(mTimsi);
+  if (removedCount > 0) {
     MessageHolder::instance().addMsg(
         createLogMsg("removed record of m-timsi = " + mTimsi));
   }
@@ -53,5 +53,14 @@ bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
 }
 
 size_t SimtelVisitorList::getSize() const { return records.size(); }
+
+std::optional<VlrRecord>
+SimtelVisitorList::findByMTimsi(const common::imsi_t &mTimsi) const {
+  auto it = records.find(mTimsi);
+  if (it == records.end()) {
+    return std::nullopt;
+  }
+  return it->second;
+}
 
 } // namespace server

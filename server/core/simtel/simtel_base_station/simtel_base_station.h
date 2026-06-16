@@ -3,6 +3,7 @@
 #include "common/core/location/location/location.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/sm_transfer_request/sm_transfer_request.h"
 #include "common/network/protocol/protocol.h"
 #include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
@@ -81,6 +82,20 @@ public:
   bool removeUe(const common::imsi_t &mTImsi);
 
   void handleUe(std::shared_ptr<SimtelUeContext> ctx);
+
+  std::optional<std::string>
+  handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
+                   const common::SmTransferRequest &req);
+
+  bool handleForwardSmReq(const common::imsi_t &imsi, size_t smsTextSize);
+  bool handleMtForwardSm(const common::imsi_t &imsi,
+                         const common::binary_t &smsText);
+
+  std::optional<std::string> prepareSmDelivery(const common::imsi_t &imsi,
+                                               unsigned int smsId,
+                                               const common::imsi_t &msisdn);
+
+  std::optional<std::string> sendSmDelivery(const common::imsi_t &imsi);
 };
 } // namespace server
 

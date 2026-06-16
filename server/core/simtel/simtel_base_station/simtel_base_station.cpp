@@ -8,7 +8,6 @@
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "common/core/request/sm_delivery_request/sm_delivery_request.h"
-#include "common/core/request/sm_transfer_request/sm_transfer_request.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
@@ -382,17 +381,16 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
           continue;
         }
 
-        ctx->setProtocol(protocol);
-
         MessageHolder::instance().addMsg(
             createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
             common::MenuMessageType::INFO);
 
-        ctx->clearBuf();
+        ctx->setProtocol(protocol);
 
-        auto deliveryResponse = std::make_unique<common::SmDeliveryRequest>(
-            "000000000000001", 1, "80000000000", "test");
-        sendResponse(ctx, std::move(deliveryResponse));
+        auto error = handleSmTransfer(ctx, *req);
+        if (error) {
+          MessageHolder::instance().addErrorMsg(*error);
+        }
 
         break;
       }
@@ -404,5 +402,93 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       ttlManager->setActive(false);
     }
   }
+}
+
+std::optional<std::string>
+SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
+                                    const common::SmTransferRequest &req) {
+  bool contextCreated = mme->handleSmSubmit(req.getMTimsi(), req.getSmsId());
+  if (!contextCreated) {
+    ctx->clearBuf();
+    return "SMSC cant create context for SMS";
+  }
+
+  bool smsMoved =
+      mme->handleMoForwardSM(req.getMTimsi(), req.getSmsId(), req.getText());
+  if (!smsMoved) {
+    ctx->clearBuf();
+    return "SMSC cant move SMS to context";
+  }
+
+  ctx->clearBuf();
+
+  return mme->sendRoutingInfoSm(req.getMsisdn(), req.getSmsId(),
+                                req.getMTimsi());
+
+  return std::nullopt;
+}
+
+bool SimtelBaseStation::handleForwardSmReq(const common::imsi_t &imsi,
+                                           size_t smsTextSize) {
+  auto it = connectedUe.find(imsi);
+  if (it == connectedUe.end()) {
+    return false;
+  }
+
+  it->second->aquireBuf(smsTextSize);
+  return true;
+}
+
+bool SimtelBaseStation::handleMtForwardSm(const common::imsi_t &imsi,
+                                          const common::binary_t &smsText) {
+  auto it = connectedUe.find(imsi);
+  if (it == connectedUe.end()) {
+    return false;
+  }
+
+  return it->second->fillBuf(smsText);
+}
+
+std::optional<std::string>
+SimtelBaseStation::prepareSmDelivery(const common::imsi_t &imsi,
+                                     unsigned int smsId,
+                                     const common::imsi_t &msisdn) {
+  auto it = connectedUe.find(imsi);
+  if (it == connectedUe.end()) {
+    return std::optional("UE with such imsi not connected");
+  }
+
+  auto ctx = it->second;
+  auto buf = ctx->takeBuf();
+  if (buf.empty()) {
+    return "No SMS text in buf";
+  }
+
+  std::string smsText = common::BinarySerializer::strFromBinary(buf);
+  auto deliveryResponse =
+      std::make_unique<common::SmDeliveryRequest>(imsi, smsId, msisdn, smsText);
+  auto bytes = deliveryResponse->toBytes(ctx->getProtocol());
+  if (!bytes) {
+    return bytes.error();
+  }
+  ctx->setBuf(*bytes);
+
+  return std::nullopt;
+}
+
+std::optional<std::string>
+SimtelBaseStation::sendSmDelivery(const common::imsi_t &imsi) {
+  auto it = connectedUe.find(imsi);
+  if (it == connectedUe.end()) {
+    return std::optional("UE with such imsi not connected");
+  }
+
+  auto ctx = it->second;
+  auto sendError = ctx->sendBufToUe();
+  if (!sendError) {
+    return std::nullopt;
+  }
+
+  return sendError->description;
 }
 } // namespace server

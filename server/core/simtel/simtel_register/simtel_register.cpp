@@ -93,7 +93,7 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (updated.empty()) {
-      return std::unexpected("Error updating record for IMSI: " + imsi);
+      return std::unexpected("HLR error updating record for IMSI: " + imsi);
     }
 
     std::string mmeIdStr =
@@ -109,13 +109,34 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
 }
 
 std::expected<HlrRecord, std::string>
-SimtelRegister::handleRoutingInfoSM(const common::msisdn_t &msisdn) {
+SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
+  try {
+    auto records = storage.get_all<HlrRecord>(
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
+
+    if (records.empty()) {
+      return std::unexpected("HLR record not found for IMSI: " + imsi);
+    }
+
+    HlrRecord record = records[0];
+
+    MessageHolder::instance().addMsg(
+        createLogMsg("found record: " + record.toStr()));
+
+    return record;
+  } catch (const std::exception &e) {
+    return std::unexpected("HLR DB error: " + std::string(e.what()));
+  }
+}
+
+std::expected<HlrRecord, std::string>
+SimtelRegister::handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));
 
     if (records.empty()) {
-      return std::unexpected("Record not found for MSISDN: " + msisdn);
+      return std::unexpected("HLR record not found for MSISDN: " + msisdn);
     }
 
     HlrRecord record = records[0];

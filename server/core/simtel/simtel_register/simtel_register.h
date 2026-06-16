@@ -43,6 +43,9 @@ public:
   handleUpdateLocationRequest(const common::imsi_t &imsi, unsigned int mmeId);
 
   std::expected<HlrRecord, std::string>
-  handleRoutingInfoSM(const common::msisdn_t &msisdn);
+  handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn);
+
+  std::expected<HlrRecord, std::string>
+  handleRoutingInfoSmSender(const common::imsi_t &imsi);
 };
 } // namespace server

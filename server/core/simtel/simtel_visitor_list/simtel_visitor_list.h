@@ -28,5 +28,7 @@ public:
                   std::shared_ptr<SimtelBaseStation> bs);
 
   size_t getSize() const;
+
+  std::optional<VlrRecord> findByMTimsi(const common::imsi_t &mTimsi) const;
 };
 } // namespace server

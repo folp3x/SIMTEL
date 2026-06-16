@@ -34,7 +34,7 @@ private:
 
   std::string createLogMsg(const std::string &content) const;
 
-  std::optional<std::shared_ptr<SimtelMme>> findOtherById(unsigned int id);
+  std::shared_ptr<SimtelMme> findOtherById(unsigned int id) const;
 
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
@@ -60,11 +60,18 @@ public:
   std::optional<std::string> handleAuthResponse(const common::imsi_t &mTimsi,
                                                 unsigned int bsId);
 
-  void handleSmSubmit(const common::imsi_t &mTimsi, unsigned int smsId);
+  bool handleSmSubmit(const common::imsi_t &mtimsi_s, unsigned int smsId);
 
-  bool handleMoForwardSM(const common::imsi_t &mTimsi, unsigned int smsId,
+  bool handleMoForwardSM(const common::imsi_t &mtimsi_s, unsigned int smsId,
                          const std::string &smsText);
 
-  void sendRoutingInfoSm(const common::msisdn_t &msisdn_d);
+  std::optional<std::string> sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
+                                               unsigned int smsId,
+                                               const common::imsi_t &mtimsi_s);
+
+  std::optional<std::string>
+  handleChangeAfterSriSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
+                         const common::imsi_t &mtimsi_s,
+                         const common::imsi_t &mtimsi_d);
 };
 } // namespace server

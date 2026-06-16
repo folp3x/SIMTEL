@@ -32,14 +32,14 @@ common::binary_t SimtelUeContext::takeBuf() {
   std::unique_lock lock(bufMtx);
   auto copy = buf;
   buf.clear();
-  bufCv.notify_one();
+  bufEmptyCv.notify_one();
 
   return copy;
 }
 
 void SimtelUeContext::setBuf(const common::binary_t &buf_) {
   std::unique_lock lock(bufMtx);
-  bufCv.wait(lock, [this] { return buf.empty(); });
+  bufEmptyCv.wait(lock, [this] { return buf.empty(); });
   buf = buf_;
   MessageHolder::instance().addMsg(toStr() + " buf set (" +
                                    std::to_string(buf.size()) + " bytes)");
@@ -57,7 +57,21 @@ void SimtelUeContext::clearBuf() {
   MessageHolder::instance().addMsg(toStr() + " buf cleared (" +
                                    std::to_string(buf.size()) + " bytes)");
   buf.clear();
-  bufCv.notify_one();
+  bufEmptyCv.notify_one();
+}
+
+void SimtelUeContext::aquireBuf(size_t size) {
+  std::unique_lock lock(bufMtx);
+  bufEmptyCv.wait(lock, [this] { return buf.empty(); });
+  buf.resize(size);
+}
+
+bool SimtelUeContext::fillBuf(const common::binary_t &data) {
+  if (buf.size() != data.size()) {
+    return false;
+  }
+  buf.assign(data.begin(), data.end());
+  return true;
 }
 
 std::optional<common::NetworkError> SimtelUeContext::receiveData() {

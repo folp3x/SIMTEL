@@ -16,26 +16,56 @@ std::string SimtelSmsc::createLogMsg(const std::string &content) const {
 SimtelSmsc::SimtelSmsc(const SmscConfig &config)
     : smsTtlMs(config.smsTtlMs), cdrJsonFilePath(config.cdrJsonFilePath) {}
 
-void SimtelSmsc::handleSmSubmit(const common::imsi_t &mTimsi,
+bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
                                 unsigned int smsId) {
-  MessageHolder::instance().addMsg(
-      createLogMsg("created sms context for " + smsUidToStr({mTimsi, smsId})));
+  MessageHolder::instance().addMsg(createLogMsg(
+      "created sms context for " + smsUidToStr({mtimsi_s, smsId})));
 
-  context.insert({{mTimsi, smsId}, ""});
+  if (context.size() < MAX_CONTEXT_SIZE) {
+    context.insert({{mtimsi_s, smsId}, {mtimsi_s, "", "", "", "", 0}});
+    return true;
+  }
+
+  return false;
 }
 
-bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mTimsi,
+bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mtimsi_s,
                                    unsigned int smsId,
                                    const std::string &smsText) {
-  auto it = context.find({mTimsi, smsId});
+  auto it = context.find({mtimsi_s, smsId});
   if (it == context.end()) {
     return false;
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("moved sms text of " + smsUidToStr({mTimsi, smsId})));
+      createLogMsg("moved sms text of " + smsUidToStr(it->first)));
 
-  it->second = smsText;
+  it->second.text = smsText;
   return true;
+}
+
+bool SimtelSmsc::updateContextMTimsiD(const common::imsi_t &mtimsi_s,
+                                      unsigned int smsId,
+                                      const common::imsi_t &mtimsi_d) {
+  auto it = context.find({mtimsi_s, smsId});
+  if (it == context.end()) {
+    return false;
+  }
+
+  MessageHolder::instance().addMsg(
+      createLogMsg("updated mtimsi_d of " + smsUidToStr(it->first)));
+
+  it->second.mtimsi_d = mtimsi_d;
+  return true;
+}
+
+std::optional<std::string>
+SimtelSmsc::getSmsText(unsigned int smsId, const common::imsi_t &mtimsi_s) {
+  auto it = context.find({mtimsi_s, smsId});
+  if (it == context.end()) {
+    return std::nullopt;
+  }
+
+  return it->second.text;
 }
 } // namespace server
