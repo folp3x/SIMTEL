@@ -24,21 +24,26 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
   common::imsi_t realImsi = imsi;
   auto found = vlr.getImsiByMTimsi(imsi);
   if (found) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("Client sended m-timsi is not real imsi"));
     realImsi = *found;
   }
 
-  auto error = hlr->handleAuthInfoRequest(realImsi, imei);
-  if (error) {
-    return std::unexpected(*error);
+  auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei);
+  if (!hlrRecord) {
+    return std::unexpected(hlrRecord.error());
   }
 
   if (!found) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("Client sended m-timsi is real imsi"));
+
     if (vlr.getSize() >= maxVlrSize) {
       return "VLR cant accept more records";
     }
 
     auto mTimsi = generateMTimsi();
-    vlr.setRecord({mTimsi, imsi, imei, "msisdn", nullptr});
+    vlr.setRecord({mTimsi, imsi, imei, hlrRecord->msisdn, nullptr});
     return mTimsi;
   }
 
@@ -58,10 +63,15 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   }
 
   if (vlr.changePath(mTimsi, bs)) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("Searching for real IMSI in VLR"));
+
     auto imsi = vlr.getImsiByMTimsi(mTimsi);
     if (!imsi) {
       return "IMSI not found in VLR";
     }
+
+    MessageHolder::instance().addMsg(createLogMsg("Updating mmeId in HLR"));
 
     return hlr->handleUpdateLocationRequest(*imsi, id);
   }
@@ -90,7 +100,7 @@ common::imsi_t SimtelMme::generateMTimsi() {
     curMTimsi = 0;
   }
 
-  MessageHolder::instance().addMsg("generated T-IMSI: " +
+  MessageHolder::instance().addMsg("Generated m-timsi: " +
                                    common::imsiToStr(curMTimsi));
 
   return common::imsiToStr(curMTimsi);

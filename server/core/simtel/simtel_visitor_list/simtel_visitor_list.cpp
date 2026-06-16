@@ -23,7 +23,7 @@ SimtelVisitorList::getImsiByMTimsi(const common::imsi_t &mTimsi) const {
 
 void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
-      createLogMsg("set record:" + record.toStr()));
+      createLogMsg("set record: " + record.toStr()));
   records.insert({record.mTimsi, record});
 }
 

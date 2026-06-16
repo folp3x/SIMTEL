@@ -281,7 +281,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
 void SimtelBaseStation::addUe(std::shared_ptr<SimtelUeContext> ctx) {
   connectedUe.emplace(ctx->getMTimsi(), ctx);
   MessageHolder::instance().addMsg(
-      createLogMsg(ctx->toStr() + " buffer added "));
+      createLogMsg(ctx->toStr() + " buffer added"));
 }
 
 std::shared_ptr<SimtelUeContext>
@@ -313,12 +313,15 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTImsi) {
 
 void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
   MessageHolder::instance().addMsg(
-      createLogMsg("started handling requests from " + ctx->toStr()));
+      createLogMsg("started handling requests from " + ctx->toStr()),
+      common::MenuMessageType::INFO);
 
   ttlManager->update();
   ttlManager->setActive(true);
 
   while (true) {
+    MessageHolder::instance().addMsg("");
+
     auto receiveError = ctx->receiveData();
 
     if (receiveError) {
@@ -356,15 +359,18 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         }
 
         ctx->setProtocol(protocol);
+
         MessageHolder::instance().addMsg(
-            createLogMsg("req from " + ctx->toStr() + " = " + req->toStr()));
+            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
+            common::MenuMessageType::INFO);
+
+        ctx->clearBuf();
 
         auto updateError = handleLocationUpdate(*req, ctx);
         if (updateError) {
           MessageHolder::instance().addErrorMsg(*updateError);
         }
 
-        ctx->clearBuf();
         break;
       }
       case common::RequestType::SM_Transfer: {
@@ -376,11 +382,13 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
           continue;
         }
 
-        ctx->clearBuf();
-
         ctx->setProtocol(protocol);
+
         MessageHolder::instance().addMsg(
-            createLogMsg("req from " + ctx->toStr() + " = " + req->toStr()));
+            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
+            common::MenuMessageType::INFO);
+
+        ctx->clearBuf();
 
         auto deliveryResponse = std::make_unique<common::SmDeliveryRequest>(
             "000000000000001", 1, "80000000000", "test");

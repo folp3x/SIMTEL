@@ -36,8 +36,8 @@ public:
   void insertData();
   bool hasData();
 
-  std::optional<std::string> handleAuthInfoRequest(const common::imsi_t &imsi,
-                                                   const common::imei_t &imei);
+  std::expected<HlrRecord, std::string>
+  handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei);
 
   std::optional<std::string>
   handleUpdateLocationRequest(const common::imsi_t &imsi, unsigned int mmeId);

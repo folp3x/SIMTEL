@@ -43,7 +43,7 @@ void SimtelRegister::insertData() {
 
 bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }
 
-std::optional<std::string>
+std::expected<HlrRecord, std::string>
 SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
                                       const common::imei_t &imei) {
   try {
@@ -51,24 +51,25 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
-      return "Record not found for IMSI: " + imsi;
+      return std::unexpected("Record not found for IMSI: " + imsi);
     }
 
     HlrRecord record = records[0];
     if (record.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
-      return "UE is banned";
+      return std::unexpected("UE is banned");
     }
 
     if (record.imei != imei) {
-      return "Expected IMEI -" + record.imei + ", got - " + imei;
+      return std::unexpected("Expected IMEI -" + record.imei + ", got - " +
+                             imei);
     }
 
     MessageHolder::instance().addMsg(
         createLogMsg("found record: " + record.toStr()));
 
-    return std::nullopt;
+    return record;
   } catch (const std::exception &e) {
-    return "HLR DB error: " + std::string(e.what());
+    return std::unexpected("HLR DB error: " + std::string(e.what()));
   }
 }
 
