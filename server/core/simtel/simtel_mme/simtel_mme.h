@@ -26,6 +26,8 @@ private:
   std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
 
+  std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> otherMme{};
+
   common::imsi_t generateMTimsi();
 
   std::shared_ptr<SimtelBaseStation> findBsById(unsigned int id) const;
@@ -35,6 +37,8 @@ private:
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
             SimtelSmsc *smsc_);
+
+  void addOtherMme(std::shared_ptr<SimtelMme> mme);
 
   void addBs(std::shared_ptr<SimtelBaseStation> bs);
 

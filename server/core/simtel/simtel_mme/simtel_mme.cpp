@@ -9,6 +9,10 @@ SimtelMme::SimtelMme(const MmeConfig &config,
                      std::shared_ptr<SimtelRegister> hlr_, SimtelSmsc *smsc_)
     : id(config.id), maxVlrSize(config.maxVlrSize), hlr(hlr_), smsc(smsc_) {}
 
+void SimtelMme::addOtherMme(std::shared_ptr<SimtelMme> mme) {
+  otherMme.insert({mme->getId(), mme});
+}
+
 void SimtelMme::addBs(std::shared_ptr<SimtelBaseStation> bs) {
   baseStations.insert({bs->getId(), bs});
 }

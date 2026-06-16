@@ -18,8 +18,6 @@ private:
 
   std::string cdrJsonFilePath = "";
 
-  std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> mmeList;
-
   std::map<SmsUid, std::string> context;
 
   std::string smsUidToStr(const SmsUid &uid);
@@ -28,10 +26,6 @@ private:
 
 public:
   explicit SimtelSmsc(const SmscConfig &config);
-
-  void
-  setMmeList(const std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>>
-                 &mmeList_);
 
   void handleSmSubmit(const common::imsi_t &miTmsi, unsigned int smsId);
   bool handleMoForwardSM(const common::imsi_t &mTimsi, unsigned int smsId,

@@ -16,12 +16,6 @@ std::string SimtelSmsc::createLogMsg(const std::string &content) const {
 SimtelSmsc::SimtelSmsc(const SmscConfig &config)
     : smsTtlMs(config.smsTtlMs), cdrJsonFilePath(config.cdrJsonFilePath) {}
 
-void SimtelSmsc::setMmeList(
-    const std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>>
-        &mmeList_) {
-  mmeList = mmeList_;
-}
-
 void SimtelSmsc::handleSmSubmit(const common::imsi_t &mTimsi,
                                 unsigned int smsId) {
   MessageHolder::instance().addMsg(

@@ -4,5 +4,5 @@
   "imei": "30000000000000",
   "imsi": "40000000000000",
   "loc": [ 0 ],
-  "addressBookFilePath": "./data/address_book.json"
+  "addressBookFilePath": "./data/address_book/address_book2.json"
 }

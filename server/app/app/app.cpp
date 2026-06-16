@@ -37,11 +37,17 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
   SimtelBaseStation::setTtlManager(ttlManager);
   listener.setTtlManager(ttlManager);
 
-  std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> mmeList{};
-
   for (const auto &config : mmeConfigs) {
     mmeList.insert(
         {config.id, std::make_shared<SimtelMme>(config, hlr, smsc.get())});
+  }
+
+  for (auto &[id, mme] : mmeList) {
+    for (auto &[otherId, otherMme] : mmeList) {
+      if (id != otherId) {
+        mme->addOtherMme(otherMme);
+      }
+    }
   }
 
   for (const auto &config : bsConfigs) {
@@ -54,8 +60,6 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     it->second->addBs(bs);
     SimtelBaseStation::addBs(bs);
   }
-
-  smsc->setMmeList(mmeList);
 
   if (!hlr->hasData()) {
     hlr->insertData();
