@@ -9,7 +9,6 @@ namespace server {
 class SimtelBaseStation;
 
 struct VlrRecord {
-  common::imsi_t mTimsi = "";
   common::imsi_t imsi = "";
   common::imei_t imei = "";
   common::msisdn_t msisdn = "";

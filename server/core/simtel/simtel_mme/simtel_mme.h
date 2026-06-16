@@ -41,7 +41,7 @@ public:
             SimtelSmsc *smsc_);
 
   std::optional<common::imsi_t>
-  findImsiInVlr(const common::imsi_t &mTimsi) const;
+  findImsiInHlr(const common::imsi_t &mTimsi) const;
 
   void addOtherMme(std::shared_ptr<SimtelMme> mme);
 

@@ -10,42 +10,29 @@ std::string SimtelVisitorList::createLogMsg(const std::string &content) const {
 
 SimtelVisitorList::SimtelVisitorList(unsigned int mmeId_) : mmeId(mmeId_) {}
 
-std::optional<common::imsi_t>
-SimtelVisitorList::getImsiByMTimsi(const common::imsi_t &mTimsi) const {
-  auto it = records.find(mTimsi);
-  if (it == records.end()) {
-    return std::nullopt;
-  }
-
-  MessageHolder::instance().addMsg(
-      createLogMsg("found record: " + it->second.toStr()));
-
-  return it->second.imsi;
-}
-
 void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
       createLogMsg("set record: " + record.toStr()));
-  records.insert({record.mTimsi, record});
+  records.insert({record.imsi, record});
 }
 
-void SimtelVisitorList::removeRecord(const common::imsi_t &mTimsi) {
-  size_t removedCount = records.erase(mTimsi);
+void SimtelVisitorList::removeRecord(const common::imsi_t &imsi) {
+  size_t removedCount = records.erase(imsi);
   if (removedCount > 0) {
     MessageHolder::instance().addMsg(
-        createLogMsg("removed record of m-timsi = " + mTimsi));
+        createLogMsg("removed record of timsi = " + imsi));
   }
 }
 
-bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
+bool SimtelVisitorList::changePath(const common::imsi_t &imsi,
                                    std::shared_ptr<SimtelBaseStation> bs) {
-  auto it = records.find(mTimsi);
+  auto it = records.find(imsi);
   if (it == records.end()) {
     return false;
   }
 
-  MessageHolder::instance().addMsg(createLogMsg("changed path of m-timsi " +
-                                                mTimsi + " to BS_" +
+  MessageHolder::instance().addMsg(createLogMsg("changed path of imsi " + imsi +
+                                                " to BS_" +
                                                 std::to_string(bs->getId())));
 
   it->second.bs = bs;
@@ -55,8 +42,8 @@ bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
 size_t SimtelVisitorList::getSize() const { return records.size(); }
 
 std::optional<VlrRecord>
-SimtelVisitorList::findByMTimsi(const common::imsi_t &mTimsi) const {
-  auto it = records.find(mTimsi);
+SimtelVisitorList::findByImsi(const common::imsi_t &imsi) const {
+  auto it = records.find(imsi);
   if (it == records.end()) {
     return std::nullopt;
   }

@@ -5,8 +5,8 @@
 
 namespace server {
 std::string SimtelSmsc::smsUidToStr(const SmsUid &uid) {
-  return "sms-uid{iTimsi=" + uid.first +
-         ", smsId=" + std::to_string(uid.second) + "}";
+  return "uid{iTimsi=" + uid.first + ", smsId=" + std::to_string(uid.second) +
+         "}";
 }
 
 std::string SimtelSmsc::createLogMsg(const std::string &content) const {
@@ -19,7 +19,7 @@ SimtelSmsc::SimtelSmsc(const SmscConfig &config)
 bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
                                 unsigned int smsId) {
   MessageHolder::instance().addMsg(createLogMsg(
-      "created sms context for " + smsUidToStr({mtimsi_s, smsId})));
+      "created SMS context for " + smsUidToStr({mtimsi_s, smsId})));
 
   if (context.size() < MAX_CONTEXT_SIZE) {
     context.insert({{mtimsi_s, smsId}, {mtimsi_s, "", "", "", "", 0}});
@@ -38,7 +38,7 @@ bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mtimsi_s,
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("moved sms text of " + smsUidToStr(it->first)));
+      createLogMsg("moved sms text from BS of " + smsUidToStr(it->first)));
 
   it->second.text = smsText;
   return true;

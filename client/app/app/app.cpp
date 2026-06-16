@@ -202,17 +202,17 @@ void App::handleDialogCommand(const MenuItemDialog &cmd) const {
   for (const auto &sms : smsList) {
     if (sms.receiver == cmd.getMsisdn()) {
       menu.showMenuHeaderLine();
-      menu.showSentSms(sms);
+      menu.showReceivedSms(sms);
       showed = true;
     } else if (sms.sender == cmd.getMsisdn()) {
       menu.showMenuHeaderLine();
-      menu.showReceivedSms(sms);
+      menu.showSentSms(sms);
       showed = true;
     }
   }
 
   if (!showed) {
-    menu.showError("No dialog found");
+    menu.showError("No dialog");
   }
 }
 
@@ -334,7 +334,7 @@ void App::run() {
       if (auto *deliverResponse =
               dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
 
-        addMsg("Sms received");
+        addMsg("SMS received");
 
         common::Sms sms{{},
                         std::chrono::time_point_cast<std::chrono::seconds>(

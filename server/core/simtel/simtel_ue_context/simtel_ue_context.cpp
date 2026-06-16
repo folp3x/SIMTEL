@@ -64,6 +64,8 @@ void SimtelUeContext::aquireBuf(size_t size) {
   std::unique_lock lock(bufMtx);
   bufEmptyCv.wait(lock, [this] { return buf.empty(); });
   buf.resize(size);
+  MessageHolder::instance().addMsg(toStr() + " buf aquired (" +
+                                   std::to_string(buf.size()) + " bytes)");
 }
 
 bool SimtelUeContext::fillBuf(const common::binary_t &data) {
@@ -71,6 +73,8 @@ bool SimtelUeContext::fillBuf(const common::binary_t &data) {
     return false;
   }
   buf.assign(data.begin(), data.end());
+  MessageHolder::instance().addMsg(toStr() + " buf filled (" +
+                                   std::to_string(buf.size()) + " bytes)");
   return true;
 }
 

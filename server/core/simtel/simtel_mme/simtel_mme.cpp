@@ -5,6 +5,8 @@
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
+#include <iostream>
+
 namespace server {
 SimtelMme::SimtelMme(const MmeConfig &config,
                      std::shared_ptr<SimtelRegister> hlr_, SimtelSmsc *smsc_)
@@ -12,8 +14,12 @@ SimtelMme::SimtelMme(const MmeConfig &config,
       vlr(id) {}
 
 std::optional<common::imsi_t>
-SimtelMme::findImsiInVlr(const common::imsi_t &mTimsi) const {
-  return vlr.getImsiByMTimsi(mTimsi);
+SimtelMme::findImsiInHlr(const common::imsi_t &mTimsi) const {
+  auto imsi = hlr->getImsiByMTimsi(mTimsi);
+  if (!imsi) {
+    return std::nullopt;
+  }
+  return *imsi;
 }
 
 void SimtelMme::addOtherMme(std::shared_ptr<SimtelMme> mme) {
@@ -26,14 +32,14 @@ void SimtelMme::addBs(std::shared_ptr<SimtelBaseStation> bs) {
 
 unsigned int SimtelMme::getId() const { return id; }
 
-void SimtelMme::removeFromVlr(const common::imsi_t &mTimsi) {
-  vlr.removeRecord(mTimsi);
+void SimtelMme::removeFromVlr(const common::imsi_t &imsi) {
+  vlr.removeRecord(imsi);
 }
 
 std::optional<common::imsi_t>
 SimtelMme::getImsiFromOther(const common::imsi_t &mTimsi) const {
   for (const auto &mme : otherMme) {
-    auto found = mme.second->findImsiInVlr(mTimsi);
+    auto found = mme.second->findImsiInHlr(mTimsi);
     if (found) {
       return *found;
     }
@@ -48,7 +54,7 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
       "received AttachRequest(imsi=" + imsi + ", imei=" + imei + ")"));
 
   common::imsi_t realImsi = imsi;
-  auto found = vlr.getImsiByMTimsi(imsi);
+  auto found = findImsiInHlr(imsi);
   if (found) {
     MessageHolder::instance().addMsg(
         createLogMsg("Client sended m-timsi is not real imsi"));
@@ -61,11 +67,6 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
     }
   }
 
-  auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei);
-  if (!hlrRecord) {
-    return std::unexpected(hlrRecord.error());
-  }
-
   if (!found) {
     MessageHolder::instance().addMsg(
         createLogMsg("Client sended m-timsi is real imsi"));
@@ -75,7 +76,13 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
     }
 
     auto mTimsi = generateMTimsi();
-    vlr.setRecord({mTimsi, realImsi, imei, hlrRecord->msisdn, nullptr});
+
+    auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei, mTimsi);
+    if (!hlrRecord) {
+      return std::unexpected(hlrRecord.error());
+    }
+
+    vlr.setRecord({realImsi, imei, hlrRecord->msisdn, nullptr});
     return mTimsi;
   }
 
@@ -88,24 +95,23 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   MessageHolder::instance().addMsg(
       createLogMsg("received AuthResponse(mTimsi=" + mTimsi +
                    ", bsId=" + std::to_string(bsId) + ")"));
+  auto imsi = hlr->getImsiByMTimsi(mTimsi);
+  if (!imsi) {
+    return "IMSI not found in HLR";
+  }
 
   auto bs = findBsById(bsId);
   if (!bs) {
     return "BS not known by MME";
   }
 
-  bool changed = vlr.changePath(mTimsi, bs);
+  bool changed = vlr.changePath(*imsi, bs);
   if (!changed) {
     return "m-timsi not found in VLR";
   }
 
   MessageHolder::instance().addMsg(
       createLogMsg("Searching for real IMSI in VLR"));
-
-  auto imsi = vlr.getImsiByMTimsi(mTimsi);
-  if (!imsi) {
-    return "IMSI not found in VLR";
-  }
 
   MessageHolder::instance().addMsg(createLogMsg("Updating mmeId in HLR"));
 
@@ -118,7 +124,7 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   if (prevMmeId) {
     auto prevMme = findOtherById(*prevMmeId);
     if (prevMme) {
-      prevMme->removeFromVlr(mTimsi);
+      prevMme->removeFromVlr(*imsi);
     }
   }
 
@@ -151,25 +157,36 @@ std::optional<std::string>
 SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
                              unsigned int smsId,
                              const common::imsi_t &mtimsi_s) {
-  MessageHolder::instance().addMsg(
-      createLogMsg("sending Routing_Info_SM to SMSC"));
-  auto senderImsi = findImsiInVlr(mtimsi_s);
+  MessageHolder::instance().addMsg(createLogMsg("searching for IMSI in VLR"));
+
+  auto senderImsi = findImsiInHlr(mtimsi_s);
   if (!senderImsi) {
     return "Sender IMSI not found in VLR";
   }
+
+  MessageHolder::instance().addMsg(
+      createLogMsg("sending Routing_Info_SM to SMSC"));
 
   auto senderRecord = hlr->handleRoutingInfoSmReceiver(*senderImsi);
   if (!senderRecord) {
     return senderRecord.error();
   }
 
-  auto receiverRecord = hlr->handleRoutingInfoSmReceiver(msisdn_d);
+  if (senderRecord->msisdn == msisdn_d) {
+    return "SMS cant be sent to same MSISDN";
+  }
+
+  auto receiverRecord = hlr->handleRoutingInfoSmSender(msisdn_d);
   if (!receiverRecord) {
     return receiverRecord.error();
   }
 
   if (!receiverRecord->mmeId) {
     return "Unknown receiver MME id";
+  }
+
+  if (!receiverRecord->mTimsi) {
+    return "Unknown receiver m-timsi";
   }
 
   unsigned int receiverMmeId = *receiverRecord->mmeId;
@@ -180,22 +197,31 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
       return "Receiver MME not found";
     }
 
-    return receiverMme->handleChangeAfterSriSm(senderRecord->msisdn, smsId,
-                                               mtimsi_s, receiverRecord->imsi);
+    return receiverMme->handleChangeAfterSriSm(
+        senderRecord->msisdn, smsId, mtimsi_s, *(receiverRecord->mTimsi));
   }
 
-  return std::nullopt;
+  return handleChangeAfterSriSm(senderRecord->msisdn, smsId, mtimsi_s,
+                                *(receiverRecord->mTimsi));
 }
 
 std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     const common::msisdn_t &msisdn_s, unsigned int smsId,
     const common::imsi_t &mtimsi_s, const common::imsi_t &mtimsi_d) {
+  MessageHolder::instance().addMsg(createLogMsg("updating SMSC context"));
+
   bool updated = smsc->updateContextMTimsiD(mtimsi_s, smsId, mtimsi_d);
   if (!updated) {
     return "Error updating SMSC context";
   }
 
-  auto receiverInfo = vlr.findByMTimsi(mtimsi_d);
+  auto imsi = findImsiInHlr(mtimsi_d);
+  if (!imsi) {
+    std::cout << mtimsi_d << std::endl;
+    return "Receiver IMSI not found in HLR";
+  }
+
+  auto receiverInfo = vlr.findByImsi(*imsi);
   if (!receiverInfo) {
     return "Receiver info not found in VLR";
   }
@@ -205,10 +231,15 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     return "Reiver BS not found";
   }
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("receiving SMS text from SMSC"));
   auto smsText = smsc->getSmsText(smsId, mtimsi_s);
   if (!smsText) {
     return "SMS text not found in SMSC";
   }
+  MessageHolder::instance().addMsg(
+      createLogMsg("received SMS text with " + std::to_string(smsText->size()) +
+                   " characters"));
 
   common::binary_t binary = common::BinarySerializer::strToBinary(*smsText);
 
@@ -223,6 +254,14 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
   }
 
   auto prepareError = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
+  if (prepareError) {
+    return *prepareError;
+  }
+
+  auto sendError = bs->sendSmDelivery(mtimsi_d);
+  if (sendError) {
+    return *sendError;
+  }
 
   return std::nullopt;
 }

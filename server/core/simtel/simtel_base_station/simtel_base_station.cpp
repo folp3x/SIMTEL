@@ -176,7 +176,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   auto configureConfirm =
       chosenBs->receiveRequest<common::RrcReconfigurationCompleteRequest>(ctx);
   if (!configureConfirm) {
-    return "Error receiving configure confirm: " + chosenBsReq.error();
+    return "Error receiving configure confirm: " + configureConfirm.error();
   }
   if (configureConfirm->getMTimsi() != ctx->getMTimsi()) {
     return "Unknown m-timsi received: " + configureConfirm->getMTimsi();
@@ -407,12 +407,15 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 std::optional<std::string>
 SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
                                     const common::SmTransferRequest &req) {
+  MessageHolder::instance().addMsg(createLogMsg("sending SM_Submit to MME"));
   bool contextCreated = mme->handleSmSubmit(req.getMTimsi(), req.getSmsId());
   if (!contextCreated) {
     ctx->clearBuf();
     return "SMSC cant create context for SMS";
   }
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("sending MO_Forward_SM to MME"));
   bool smsMoved =
       mme->handleMoForwardSM(req.getMTimsi(), req.getSmsId(), req.getText());
   if (!smsMoved) {
@@ -424,8 +427,6 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
 
   return mme->sendRoutingInfoSm(req.getMsisdn(), req.getSmsId(),
                                 req.getMTimsi());
-
-  return std::nullopt;
 }
 
 bool SimtelBaseStation::handleForwardSmReq(const common::imsi_t &imsi,
@@ -434,6 +435,8 @@ bool SimtelBaseStation::handleForwardSmReq(const common::imsi_t &imsi,
   if (it == connectedUe.end()) {
     return false;
   }
+
+  MessageHolder::instance().addMsg(createLogMsg("received Forward_SM_Request"));
 
   it->second->aquireBuf(smsTextSize);
   return true;
@@ -445,6 +448,9 @@ bool SimtelBaseStation::handleMtForwardSm(const common::imsi_t &imsi,
   if (it == connectedUe.end()) {
     return false;
   }
+
+  MessageHolder::instance().addMsg(
+      createLogMsg("received MT_Forward_SM_Request"));
 
   return it->second->fillBuf(smsText);
 }
@@ -473,6 +479,9 @@ SimtelBaseStation::prepareSmDelivery(const common::imsi_t &imsi,
   }
   ctx->setBuf(*bytes);
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("prepared response: " + deliveryResponse->toStr()));
+
   return std::nullopt;
 }
 
@@ -483,11 +492,16 @@ SimtelBaseStation::sendSmDelivery(const common::imsi_t &imsi) {
     return std::optional("UE with such imsi not connected");
   }
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("sending prepared SM_Delivery"));
+
   auto ctx = it->second;
   auto sendError = ctx->sendBufToUe();
   if (!sendError) {
     return std::nullopt;
   }
+
+  return std::nullopt;
 
   return sendError->description;
 }

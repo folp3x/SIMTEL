@@ -39,7 +39,10 @@ Request::reqToMsgBytes(Protocol protocol, const binary_t &content) const {
 
 std::string Request::toStr() const {
   auto json = toJson();
-  std::string contentStr = json.empty() ? "" : json.dump();
+  std::string contentStr =
+      json.empty()
+          ? ""
+          : json.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
   return requestTypeToStr(getType()) + contentStr;
 }
 
@@ -57,7 +60,8 @@ std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
   case Protocol::JSON: {
     nlohmann::json jsonObj = toJson();
 
-    std::string jsonStr = jsonObj.dump();
+    std::string jsonStr =
+        jsonObj.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
     content = BinarySerializer::strToBinary(jsonStr);
     break;
   }

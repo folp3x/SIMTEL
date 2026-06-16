@@ -17,7 +17,8 @@ auto SimtelRegister::createStorage(const std::string &filePath) {
                     sqlite_orm::make_column("msisdn", &HlrRecord::msisdn,
                                             sqlite_orm::unique()),
                     sqlite_orm::make_column("status", &HlrRecord::status),
-                    sqlite_orm::make_column("mmeId", &HlrRecord::mmeId)));
+                    sqlite_orm::make_column("mmeId", &HlrRecord::mmeId),
+                    sqlite_orm::make_column("mTimsi", &HlrRecord::mTimsi)));
 }
 
 std::string SimtelRegister::createLogMsg(const std::string &content) const {
@@ -29,23 +30,43 @@ SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
   storage.sync_schema();
 }
 
+std::expected<common::imsi_t, std::string>
+SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi) {
+  try {
+    auto records = storage.get_all<HlrRecord>(
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi));
+
+    if (records.empty()) {
+      return std::unexpected("HLR record not found for m-timsi: " + mTimsi);
+    }
+
+    return records[0].imsi;
+  } catch (const std::exception &e) {
+    return std::unexpected("HLR DB error: " + std::string(e.what()));
+  }
+}
+
 void SimtelRegister::insertData() {
-  storage.insert(
-      HlrRecord{0, "100000000000000", "200000000000000", "89990000001",
-                subscriberStatusToStr(SubscriberStatus::ACTIVE), std::nullopt});
-  storage.insert(
-      HlrRecord{0, "300000000000000", "400000000000000", "89990000002",
-                subscriberStatusToStr(SubscriberStatus::ACTIVE), std::nullopt});
-  storage.insert(
-      HlrRecord{0, "500000000000000", "600000000000000", "89990000003",
-                subscriberStatusToStr(SubscriberStatus::BANNED), std::nullopt});
+  storage.insert(HlrRecord{0, "100000000000000", "200000000000000",
+                           "89990000001",
+                           subscriberStatusToStr(SubscriberStatus::ACTIVE),
+                           std::nullopt, std::nullopt});
+  storage.insert(HlrRecord{0, "300000000000000", "400000000000000",
+                           "89990000002",
+                           subscriberStatusToStr(SubscriberStatus::ACTIVE),
+                           std::nullopt, std::nullopt});
+  storage.insert(HlrRecord{0, "500000000000000", "600000000000000",
+                           "89990000003",
+                           subscriberStatusToStr(SubscriberStatus::BANNED),
+                           std::nullopt, std::nullopt});
 }
 
 bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }
 
 std::expected<HlrRecord, std::string>
 SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
-                                      const common::imei_t &imei) {
+                                      const common::imei_t &imei,
+                                      const common::imsi_t &mTimsi) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
@@ -63,6 +84,9 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
       return std::unexpected("Expected IMEI -" + record.imei + ", got - " +
                              imei);
     }
+
+    record.mTimsi = mTimsi;
+    storage.update(record);
 
     MessageHolder::instance().addMsg(
         createLogMsg("found record: " + record.toStr()));
@@ -109,7 +133,7 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
 }
 
 std::expected<HlrRecord, std::string>
-SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
+SimtelRegister::handleRoutingInfoSmReceiver(const common::imsi_t &imsi) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
@@ -130,7 +154,7 @@ SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
 }
 
 std::expected<HlrRecord, std::string>
-SimtelRegister::handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn) {
+SimtelRegister::handleRoutingInfoSmSender(const common::msisdn_t &msisdn) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));

@@ -17,18 +17,15 @@ private:
 public:
   explicit SimtelVisitorList(unsigned int mmeId_);
 
-  std::optional<common::imsi_t>
-  getImsiByMTimsi(const common::imsi_t &mTimsi) const;
-
   void setRecord(const VlrRecord &record);
 
-  void removeRecord(const common::imsi_t &mTimsi);
+  void removeRecord(const common::imsi_t &imsi);
 
-  bool changePath(const common::imsi_t &mTimsi,
+  bool changePath(const common::imsi_t &imsi,
                   std::shared_ptr<SimtelBaseStation> bs);
 
   size_t getSize() const;
 
-  std::optional<VlrRecord> findByMTimsi(const common::imsi_t &mTimsi) const;
+  std::optional<VlrRecord> findByImsi(const common::imsi_t &imsi) const;
 };
 } // namespace server
