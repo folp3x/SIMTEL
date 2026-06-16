@@ -275,7 +275,8 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
         break;
       }
       default:
-        callback(nullptr, "Unexpected request type");
+        callback(nullptr,
+                 "Unexpected request type received while receiving SMS info");
         continue;
       }
 

@@ -6,6 +6,10 @@
     {
       "id": 1,
       "maxVlrSize": 20
+    },
+    {
+      "id": 2,
+      "maxVlrSize": 20
     }
   ],
   "smscConfig": {

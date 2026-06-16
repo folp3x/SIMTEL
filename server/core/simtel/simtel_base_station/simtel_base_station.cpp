@@ -194,6 +194,8 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     ctx->getBs()->removeUe(ctx->getMTimsi());
     ue->setBs(chosenBs);
     chosenBs->addUe(std::move(ue));
+
+    //
   }
 
   return chosenBs->handleConfigureComplete(ctx);
