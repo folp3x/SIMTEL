@@ -7,10 +7,6 @@ namespace common {
 ErrorRequest::ErrorRequest(const std::string &description_)
     : description(description_) {}
 
-std::string ErrorRequest::toStr() const {
-  return "Error{description=" + description + "}";
-}
-
 RequestType ErrorRequest::getType() const { return RequestType::Error; }
 
 nlohmann::json ErrorRequest::toJson() const {

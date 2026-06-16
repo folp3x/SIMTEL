@@ -9,10 +9,6 @@ RrcConnectionRequest::RrcConnectionRequest(const imei_t &imei_,
                                            const Location<> &loc_)
     : imei(imei_), loc(loc_) {}
 
-std::string RrcConnectionRequest::toStr() const {
-  return "Rrc_Connection{imei=" + imei + ", loc=" + loc.toStr() + "}";
-}
-
 RequestType RrcConnectionRequest::getType() const {
   return RequestType::Rrc_Connection;
 }

@@ -13,8 +13,6 @@ public:
   MeasurementControlRequest(const imei_t &imei_, unsigned int signal_,
                             unsigned int bsId_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

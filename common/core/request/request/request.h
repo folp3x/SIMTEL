@@ -20,7 +20,7 @@ public:
 
   virtual RequestType getType() const = 0;
 
-  virtual std::string toStr() const = 0;
+  virtual std::string toStr() const;
 
   virtual nlohmann::json toJson() const = 0;
   virtual std::optional<std::string>

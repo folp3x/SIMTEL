@@ -10,11 +10,6 @@ SmDeliveryReportRequest::SmDeliveryReportRequest(const msisdn_t &msisdn_,
                                                  unsigned int smsId_)
     : msisdn(msisdn_), smsId(smsId_) {}
 
-std::string SmDeliveryReportRequest::toStr() const {
-  return "SM_Transfer{msisdn=" + msisdn + ", smsId=" + std::to_string(smsId) +
-         "}";
-}
-
 RequestType SmDeliveryReportRequest::getType() const {
   return RequestType::SM_Delivery_Report;
 }

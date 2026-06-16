@@ -7,8 +7,6 @@
 namespace common {
 class EmptyRequest : public Request {
 public:
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

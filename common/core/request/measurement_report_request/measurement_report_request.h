@@ -14,8 +14,6 @@ public:
   MeasurementReportRequest(const imei_t &imei_, const imsi_t &imsi_,
                            unsigned int bsId_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

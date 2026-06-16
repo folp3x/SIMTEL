@@ -1,9 +1,7 @@
 #include "empty_request.h"
 
 namespace common {
-std::string EmptyRequest::toStr() const { return "Empty"; }
-
-RequestType EmptyRequest::getType() const { return RequestType::Unknown; }
+RequestType EmptyRequest::getType() const { return RequestType::Empty; }
 
 nlohmann::json EmptyRequest::toJson() const { return nlohmann::json{}; }
 

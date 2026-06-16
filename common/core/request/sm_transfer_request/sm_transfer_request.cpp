@@ -23,7 +23,7 @@ std::string SmTransferRequest::toStr() const {
   std::string showedText = (text.length() > TEXT_CHARS_SHOWED)
                                ? text.substr(0, TEXT_CHARS_SHOWED) + "..."
                                : text;
-  return "SM_Transfer" + getValuesStr();
+  return requestTypeToStr(getType()) + getValuesStr();
 }
 
 RequestType SmTransferRequest::getType() const {

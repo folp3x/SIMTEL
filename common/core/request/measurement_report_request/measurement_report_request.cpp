@@ -11,11 +11,6 @@ MeasurementReportRequest::MeasurementReportRequest(const imei_t &imei_,
                                                    unsigned int bsId_)
     : imei(imei_), imsi(imsi_), bsId(bsId_) {}
 
-std::string MeasurementReportRequest::toStr() const {
-  return "Measurement_Report{imei=" + imei + ", imsi=" + imsi +
-         ", bsId=" + std::to_string(bsId) + "}";
-}
-
 RequestType MeasurementReportRequest::getType() const {
   return RequestType::Measurement_Report;
 }

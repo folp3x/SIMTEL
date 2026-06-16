@@ -13,8 +13,6 @@ public:
   RrcConnectionRequest() = default;
   RrcConnectionRequest(const imei_t &imei_, const Location<> &loc_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

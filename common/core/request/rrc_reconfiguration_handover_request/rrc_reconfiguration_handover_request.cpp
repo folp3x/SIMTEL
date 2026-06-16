@@ -10,11 +10,6 @@ RrcReconfigurationHandoverRequest::RrcReconfigurationHandoverRequest(
     const imsi_t &mTimsi_, unsigned int bsId_)
     : mTimsi(mTimsi_), bsId(bsId_) {}
 
-std::string RrcReconfigurationHandoverRequest::toStr() const {
-  return "Rrc_Reconfiguration_Handover{mTimsi=" + mTimsi +
-         ", bsId=" + std::to_string(bsId) + "}";
-}
-
 RequestType RrcReconfigurationHandoverRequest::getType() const {
   return RequestType::Rrc_Reconfiguration_Handover;
 }

@@ -5,8 +5,6 @@
 namespace common {
 class AttachAcceptRequest : public EmptyRequest {
 public:
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 };
 } // namespace common

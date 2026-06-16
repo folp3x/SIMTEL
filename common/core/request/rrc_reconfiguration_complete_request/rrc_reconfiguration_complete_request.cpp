@@ -8,10 +8,6 @@ RrcReconfigurationCompleteRequest::RrcReconfigurationCompleteRequest(
     const imsi_t &mTimsi_)
     : mTimsi(mTimsi_) {}
 
-std::string RrcReconfigurationCompleteRequest::toStr() const {
-  return "Rrc_Reconfiguration_Complete{mTimsi=" + mTimsi + "}";
-}
-
 RequestType RrcReconfigurationCompleteRequest::getType() const {
   return RequestType::Rrc_Reconfiguration_Complete;
 }

@@ -11,12 +11,6 @@ MeasurementControlRequest::MeasurementControlRequest(const imei_t &imei_,
                                                      unsigned int bsId_)
     : imei(imei_), signal(signal_), bsId(bsId_) {}
 
-std::string MeasurementControlRequest::toStr() const {
-  return "Measurement_Control{imei=" + imei +
-         ", signal=" + std::to_string(signal) +
-         ", bsId=" + std::to_string(bsId) + "}";
-}
-
 RequestType MeasurementControlRequest::getType() const {
   return RequestType::Measurement_Control;
 }

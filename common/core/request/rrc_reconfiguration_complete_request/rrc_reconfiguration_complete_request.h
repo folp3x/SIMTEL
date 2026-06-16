@@ -11,8 +11,6 @@ public:
   RrcReconfigurationCompleteRequest() = default;
   RrcReconfigurationCompleteRequest(const imsi_t &mTimsi_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

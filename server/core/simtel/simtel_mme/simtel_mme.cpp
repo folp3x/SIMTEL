@@ -43,8 +43,8 @@ SimtelMme::getImsiFromOther(const common::imsi_t &mTimsi) const {
 std::expected<common::imsi_t, std::string>
 SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
                                const common::imei_t &imei) {
-  MessageHolder::instance().addMsg(
-      createLogMsg("received Attach{imsi=" + imsi + ", imei=" + imei + "}"));
+  MessageHolder::instance().addMsg(createLogMsg(
+      "received AttachRequest(imsi=" + imsi + ", imei=" + imei + ")"));
 
   common::imsi_t realImsi = imsi;
   auto found = vlr.getImsiByMTimsi(imsi);
@@ -85,8 +85,8 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
 std::optional<std::string>
 SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   MessageHolder::instance().addMsg(
-      createLogMsg("received AuthResponse{mTimsi=" + mTimsi +
-                   ", bsId=" + std::to_string(bsId) + "}"));
+      createLogMsg("received AuthResponse(mTimsi=" + mTimsi +
+                   ", bsId=" + std::to_string(bsId) + ")"));
 
   auto bs = findBsById(bsId);
   if (!bs) {

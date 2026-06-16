@@ -12,8 +12,6 @@ public:
   SmDeliveryReportRequest() = default;
   SmDeliveryReportRequest(const common::msisdn_t &msisdn_, unsigned int smsId_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

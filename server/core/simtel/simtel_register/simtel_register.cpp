@@ -97,7 +97,7 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
     }
 
     std::string mmeIdStr =
-        (updated[0].mmeId) ? std::to_string(*updated[0].mmeId) : "unknown";
+        (updated[0].mmeId) ? std::to_string(*updated[0].mmeId) : "?";
     MessageHolder::instance().addMsg(
         createLogMsg("updated record: [imsi=" + updated[0].imsi +
                      ", mmeId=" + mmeIdStr + "]"));

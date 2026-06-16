@@ -12,8 +12,6 @@ public:
   RrcReconfigurationKeepRequest() = default;
   RrcReconfigurationKeepRequest(const imei_t &imei_, unsigned int bsId_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

@@ -11,8 +11,6 @@ public:
   ErrorRequest() = default;
   ErrorRequest(const std::string &description_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

@@ -12,8 +12,6 @@ public:
   RrcReconfigurationHandoverRequest() = default;
   RrcReconfigurationHandoverRequest(const imsi_t &mTimsi_, unsigned int bsId_);
 
-  virtual std::string toStr() const override;
-
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;

@@ -37,6 +37,12 @@ Request::reqToMsgBytes(Protocol protocol, const binary_t &content) const {
   return socketMessagetoBinary(msg);
 }
 
+std::string Request::toStr() const {
+  auto json = toJson();
+  std::string contentStr = json.empty() ? "" : json.dump();
+  return requestTypeToStr(getType()) + contentStr;
+}
+
 std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
   binary_t content;
   switch (protocol) {

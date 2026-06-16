@@ -13,7 +13,7 @@ struct HlrRecord {
 
   std::string toStr() const {
     std::string mmeIdStr =
-        mmeId.has_value() ? std::to_string(mmeId.value()) : "unknown";
+        mmeId.has_value() ? std::to_string(mmeId.value()) : "?";
     return "[id=" + std::to_string(id) + ", imsi=" + imsi + ", imei=" + imei +
            ", msisdn=" + msisdn + ", status=" + status + ", mmeId=" + mmeIdStr +
            "]";
