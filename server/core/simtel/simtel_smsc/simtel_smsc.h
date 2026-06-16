@@ -49,5 +49,7 @@ public:
 
   std::optional<std::string> getSmsText(unsigned int smsId,
                                         const common::imsi_t &mtimsi_s);
+
+  unsigned int getSmsTtlMs() const;
 };
 } // namespace server

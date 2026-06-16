@@ -102,8 +102,8 @@ std::string SimtelUeContext::toStr() const {
   return "UE_" + sock->getAddrStr();
 }
 
-bool SimtelUeContext::setReceiveTimeout() {
-  return sock->setReceiveTimeout(SOCK_RECEIVE_TIMEOUT_MSEC);
+bool SimtelUeContext::setReceiveTimeout(unsigned int timeoutMsec) {
+  return sock->setReceiveTimeout(timeoutMsec);
 }
 
 bool SimtelUeContext::removeReceiveTimeout() {

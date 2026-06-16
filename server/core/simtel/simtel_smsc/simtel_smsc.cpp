@@ -68,4 +68,6 @@ SimtelSmsc::getSmsText(unsigned int smsId, const common::imsi_t &mtimsi_s) {
 
   return it->second.text;
 }
+
+unsigned int SimtelSmsc::getSmsTtlMs() const { return smsTtlMs; }
 } // namespace server

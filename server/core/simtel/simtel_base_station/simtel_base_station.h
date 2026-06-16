@@ -3,6 +3,8 @@
 #include "common/core/location/location/location.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
+#include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
+#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
 #include "common/network/protocol/protocol.h"
 #include "server/app/config/bs_config/bs_config/bs_config.h"
@@ -15,6 +17,9 @@ class SimtelBaseStation {
 private:
   static std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
+
+  static constexpr unsigned int CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC = 10000;
+  static constexpr unsigned int SM_DELIVERY_ACK_RECEIVE_TIMEOUT_MSEC = 3000;
 
   static std::shared_ptr<TtlManager> ttlManager;
 
@@ -91,11 +96,15 @@ public:
   bool handleMtForwardSm(const common::imsi_t &imsi,
                          const common::binary_t &smsText);
 
-  std::optional<std::string> prepareSmDelivery(const common::imsi_t &imsi,
-                                               unsigned int smsId,
-                                               const common::imsi_t &msisdn);
+  std::expected<common::SmDeliveryRequest, std::string>
+  prepareSmDelivery(const common::imsi_t &imsi, unsigned int smsId,
+                    const common::imsi_t &msisdn);
 
-  std::optional<std::string> sendSmDelivery(const common::imsi_t &imsi);
+  void sendSmDelivery(const common::imsi_t &imsi,
+                      const common::SmDeliveryRequest &response, bool &ueFound);
+
+  std::optional<common::SmDeliveryAckRequest>
+  receiveSmDeliveryAck(const common::imsi_t &imsi, bool &ueFound);
 };
 } // namespace server
 

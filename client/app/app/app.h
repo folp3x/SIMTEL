@@ -56,6 +56,9 @@ private:
   void handleReceivedCommand() const;
   void handleSentCommand() const;
 
+  void addDeliveryAckToExchange(const common::msisdn_t &msisdn,
+                                unsigned int smsId);
+
   void exitApp();
 
   unsigned int generateSmsId();

@@ -89,6 +89,13 @@ void UeExchange::handleRequests() {
       }
       break;
     }
+    case common::RequestType::SM_Delivery_Ack: {
+      auto sendError = sendRequest(std::move(info.req));
+      if (sendError) {
+        callback(nullptr, "Failed to send sms deelivery ack - " + *sendError);
+      }
+      break;
+    }
     default:
       callback(nullptr, "Unknown request type");
     }

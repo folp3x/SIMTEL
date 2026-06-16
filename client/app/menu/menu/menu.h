@@ -30,5 +30,6 @@ public:
   void showSentSms(const common::Sms &sms) const;
   void showReceivedSms(const common::Sms &sms) const;
   void showError(const std::string &error) const;
+  void showSmsStatus(bool delivered) const;
 };
 } // namespace client

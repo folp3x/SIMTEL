@@ -61,17 +61,26 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
 
 void Menu::showSentSms(const common::Sms &sms) const {
   std::cout << "To " << sms.receiver << " ";
-  common::printTime(sms.timeSent);
-  std::cout << std::endl << sms.content << std::endl;
+  common::printTime(sms.timeSent, "");
+  showSmsStatus(sms.delivered);
+  std::cout << sms.content << std::endl;
 }
 
 void Menu::showReceivedSms(const common::Sms &sms) const {
   std::cout << "From " << sms.sender << " ";
   common::printTime(sms.timeReceived);
-  std::cout << std::endl << sms.content << std::endl;
+  std::cout << sms.content << std::endl;
 }
 
 void Menu::showError(const std::string &error) const {
   showMessage({error, common::MenuMessageType::ERR});
+}
+
+void Menu::showSmsStatus(bool delivered) const {
+  if (delivered) {
+    common::printColored("delivered", rang::fg::green);
+  } else {
+    common::printColored("pending", rang::fg::yellow);
+  }
 }
 } // namespace client

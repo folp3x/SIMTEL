@@ -5,8 +5,6 @@
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
-#include <iostream>
-
 namespace server {
 SimtelMme::SimtelMme(const MmeConfig &config,
                      std::shared_ptr<SimtelRegister> hlr_, SimtelSmsc *smsc_)
@@ -217,7 +215,6 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
 
   auto imsi = findImsiInHlr(mtimsi_d);
   if (!imsi) {
-    std::cout << mtimsi_d << std::endl;
     return "Receiver IMSI not found in HLR";
   }
 
@@ -253,14 +250,49 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     return "Failed to copy SMS text to BS buf";
   }
 
-  auto prepareError = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
-  if (prepareError) {
-    return *prepareError;
+  auto preparedReq = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
+  if (!preparedReq) {
+    return preparedReq.error();
   }
 
-  auto sendError = bs->sendSmDelivery(mtimsi_d);
-  if (sendError) {
-    return *sendError;
+  unsigned int smsTtlSec = smsc->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
+  TtlManager ttlManager{smsTtlSec, smsTtlSec / 2};
+  ttlManager.update();
+  ttlManager.setActive(true);
+
+  MessageHolder::instance().addMsg(
+      createLogMsg("trying to send prepared SM_Delivery"));
+
+  while (true) {
+    if (ttlManager.isActive() && ttlManager.isExpired()) {
+      MessageHolder::instance().addErrorMsg("SMS TTL expired");
+      break;
+    }
+
+    auto warningSec = ttlManager.getWarningSec();
+    if (warningSec) {
+      MessageHolder::instance().addMsg(
+          "SMS TTL: " + std::to_string(*warningSec) + " seconds left",
+          common::MenuMessageType::INFO);
+    }
+
+    bool ueFound = true;
+    bs->sendSmDelivery(mtimsi_d, *preparedReq, ueFound);
+    if (!ueFound) {
+      return "UE not found by BS";
+    }
+
+    auto req = bs->receiveSmDeliveryAck(mtimsi_d, ueFound);
+    if (!ueFound) {
+      return "UE not found by BS";
+    }
+
+    if (!req) {
+      continue;
+    } else {
+      MessageHolder::instance().addMsg("MSISDN: " + req->getMsisdn());
+      break;
+    }
   }
 
   return std::nullopt;

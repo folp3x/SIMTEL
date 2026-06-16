@@ -17,7 +17,8 @@ enum class RequestType : uint8_t {
   Attach_Accept,
   SM_Transfer,
   SM_Delivery,
-  SM_Delivery_Report
+  SM_Delivery_Report,
+  SM_Delivery_Ack
 };
 
 std::expected<RequestType, std::string> parseRequestType(const binary_t &bytes);

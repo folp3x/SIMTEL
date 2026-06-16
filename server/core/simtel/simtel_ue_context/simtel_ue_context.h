@@ -10,8 +10,6 @@ class SimtelBaseStation;
 
 class SimtelUeContext {
 private:
-  static constexpr unsigned int SOCK_RECEIVE_TIMEOUT_MSEC = 10000;
-
   bool mTimsiSet = false;
   common::imsi_t mTimsi;
 
@@ -51,7 +49,7 @@ public:
 
   std::string toStr() const;
 
-  bool setReceiveTimeout();
+  bool setReceiveTimeout(unsigned int timeoutMsec);
   bool removeReceiveTimeout();
 };
 } // namespace server

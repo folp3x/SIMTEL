@@ -12,6 +12,7 @@
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
+#include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
@@ -173,14 +174,15 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
 
   exchange.addRequest(
       ctx.getState(), std::move(req),
-      [this, targetMsisdn, smsContent](
+      [this, targetMsisdn, smsContent, smsId](
           std::unique_ptr<common::Request> response, const std::string &error) {
         if (!error.empty()) {
           addErrorMsg("Error: " + error);
           return;
         }
 
-        common::Sms sms{std::chrono::time_point_cast<std::chrono::seconds>(
+        common::Sms sms{smsId,
+                        std::chrono::time_point_cast<std::chrono::seconds>(
                             std::chrono::system_clock::now()),
                         {},
                         "",
@@ -244,6 +246,20 @@ void App::handleSentCommand() const {
   if (!showed) {
     menu.showError("No sent sms");
   }
+}
+
+void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
+                                   unsigned int smsId) {
+  auto req = std::make_unique<common::SmDeliveryAckRequest>(ctx.getMTimsi(),
+                                                            smsId, msisdn);
+  exchange.addRequest(ctx.getState(), std::move(req),
+                      [this](std::unique_ptr<common::Request> response,
+                             const std::string &error) {
+                        if (!error.empty()) {
+                          addErrorMsg("Error: " + error);
+                          return;
+                        }
+                      });
 }
 
 void App::exitApp() {
@@ -331,24 +347,52 @@ void App::run() {
         return;
       }
 
-      if (auto *deliverResponse =
+      if (auto *deliveryResponse =
               dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
+        if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
+          addErrorMsg("Unknown m-timsi in sm delivery: " +
+                      deliveryResponse->getMTimsi());
+          return;
+        }
+
+        for (const auto &sms : smsList) {
+          if (sms.id == deliveryResponse->getSmsId() &&
+              sms.sender == deliveryResponse->getMsisdn()) {
+            addMsg("Duplicate SMS ignored");
+            return;
+          }
+        }
 
         addMsg("SMS received");
 
-        common::Sms sms{{},
+        common::Sms sms{deliveryResponse->getSmsId(),
+                        {},
                         std::chrono::time_point_cast<std::chrono::seconds>(
                             std::chrono::system_clock::now()),
-                        deliverResponse->getMsisdn(),
+                        deliveryResponse->getMsisdn(),
                         "",
-                        deliverResponse->getText(),
+                        deliveryResponse->getText(),
                         true};
 
-        std::lock_guard lock(smsListMtx);
-        smsList.push_back(sms);
+        {
+          std::lock_guard lock(smsListMtx);
+          smsList.push_back(sms);
+        }
+
+        addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
+                                 deliveryResponse->getSmsId());
       } else if (auto *reportResponse =
                      dynamic_cast<common::SmDeliveryReportRequest *>(
                          response.get())) {
+        std::lock_guard lock(smsListMtx);
+        for (int i = 0; i < smsList.size(); ++i) {
+          if (smsList[i].id == reportResponse->getSmsId() &&
+              smsList[i].receiver.empty()) {
+            smsList[i].delivered = true;
+            break;
+          }
+        }
+
         return;
       }
     });

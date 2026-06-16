@@ -1,4 +1,4 @@
-#include "sm_transfer_request.h"
+#include "sm_delivery_ack_request.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/binary_serializer/binary_serializer.h"
@@ -8,12 +8,11 @@
 namespace common {
 SmDeliveryAckRequest::SmDeliveryAckRequest(const imsi_t &mTimsi_,
                                            unsigned int smsId_,
-                                           const msisdn_t &msisdn_,
-                                           const std::string &text_)
+                                           const msisdn_t &msisdn_)
     : mTimsi(mTimsi_), smsId(smsId_), msisdn(msisdn_) {}
 
 RequestType SmDeliveryAckRequest::getType() const {
-  return RequestType::SM_Transfer;
+  return RequestType::SM_Delivery_Ack;
 }
 
 nlohmann::json SmDeliveryAckRequest::toJson() const {

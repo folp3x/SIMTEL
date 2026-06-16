@@ -6,6 +6,9 @@
 
 #include "common/network/socket/socket_message_header/socket_message_header.h"
 
+#include "common/utils/network/network.h"
+#include <iostream>
+
 namespace common {
 std::optional<NetworkError> Socket::sendAll(const void *data,
                                             size_t size) const {
@@ -89,6 +92,7 @@ bool Socket::setReceiveTimeout(int sock, unsigned int timeoutMsec) {
 }
 
 std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
+  // std::cout << "SEND MESSAGE DATA: " << common::toStr(data) << std::endl;
   if (data.empty()) {
     return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
   }
@@ -138,6 +142,9 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
         NetworkError{NetworkErrorType::INCOMPLETE_HEADER, "Incomplete header"});
   }
 
+  // std::cout << "RECEIVE MESSAGE HEADER: " << common::toStr(header) <<
+  // std::endl;
+
   auto in = zpp::bits::in(header);
   uint32_t msgSize = 0;
   if (in(msgSize) != zpp::bits::errc{}) {
@@ -146,6 +153,8 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   }
   msgSize = ntohl(msgSize);
 
+  // std::cout << "RECEIVE HEADER MSG SIZE: " << msgSize << std::endl;
+
   if (msgSize == 0) {
     return header;
   }
@@ -153,6 +162,7 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   // чтение данных
   binary_t content(msgSize);
   received = recv(sock, content.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
+  // std::cout << "RECEIVE CONTENT: " << common::toStr(content) << std::endl;
   if (received < 0)
     return std::unexpected(
         NetworkError{NetworkErrorType::OTHER, getLastError()});

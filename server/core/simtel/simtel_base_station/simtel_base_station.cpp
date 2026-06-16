@@ -7,7 +7,6 @@
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
-#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
@@ -30,7 +29,8 @@ void SimtelBaseStation::handleConnectionRequest(
 
   ttlManager->setActive(false);
 
-  bool timeoutSet = ctx->setReceiveTimeout();
+  bool timeoutSet =
+      ctx->setReceiveTimeout(CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC);
   if (!timeoutSet) {
     MessageHolder::instance().addErrorMsg(ctx->toStr() +
                                           " error setting receive timeout");
@@ -310,14 +310,14 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       createLogMsg("started handling requests from " + ctx->toStr()),
       common::MenuMessageType::INFO);
 
-  bool timeoutRemoved = ctx->removeReceiveTimeout();
-  if (!timeoutRemoved) {
-    MessageHolder::instance().addErrorMsg(ctx->toStr() +
-                                          " error removing receive timeout");
-    return;
-  }
-
   while (true) {
+    bool timeoutRemoved = ctx->removeReceiveTimeout();
+    if (!timeoutRemoved) {
+      MessageHolder::instance().addErrorMsg(ctx->toStr() +
+                                            " error removing receive timeout");
+      return;
+    }
+
     ttlManager->update();
     ttlManager->setActive(true);
 
@@ -406,9 +406,6 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       default:
         MessageHolder::instance().addErrorMsg("Unexpected request type");
       }
-
-      ttlManager->update();
-      ttlManager->setActive(false);
     }
   }
 }
@@ -464,54 +461,59 @@ bool SimtelBaseStation::handleMtForwardSm(const common::imsi_t &imsi,
   return it->second->fillBuf(smsText);
 }
 
-std::optional<std::string>
+std::expected<common::SmDeliveryRequest, std::string>
 SimtelBaseStation::prepareSmDelivery(const common::imsi_t &imsi,
                                      unsigned int smsId,
                                      const common::imsi_t &msisdn) {
   auto it = connectedUe.find(imsi);
   if (it == connectedUe.end()) {
-    return std::optional("UE with such imsi not connected");
+    return std::unexpected("UE with such imsi not connected");
   }
 
   auto ctx = it->second;
   auto buf = ctx->takeBuf();
   if (buf.empty()) {
-    return "No SMS text in buf";
+    return std::unexpected("No SMS text in buf");
   }
 
   std::string smsText = common::BinarySerializer::strFromBinary(buf);
-  auto deliveryResponse =
-      std::make_unique<common::SmDeliveryRequest>(imsi, smsId, msisdn, smsText);
-  auto bytes = deliveryResponse->toBytes(ctx->getProtocol());
-  if (!bytes) {
-    return bytes.error();
-  }
-  ctx->setBuf(*bytes);
+  auto response = common::SmDeliveryRequest{imsi, smsId, msisdn, smsText};
 
   MessageHolder::instance().addMsg(
-      createLogMsg("prepared response: " + deliveryResponse->toStr()));
+      createLogMsg("prepared response: " + response.toStr()));
 
-  return std::nullopt;
+  return response;
 }
 
-std::optional<std::string>
-SimtelBaseStation::sendSmDelivery(const common::imsi_t &imsi) {
+void SimtelBaseStation::sendSmDelivery(
+    const common::imsi_t &imsi, const common::SmDeliveryRequest &response,
+    bool &ueFound) {
   auto it = connectedUe.find(imsi);
   if (it == connectedUe.end()) {
-    return std::optional("UE with such imsi not connected");
+    ueFound = false;
+    return;
   }
 
-  MessageHolder::instance().addMsg(
-      createLogMsg("sending prepared SM_Delivery"));
-
   auto ctx = it->second;
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
+  sendResponse(ctx, std::make_unique<common::SmDeliveryRequest>(response));
+}
+
+std::optional<common::SmDeliveryAckRequest>
+SimtelBaseStation::receiveSmDeliveryAck(const common::imsi_t &imsi,
+                                        bool &ueFound) {
+  auto it = connectedUe.find(imsi);
+  if (it == connectedUe.end()) {
+    ueFound = false;
     return std::nullopt;
   }
 
-  return std::nullopt;
+  auto ctx = it->second;
+  ctx->setReceiveTimeout(SM_DELIVERY_ACK_RECEIVE_TIMEOUT_MSEC);
+  auto ackReq = receiveRequest<common::SmDeliveryAckRequest>(ctx);
+  if (!ackReq) {
+    return std::nullopt;
+  }
 
-  return sendError->description;
+  return *ackReq;
 }
 } // namespace server
