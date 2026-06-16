@@ -49,7 +49,7 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
 std::optional<std::string>
 SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   MessageHolder::instance().addMsg(
-      createLogMsg("received Auth{mTmsi=" + mTimsi +
+      createLogMsg("received AuthResponse{mTmsi=" + mTimsi +
                    ", bsId=" + std::to_string(bsId) + "}"));
 
   auto bs = findBsById(bsId);
@@ -89,6 +89,9 @@ common::imsi_t SimtelMme::generateMTimsi() {
   if (curMTimsi > MAX_MTIMSI) {
     curMTimsi = 0;
   }
+
+  MessageHolder::instance().addMsg("generated T-IMSI: " +
+                                   common::imsiToStr(curMTimsi));
 
   return common::imsiToStr(curMTimsi);
 }

@@ -42,8 +42,7 @@ void SimtelBaseStation::handleConnectionRequest(
   auto *firstBs = baseStations.begin()->second.get();
   ctx->setBs(firstBs);
 
-  MessageHolder::instance().addMsg(ctx->toStr() +
-                                   " receiving location through first BS");
+  MessageHolder::instance().addMsg("Receiving location through first BS");
 
   auto req = firstBs->receiveRequest<common::RrcConnectionRequest>(ctx);
   if (!req) {
@@ -120,7 +119,8 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
   auto sendError = ctx->sendBufToUe();
   if (!sendError) {
     MessageHolder::instance().addMsg(
-        createLogMsg("response to " + ctx->toStr() + " = " + req->toStr()));
+        createLogMsg("response to " + ctx->toStr() + " = " + req->toStr()),
+        common::MenuMessageType::SUCCESS);
     return std::nullopt;
   }
 
@@ -151,7 +151,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   }
   ctx->setBs(initialBs);
 
-  MessageHolder::instance().addMsg("Receiving BS id through initial BS");
+  MessageHolder::instance().addMsg("Receiving BS id through current BS");
   auto chosenBsReq =
       initialBs->receiveRequest<common::MeasurementReportRequest>(ctx);
   if (!chosenBsReq) {
@@ -245,12 +245,14 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("received t-imsi from MME: " + *mTimsi));
+      createLogMsg("received m-timsi from MME: " + *mTimsi));
 
   bool updated = ctx->setMTimsi(*mTimsi);
   if (!updated && ctx->getMTimsi() != *mTimsi) {
     return "UE IMSI cant be reassigned";
   }
+
+  MessageHolder::instance().addMsg("Sending AuthRequest through chosen BS");
 
   auto curBs = ctx->getBs();
   bool connectedToCur =
