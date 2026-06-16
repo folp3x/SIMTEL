@@ -11,5 +11,6 @@ public:
   std::optional<std::string> connectTo(const common::NetworkAddress &address);
 
   bool setReceiveTimeout(unsigned int timeoutMsec);
+  bool removeReceiveTimeout();
 };
 } // namespace client

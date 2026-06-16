@@ -58,6 +58,7 @@ void UeExchange::handleRequests() {
 
     RequestInfo info = std::move(requests.front());
     requests.pop();
+    lock.unlock();
 
     if (info.req->getType() != common::RequestType::Rrc_Connection &&
         signalLevel == 0) {
@@ -69,7 +70,10 @@ void UeExchange::handleRequests() {
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
+      std::unique_lock lock(requestsMtx);
       auto result = handleLocationUpdate(std::move(info));
+      lock.unlock();
+
       if (!result) {
         signalLevel = 0;
         callback(nullptr, result.error());
@@ -118,13 +122,12 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(RequestInfo info) {
-  sock.setReceiveTimeout(HANDLE_LOCATION_UPDATE_TIMEOUT_MSEC);
-
   auto locationSendError = sendRequest(std::move(info.req));
   if (locationSendError) {
     return std::unexpected("Failed to send location - " + *locationSendError);
   }
 
+  sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
   common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
@@ -145,6 +148,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
       }
     }
   }
+  sock.removeReceiveTimeout();
 
   auto chosenBsReq = std::make_unique<common::MeasurementReportRequest>(
       info.state.imei, info.state.mTimsi, bestSignalResponse.getBsId());

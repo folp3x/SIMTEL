@@ -63,13 +63,6 @@ void SimtelBaseStation::handleConnectionRequest(
     return;
   }
 
-  bool timeoutRemoved = ctx->removeReceiveTimeout();
-  if (!timeoutRemoved) {
-    MessageHolder::instance().addErrorMsg(ctx->toStr() +
-                                          " error removing receive timeout");
-    return;
-  }
-
   bs->handleUe(ctx);
 }
 
@@ -194,8 +187,6 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     ctx->getBs()->removeUe(ctx->getMTimsi());
     ue->setBs(chosenBs);
     chosenBs->addUe(std::move(ue));
-
-    //
   }
 
   return chosenBs->handleConfigureComplete(ctx);
@@ -318,10 +309,17 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       createLogMsg("started handling requests from " + ctx->toStr()),
       common::MenuMessageType::INFO);
 
-  ttlManager->update();
-  ttlManager->setActive(true);
+  bool timeoutRemoved = ctx->removeReceiveTimeout();
+  if (!timeoutRemoved) {
+    MessageHolder::instance().addErrorMsg(ctx->toStr() +
+                                          " error removing receive timeout");
+    return;
+  }
 
   while (true) {
+    ttlManager->update();
+    ttlManager->setActive(true);
+
     MessageHolder::instance().addMsg("");
 
     auto receiveError = ctx->receiveData();

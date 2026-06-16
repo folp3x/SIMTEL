@@ -39,7 +39,7 @@ public:
   std::expected<HlrRecord, std::string>
   handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei);
 
-  std::optional<std::string>
+  std::expected<std::optional<unsigned int>, std::string>
   handleUpdateLocationRequest(const common::imsi_t &imsi, unsigned int mmeId);
 
   std::expected<HlrRecord, std::string>

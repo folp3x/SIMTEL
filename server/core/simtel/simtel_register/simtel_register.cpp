@@ -51,7 +51,7 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
-      return std::unexpected("Record not found for IMSI: " + imsi);
+      return std::unexpected("HLR record not found for IMSI: " + imsi);
     }
 
     HlrRecord record = records[0];
@@ -73,7 +73,7 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
   }
 }
 
-std::optional<std::string>
+std::expected<std::optional<unsigned int>, std::string>
 SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
                                             unsigned int mmeId) {
   try {
@@ -81,20 +81,30 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
-      return "Record not found for IMSI: " + imsi;
+      return std::unexpected("HLR record not found for IMSI: " + imsi);
     }
 
-    storage.update_all(
-        sqlite_orm::set(sqlite_orm::c(&HlrRecord::mmeId) = mmeId),
+    HlrRecord record = records[0];
+    std::optional<unsigned int> prevMmeId = record.mmeId;
+    record.mmeId = mmeId;
+    storage.update(record);
+
+    auto updated = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
-    MessageHolder::instance().addMsg(
-        createLogMsg("updated record: [imsi=" + imsi +
-                     ", mmeId=" + std::to_string(mmeId) + "]"));
+    if (updated.empty()) {
+      return std::unexpected("Error updating record for IMSI: " + imsi);
+    }
 
-    return std::nullopt;
+    std::string mmeIdStr =
+        (updated[0].mmeId) ? std::to_string(*updated[0].mmeId) : "unknown";
+    MessageHolder::instance().addMsg(
+        createLogMsg("updated record: [imsi=" + updated[0].imsi +
+                     ", mmeId=" + mmeIdStr + "]"));
+
+    return prevMmeId;
   } catch (const std::exception &e) {
-    return "HLR DB error: " + std::string(e.what());
+    return std::unexpected("HLR DB error: " + std::string(e.what()));
   }
 }
 

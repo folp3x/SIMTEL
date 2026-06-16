@@ -29,4 +29,8 @@ Socket::connectTo(const common::NetworkAddress &address) {
 bool Socket::setReceiveTimeout(unsigned int timeoutMsec) {
   return common::Socket::setReceiveTimeout(sock, timeoutMsec);
 }
+
+bool Socket::removeReceiveTimeout() {
+  return common::Socket::setReceiveTimeout(sock, 0);
+}
 } // namespace client

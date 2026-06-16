@@ -5,8 +5,10 @@
 
 namespace server {
 std::string SimtelVisitorList::createLogMsg(const std::string &content) const {
-  return "VLR: " + content;
+  return "VLR of MME_" + std::to_string(mmeId) + ": " + content;
 }
+
+SimtelVisitorList::SimtelVisitorList(unsigned int mmeId_) : mmeId(mmeId_) {}
 
 std::optional<common::imsi_t>
 SimtelVisitorList::getImsiByMTimsi(const common::imsi_t &mTimsi) const {
@@ -25,6 +27,14 @@ void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
       createLogMsg("set record: " + record.toStr()));
   records.insert({record.mTimsi, record});
+}
+
+void SimtelVisitorList::removeRecord(const common::imsi_t &mTimsi) {
+  bool removed = records.erase(mTimsi);
+  if (removed) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("removed record of m-timsi = " + mTimsi));
+  }
 }
 
 bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,

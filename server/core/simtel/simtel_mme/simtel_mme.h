@@ -19,7 +19,7 @@ private:
 
   uint64_t curMTimsi = 0;
 
-  SimtelVisitorList vlr{};
+  SimtelVisitorList vlr;
 
   std::shared_ptr<SimtelRegister> hlr;
   SimtelSmsc *smsc;
@@ -34,15 +34,25 @@ private:
 
   std::string createLogMsg(const std::string &content) const;
 
+  std::optional<std::shared_ptr<SimtelMme>> findOtherById(unsigned int id);
+
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
             SimtelSmsc *smsc_);
+
+  std::optional<common::imsi_t>
+  findImsiInVlr(const common::imsi_t &mTimsi) const;
 
   void addOtherMme(std::shared_ptr<SimtelMme> mme);
 
   void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   unsigned int getId() const;
+
+  void removeFromVlr(const common::imsi_t &imsi);
+
+  std::optional<common::imsi_t>
+  getImsiFromOther(const common::imsi_t &mTimsi) const;
 
   std::expected<common::imsi_t, std::string>
   handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei);
