@@ -13,6 +13,7 @@ namespace server {
 class SimtelMme {
 private:
   static constexpr uint64_t MAX_MTIMSI = 999'999'999'999'999;
+  static constexpr unsigned int SEND_SMS_SLEEP_MS = 1000;
 
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;

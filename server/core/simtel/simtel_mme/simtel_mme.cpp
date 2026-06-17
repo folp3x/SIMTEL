@@ -227,7 +227,8 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
   common::binary_t binary = common::BinarySerializer::strToBinary(*smsText);
 
   unsigned int smsTtlSec = smsc->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
-  TtlManager ttlManager{smsTtlSec, smsTtlSec / 10};
+  unsigned int warningPeriodSec = 1;
+  TtlManager ttlManager{smsTtlSec, warningPeriodSec};
   ttlManager.update();
   ttlManager.setActive(true);
 
@@ -238,6 +239,15 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
       MessageHolder::instance().addErrorMsg("SMS TTL expired");
       break;
     }
+
+    auto warningSec = ttlManager.getWarningSec();
+    if (warningSec) {
+      MessageHolder::instance().addMsg(
+          "SMS TTL: " + std::to_string(*warningSec) + " seconds left",
+          common::MenuMessageType::INFO);
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
 
     bool bufAquired = bs->handleForwardSmReq(mtimsi_d, binary.size());
     if (!bufAquired) {
@@ -252,13 +262,6 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     auto preparedReq = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
     if (!preparedReq) {
       continue;
-    }
-
-    auto warningSec = ttlManager.getWarningSec();
-    if (warningSec) {
-      MessageHolder::instance().addMsg(
-          "SMS TTL: " + std::to_string(*warningSec) + " seconds left",
-          common::MenuMessageType::INFO);
     }
 
     bool ueFound = true;
