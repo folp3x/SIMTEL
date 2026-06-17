@@ -250,7 +250,9 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
   while (true) {
     if (ttlManager.isActive() && ttlManager.isExpired()) {
-      MessageHolder::instance().addErrorMsg("SMS TTL expired");
+      MessageHolder::instance().addErrorMsg("SMS(mtimsi_s=" + mtimsi_s +
+                                            ", id=" + std::to_string(smsId) +
+                                            ") TTL expired");
       break;
     }
 
@@ -267,12 +269,12 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
     bool sent = bs->trySendSmsDelivery(mtimsi_d, smsId, msisdn_s, binary);
     auto req = bs->receiveSmDeliveryAck(mtimsi_d);
 
-    if (!req) {
-      continue;
-    } else {
+    if (req) {
       break;
     }
   }
+
+  smsc->removeSms(smsId, mtimsi_s);
 }
 
 common::imsi_t SimtelMme::generateMTimsi() {

@@ -21,6 +21,7 @@ bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
   MessageHolder::instance().addMsg(createLogMsg(
       "created SMS context for " + smsUidToStr({mtimsi_s, smsId})));
 
+  std::lock_guard lock(contextMtx);
   if (context.size() < MAX_CONTEXT_SIZE) {
     context.insert({{mtimsi_s, smsId}, {mtimsi_s, "", "", "", "", 0}});
     return true;
@@ -32,6 +33,7 @@ bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
 bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mtimsi_s,
                                    unsigned int smsId,
                                    const std::string &smsText) {
+  std::lock_guard lock(contextMtx);
   auto it = context.find({mtimsi_s, smsId});
   if (it == context.end()) {
     return false;
@@ -47,6 +49,7 @@ bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mtimsi_s,
 bool SimtelSmsc::updateContextMTimsiD(const common::imsi_t &mtimsi_s,
                                       unsigned int smsId,
                                       const common::imsi_t &mtimsi_d) {
+  std::lock_guard lock(contextMtx);
   auto it = context.find({mtimsi_s, smsId});
   if (it == context.end()) {
     return false;
@@ -61,6 +64,7 @@ bool SimtelSmsc::updateContextMTimsiD(const common::imsi_t &mtimsi_s,
 
 std::optional<std::string>
 SimtelSmsc::getSmsText(unsigned int smsId, const common::imsi_t &mtimsi_s) {
+  std::lock_guard lock(contextMtx);
   auto it = context.find({mtimsi_s, smsId});
   if (it == context.end()) {
     return std::nullopt;
@@ -70,4 +74,16 @@ SimtelSmsc::getSmsText(unsigned int smsId, const common::imsi_t &mtimsi_s) {
 }
 
 unsigned int SimtelSmsc::getSmsTtlMs() const { return smsTtlMs; }
+
+void SimtelSmsc::removeSms(unsigned int smsId, const common::imsi_t &mtimsi_s) {
+  size_t removedCount = 0;
+  {
+    std::lock_guard lock(contextMtx);
+    removedCount = context.erase({mtimsi_s, smsId});
+  }
+  if (removedCount > 0) {
+    MessageHolder::instance().addMsg(
+        createLogMsg("removed sms with " + smsUidToStr({mtimsi_s, smsId})));
+  }
+}
 } // namespace server

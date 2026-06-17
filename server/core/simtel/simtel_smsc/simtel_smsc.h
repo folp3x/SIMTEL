@@ -31,6 +31,7 @@ private:
 
   std::string cdrJsonFilePath = "";
 
+  std::mutex contextMtx;
   std::map<SmsUid, SmsContext> context;
 
   std::string smsUidToStr(const SmsUid &uid);
@@ -51,5 +52,7 @@ public:
                                         const common::imsi_t &mtimsi_s);
 
   unsigned int getSmsTtlMs() const;
+
+  void removeSms(unsigned int smsId, const common::imsi_t &mtimsi_s);
 };
 } // namespace server
