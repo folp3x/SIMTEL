@@ -32,16 +32,16 @@ SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
 
 std::expected<common::imsi_t, std::string>
 SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
-                                unsigned int mmeId) {
+                                std::optional<unsigned int> &mmeId) {
   try {
     auto records = storage.get_all<HlrRecord>(
-        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi &&
-                          sqlite_orm::c(&HlrRecord::mmeId) == mmeId));
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi));
 
     if (records.empty()) {
       return std::unexpected("HLR record not found for m-timsi: " + mTimsi);
     }
 
+    mmeId = records[0].mmeId;
     return records[0].imsi;
   } catch (const std::exception &e) {
     return std::unexpected("HLR DB error: " + std::string(e.what()));

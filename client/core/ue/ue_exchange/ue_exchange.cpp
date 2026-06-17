@@ -108,8 +108,6 @@ void UeExchange::handleRequests() {
     default:
       callback(nullptr, "Unknown request type");
     }
-
-    callback(nullptr, "");
   }
 }
 

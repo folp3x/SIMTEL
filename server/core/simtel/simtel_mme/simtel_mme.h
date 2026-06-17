@@ -42,7 +42,8 @@ public:
             SimtelSmsc *smsc_);
 
   std::optional<common::imsi_t>
-  findImsiInHlr(const common::imsi_t &mTimsi) const;
+  findImsiInHlr(const common::imsi_t &mTimsi,
+                std::optional<unsigned int> &mmeId) const;
 
   std::optional<common::imsi_t>
   findImsiInVlr(const common::imsi_t &mTimsi) const;
@@ -74,5 +75,10 @@ public:
   handleChangeAfterSriSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
                          const common::imsi_t &mtimsi_s,
                          const common::imsi_t &mtimsi_d);
+
+  void trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
+                  const common::imsi_t &mtimsi_s,
+                  const common::imsi_t &mtimsi_d, const std::string &smsText,
+                  std::shared_ptr<SimtelBaseStation> bs);
 };
 } // namespace server

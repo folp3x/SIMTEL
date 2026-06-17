@@ -12,8 +12,9 @@ SimtelMme::SimtelMme(const MmeConfig &config,
       vlr(id) {}
 
 std::optional<common::imsi_t>
-SimtelMme::findImsiInHlr(const common::imsi_t &mTimsi) const {
-  auto imsi = hlr->getImsiByMTimsi(mTimsi, id);
+SimtelMme::findImsiInHlr(const common::imsi_t &mTimsi,
+                         std::optional<unsigned int> &mmeId) const {
+  auto imsi = hlr->getImsiByMTimsi(mTimsi, mmeId);
   if (!imsi) {
     return std::nullopt;
   }
@@ -51,14 +52,15 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
       "received AttachRequest(imsi=" + imsi + ", imei=" + imei + ")"));
 
   common::imsi_t realImsi = imsi;
-  auto found = findImsiInHlr(imsi);
+  std::optional<unsigned int> mmeId = std::nullopt;
+  auto found = findImsiInHlr(imsi, mmeId);
   if (found) {
     MessageHolder::instance().addMsg(
         createLogMsg("Client sended m-timsi is not real imsi"));
     realImsi = *found;
   }
 
-  if (!found) {
+  if (!found || !mmeId || *mmeId != id) {
     MessageHolder::instance().addMsg(
         createLogMsg("Client sended m-timsi is real imsi"));
 
@@ -224,7 +226,19 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
       createLogMsg("received SMS text with " + std::to_string(smsText->size()) +
                    " characters"));
 
-  common::binary_t binary = common::BinarySerializer::strToBinary(*smsText);
+  std::thread smmSender(&SimtelMme::trySendSms, this, msisdn_s, smsId, mtimsi_s,
+                        mtimsi_d, *smsText, bs);
+  smmSender.detach();
+
+  return std::nullopt;
+}
+
+void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
+                           const common::imsi_t &mtimsi_s,
+                           const common::imsi_t &mtimsi_d,
+                           const std::string &smsText,
+                           std::shared_ptr<SimtelBaseStation> bs) {
+  common::binary_t binary = common::BinarySerializer::strToBinary(smsText);
 
   unsigned int smsTtlSec = smsc->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
   unsigned int warningPeriodSec = 1;
@@ -250,31 +264,8 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
 
     std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
 
-    bool bufAquired = bs->handleForwardSmReq(mtimsi_d, binary.size());
-    if (!bufAquired) {
-      continue;
-    }
-
-    bool bufFilled = bs->handleMtForwardSm(mtimsi_d, binary);
-    if (!bufFilled) {
-      continue;
-    }
-
-    auto preparedReq = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
-    if (!preparedReq) {
-      continue;
-    }
-
-    bool ueFound = true;
-    bs->sendSmDelivery(mtimsi_d, *preparedReq, ueFound);
-    if (!ueFound) {
-      return "UE not found by BS";
-    }
-
-    auto req = bs->receiveSmDeliveryAck(mtimsi_d, ueFound);
-    if (!ueFound) {
-      return "UE not found by BS";
-    }
+    bool sent = bs->trySendSmsDelivery(mtimsi_d, smsId, msisdn_s, binary);
+    auto req = bs->receiveSmDeliveryAck(mtimsi_d);
 
     if (!req) {
       continue;
@@ -282,8 +273,6 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
       break;
     }
   }
-
-  return std::nullopt;
 }
 
 common::imsi_t SimtelMme::generateMTimsi() {

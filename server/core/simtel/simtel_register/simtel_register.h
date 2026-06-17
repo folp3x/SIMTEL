@@ -35,7 +35,8 @@ public:
   explicit SimtelRegister(const std::string &hlrSqliteFilePath);
 
   std::expected<common::imsi_t, std::string>
-  getImsiByMTimsi(const common::imsi_t &mTimsi, unsigned int mmeId);
+  getImsiByMTimsi(const common::imsi_t &mTimsi,
+                  std::optional<unsigned int> &mmeId);
 
   void insertData();
   bool hasData();

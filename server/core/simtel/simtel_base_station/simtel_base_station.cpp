@@ -11,6 +11,8 @@
 #include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
+#include <iostream>
+
 namespace server {
 std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
@@ -122,7 +124,7 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
 
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
-    std::shared_ptr<SimtelUeContext> ctx) {
+    std::shared_ptr<SimtelUeContext> ctx, bool firstConnection) {
   // имитация измерения UE уровня сигнала до базовых станций
   auto initialBs = ctx->getBs();
   for (const auto &[id, bs] : baseStations) {
@@ -190,7 +192,12 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     chosenBs->addUe(std::move(ue));
   }
 
-  std::lock_guard lock(*chosenBs->getSendMtx(ctx->getMTimsi()));
+  std::unique_lock lock(*chosenBs->getSendMtx(ctx->getMTimsi()),
+                        std::defer_lock);
+  if (firstConnection) {
+    lock.lock();
+  }
+
   return chosenBs->handleConfigureComplete(ctx);
 }
 
@@ -389,9 +396,22 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 
         ctx->clearBuf();
 
-        auto updateError = handleLocationUpdate(*req, ctx);
-        if (updateError) {
-          MessageHolder::instance().addErrorMsg(*updateError);
+        std::string error = "";
+        {
+          std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
+          auto updateError = handleLocationUpdate(*req, ctx, false);
+          if (updateError) {
+            error = *updateError;
+          }
+        }
+
+        if (!error.empty()) {
+          MessageHolder::instance().addErrorMsg(error);
+        }
+
+        auto ueBs = ctx->getBs();
+        if (ueBs->getId() != id) {
+          ctx->getBs()->handleUe(ctx);
         }
 
         break;
@@ -411,24 +431,17 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 
         ctx->setProtocol(protocol);
 
-        std::string error = "";
-        {
+        auto handleError = handleSmTransfer(ctx, *req);
+
+        if (handleError) {
+          MessageHolder::instance().addErrorMsg(*handleError);
+          auto response =
+              std::make_unique<common::ErrorRequest>("Failed to deliver SMS");
           std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
-
-          auto handleError = handleSmTransfer(ctx, *req);
-          if (handleError) {
-            error = *handleError;
-          }
-
-          if (!error.empty()) {
-            MessageHolder::instance().addErrorMsg(error);
-            auto response =
-                std::make_unique<common::ErrorRequest>("Failed to deliver SMS");
-            auto responseSendError = sendResponse(ctx, std::move(response));
-            if (responseSendError) {
-              MessageHolder::instance().addErrorMsg(
-                  "Error sending error info: " + *responseSendError);
-            }
+          auto responseSendError = sendResponse(ctx, std::move(response));
+          if (responseSendError) {
+            MessageHolder::instance().addErrorMsg("Error sending error info: " +
+                                                  *responseSendError);
           }
         }
 
@@ -523,35 +536,31 @@ SimtelBaseStation::prepareSmDelivery(const common::imsi_t &imsi,
   return response;
 }
 
-void SimtelBaseStation::sendSmDelivery(
-    const common::imsi_t &imsi, const common::SmDeliveryRequest &response,
-    bool &ueFound) {
+bool SimtelBaseStation::sendSmDelivery(
+    const common::imsi_t &imsi, const common::SmDeliveryRequest &response) {
   std::shared_ptr<SimtelUeContext> ctx;
 
   {
     std::lock_guard lock(connectedUeMtx);
     auto it = connectedUe.find(imsi);
     if (it == connectedUe.end()) {
-      ueFound = false;
-      return;
+      return false;
     }
     ctx = it->second;
   }
 
-  std::lock_guard lock(*getSendMtx(imsi));
-  sendResponse(ctx, std::make_unique<common::SmDeliveryRequest>(response));
+  return sendResponse(ctx, std::make_unique<common::SmDeliveryRequest>(
+                               response)) == std::nullopt;
 }
 
 std::optional<common::SmDeliveryAckRequest>
-SimtelBaseStation::receiveSmDeliveryAck(const common::imsi_t &imsi,
-                                        bool &ueFound) {
+SimtelBaseStation::receiveSmDeliveryAck(const common::imsi_t &imsi) {
 
   std::shared_ptr<SimtelUeContext> ctx;
   {
     std::lock_guard lock(connectedUeMtx);
     auto it = connectedUe.find(imsi);
     if (it == connectedUe.end()) {
-      ueFound = false;
       return std::nullopt;
     }
     ctx = it->second;
@@ -564,5 +573,27 @@ SimtelBaseStation::receiveSmDeliveryAck(const common::imsi_t &imsi,
   }
 
   return *ackReq;
+}
+
+bool SimtelBaseStation::trySendSmsDelivery(const common::imsi_t &imsi,
+                                           unsigned int smsId,
+                                           const common::imsi_t &msisdn,
+                                           const common::binary_t &smsText) {
+  std::lock_guard lock(*getSendMtx(imsi));
+
+  if (!handleForwardSmReq(imsi, smsText.size())) {
+    return false;
+  }
+
+  if (!handleMtForwardSm(imsi, smsText)) {
+    return false;
+  }
+
+  auto preparedReq = prepareSmDelivery(imsi, smsId, msisdn);
+  if (!preparedReq) {
+    return false;
+  }
+
+  return sendSmDelivery(imsi, *preparedReq);
 }
 } // namespace server

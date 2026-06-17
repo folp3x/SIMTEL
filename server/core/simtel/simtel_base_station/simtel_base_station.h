@@ -40,7 +40,8 @@ private:
 
   static std::optional<std::string>
   handleLocationUpdate(const common::RrcConnectionRequest &req,
-                       std::shared_ptr<SimtelUeContext> ctx);
+                       std::shared_ptr<SimtelUeContext> ctx,
+                       bool firstConnection = true);
 
   static SimtelBaseStation *findBs(unsigned int id);
 
@@ -106,11 +107,15 @@ public:
   prepareSmDelivery(const common::imsi_t &imsi, unsigned int smsId,
                     const common::imsi_t &msisdn);
 
-  void sendSmDelivery(const common::imsi_t &imsi,
-                      const common::SmDeliveryRequest &response, bool &ueFound);
+  bool sendSmDelivery(const common::imsi_t &imsi,
+                      const common::SmDeliveryRequest &response);
 
   std::optional<common::SmDeliveryAckRequest>
-  receiveSmDeliveryAck(const common::imsi_t &imsi, bool &ueFound);
+  receiveSmDeliveryAck(const common::imsi_t &imsi);
+
+  bool trySendSmsDelivery(const common::imsi_t &imsi, unsigned int smsId,
+                          const common::imsi_t &msisdn,
+                          const common::binary_t &smsText);
 };
 } // namespace server
 

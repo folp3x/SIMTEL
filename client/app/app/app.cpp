@@ -58,14 +58,13 @@ void App::handleLocationUpdate() {
               addErrorMsg("BS changed. New m-timsi received, but it is already "
                           "assigned");
             } else {
-              addMsg("BS changed. Confirmed m-timsi: " + ctx.getMTimsi());
+              addMsg("BS changed. m-timsi not updated: " + ctx.getMTimsi());
             }
-
             return;
           }
 
-          addMsg("Handover. m-timsi set: " + ctx.getMTimsi());
-        } else if (auto *handoverResponse =
+          addMsg("BS changed. m-timsi set: " + ctx.getMTimsi());
+        } else if (auto *keepResponse =
                        dynamic_cast<common::RrcReconfigurationKeepRequest *>(
                            response.get())) {
           addMsg("BS not changed");
