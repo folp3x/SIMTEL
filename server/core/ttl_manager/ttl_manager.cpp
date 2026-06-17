@@ -5,8 +5,10 @@ TtlManager::TtlManager(unsigned int timeoutSec, unsigned int warningPeriod_)
     : timeout(timeoutSec), warningPeriod(warningPeriod_) {}
 
 void TtlManager::update() {
-  std::lock_guard lock(lastActivityMtx);
-  lastActivity = std::chrono::steady_clock::now();
+  {
+    std::lock_guard lock(lastActivityMtx);
+    lastActivity = std::chrono::steady_clock::now();
+  }
   lastWarningNum = 0;
 }
 
@@ -16,10 +18,12 @@ bool TtlManager::isExpired() const {
 }
 
 unsigned int TtlManager::getLeftSec() const {
-  std::lock_guard lock(lastActivityMtx);
-
+  std::chrono::nanoseconds passed;
   auto now = std::chrono::steady_clock::now();
-  auto passed = now - lastActivity;
+  {
+    std::lock_guard lock(lastActivityMtx);
+    passed = now - lastActivity;
+  }
   auto passedSec = std::chrono::duration_cast<std::chrono::seconds>(passed);
 
   if (passedSec >= timeout) {

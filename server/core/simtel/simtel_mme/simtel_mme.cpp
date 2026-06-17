@@ -226,33 +226,32 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
 
   common::binary_t binary = common::BinarySerializer::strToBinary(*smsText);
 
-  bool bufAquired = bs->handleForwardSmReq(mtimsi_d, binary.size());
-  if (!bufAquired) {
-    return "Failed to aquire buf for SMS text on BS";
-  }
-
-  bool bufFilled = bs->handleMtForwardSm(mtimsi_d, binary);
-  if (!bufFilled) {
-    return "Failed to copy SMS text to BS buf";
-  }
-
-  auto preparedReq = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
-  if (!preparedReq) {
-    return preparedReq.error();
-  }
-
   unsigned int smsTtlSec = smsc->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
-  TtlManager ttlManager{smsTtlSec, smsTtlSec / 2};
+  TtlManager ttlManager{smsTtlSec, smsTtlSec / 10};
   ttlManager.update();
   ttlManager.setActive(true);
 
-  MessageHolder::instance().addMsg(
-      createLogMsg("trying to send prepared SM_Delivery"));
+  MessageHolder::instance().addMsg(createLogMsg("trying to send SM_Delivery"));
 
   while (true) {
     if (ttlManager.isActive() && ttlManager.isExpired()) {
       MessageHolder::instance().addErrorMsg("SMS TTL expired");
       break;
+    }
+
+    bool bufAquired = bs->handleForwardSmReq(mtimsi_d, binary.size());
+    if (!bufAquired) {
+      continue;
+    }
+
+    bool bufFilled = bs->handleMtForwardSm(mtimsi_d, binary);
+    if (!bufFilled) {
+      continue;
+    }
+
+    auto preparedReq = bs->prepareSmDelivery(mtimsi_d, smsId, msisdn_s);
+    if (!preparedReq) {
+      continue;
     }
 
     auto warningSec = ttlManager.getWarningSec();

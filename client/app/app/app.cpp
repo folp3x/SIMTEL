@@ -12,6 +12,7 @@
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
+#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "common/core/request/sm_delivery_request/sm_delivery_request.h"
@@ -54,16 +55,20 @@ void App::handleLocationUpdate() {
           bool updated = ctx.setMTimsi(newMTimsi);
           if (!updated) {
             if (ctx.getMTimsi() != newMTimsi) {
-              addErrorMsg(
-                  "Handover. New m-timsi received, but it is already assigned");
+              addErrorMsg("BS changed. New m-timsi received, but it is already "
+                          "assigned");
             } else {
-              addMsg("Handover. Confirmed m-timsi: " + ctx.getMTimsi());
+              addMsg("BS changed. Confirmed m-timsi: " + ctx.getMTimsi());
             }
 
             return;
           }
 
           addMsg("Handover. m-timsi set: " + ctx.getMTimsi());
+        } else if (auto *handoverResponse =
+                       dynamic_cast<common::RrcReconfigurationKeepRequest *>(
+                           response.get())) {
+          addMsg("BS not changed");
         }
       });
 }
@@ -195,7 +200,8 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
           smsList.push_back(sms);
         }
 
-        addMsg("SMS sent to " + targetMsisdn);
+        addMsg("SMS sent to " + targetMsisdn + " (id=" + std::to_string(smsId) +
+               ")");
       });
 }
 
@@ -350,7 +356,7 @@ void App::run() {
       if (auto *deliveryResponse =
               dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
         if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
-          addErrorMsg("Unknown m-timsi in sm delivery: " +
+          addErrorMsg("Unknown m-timsi in delivery response: " +
                       deliveryResponse->getMTimsi());
           return;
         }
@@ -358,12 +364,14 @@ void App::run() {
         for (const auto &sms : smsList) {
           if (sms.id == deliveryResponse->getSmsId() &&
               sms.sender == deliveryResponse->getMsisdn()) {
-            addMsg("Duplicate SMS ignored");
+            addMsg("Duplicate SMS ignored (msisdn=" + sms.sender +
+                   ", id=" + std::to_string(sms.id) + ")");
             return;
           }
         }
 
-        addMsg("SMS received from " + deliveryResponse->getMsisdn());
+        addMsg("SMS received from " + deliveryResponse->getMsisdn() +
+               " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
 
         common::Sms sms{deliveryResponse->getSmsId(),
                         {},

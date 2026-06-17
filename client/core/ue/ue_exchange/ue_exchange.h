@@ -20,7 +20,7 @@ private:
   };
 
   static constexpr unsigned int NO_SMS_INFO_SLEEP_MS = 2000;
-  static constexpr unsigned int RECEIVE_SMS_INFO_TIMEOUT_MSEC = 10;
+  static constexpr unsigned int RECEIVE_SMS_INFO_TIMEOUT_MSEC = 100;
   static constexpr unsigned int RECEIVE_SIGNAL_TIMEOUT_MSEC = 2000;
 
   bool running = true;

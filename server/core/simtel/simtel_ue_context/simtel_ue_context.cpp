@@ -29,40 +29,31 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
 }
 
 common::binary_t SimtelUeContext::takeBuf() {
-  std::unique_lock lock(bufMtx);
   auto copy = buf;
   buf.clear();
-  bufEmptyCv.notify_one();
 
   return copy;
 }
 
 void SimtelUeContext::setBuf(const common::binary_t &buf_) {
-  std::unique_lock lock(bufMtx);
-  bufEmptyCv.wait(lock, [this] { return buf.empty(); });
   buf = buf_;
   MessageHolder::instance().addMsg(toStr() + " buf set (" +
                                    std::to_string(buf.size()) + " bytes)");
 }
 
 common::binary_t SimtelUeContext::copyBuf() const {
-  std::lock_guard lock(bufMtx);
   MessageHolder::instance().addMsg(toStr() + " buf copied (" +
                                    std::to_string(buf.size()) + " bytes)");
   return buf;
 }
 
 void SimtelUeContext::clearBuf() {
-  std::lock_guard lock(bufMtx);
   MessageHolder::instance().addMsg(toStr() + " buf cleared (" +
                                    std::to_string(buf.size()) + " bytes)");
   buf.clear();
-  bufEmptyCv.notify_one();
 }
 
 void SimtelUeContext::aquireBuf(size_t size) {
-  std::unique_lock lock(bufMtx);
-  bufEmptyCv.wait(lock, [this] { return buf.empty(); });
   buf.resize(size);
   MessageHolder::instance().addMsg(toStr() + " buf aquired (" +
                                    std::to_string(buf.size()) + " bytes)");
@@ -99,7 +90,8 @@ std::optional<common::NetworkError> SimtelUeContext::sendBufToUe() {
 }
 
 std::string SimtelUeContext::toStr() const {
-  return "UE_" + sock->getAddrStr();
+  std::string mTimsiStr = mTimsi.empty() ? "?" : mTimsi;
+  return "UE_" + sock->getAddrStr() + "(m-timsi=" + mTimsiStr + ")";
 }
 
 bool SimtelUeContext::setReceiveTimeout(unsigned int timeoutMsec) {

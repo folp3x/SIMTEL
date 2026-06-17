@@ -70,14 +70,25 @@ void UeExchange::handleRequests() {
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
-      auto result = handleLocationUpdate(std::move(info));
-
-      if (!result) {
-        signalLevel = 0;
-        callback(nullptr, result.error());
-      } else {
-        callback(std::move(*result), "");
+      std::unique_ptr<common::Request> response;
+      std::string error = "";
+      {
+        std::lock_guard lock(receiveMtx);
+        auto result = handleLocationUpdate(std::move(info));
+        if (!result) {
+          error = result.error();
+        } else {
+          response = std::move(*result);
+        }
       }
+
+      if (!error.empty()) {
+        signalLevel = 0;
+        callback(nullptr, error);
+      } else {
+        callback(std::move(response), "");
+      }
+
       break;
     }
     case common::RequestType::SM_Transfer: {
@@ -127,13 +138,16 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(RequestInfo info) {
-  std::unique_lock lock(requestsMtx);
   auto locationSendError = sendRequest(std::move(info.req));
   if (locationSendError) {
     return std::unexpected("Failed to send location - " + *locationSendError);
   }
 
-  sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
+  bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
+  if (!set) {
+    return std::unexpected("Error setting receive timout");
+  }
+
   common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
@@ -247,13 +261,26 @@ void UeExchange::stop() {
 void UeExchange::receiveSmsInfo(const CallbackType &callback) {
   while (running) {
     {
-      std::lock_guard lock(receiveMtx);
       common::RequestType responseType;
 
-      sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
-      auto data = receiveResponseData(responseType);
+      bool received = false;
+      common::binary_t data{};
+      {
+        std::lock_guard lock(receiveMtx);
+        bool set = sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
+        if (!set) {
+          received = false;
+        } else {
+          auto receivedData = receiveResponseData(responseType);
 
-      if (!data) {
+          received = receivedData.has_value();
+          if (received) {
+            data = std::move(*receivedData);
+          }
+        }
+      }
+
+      if (!received) {
         std::this_thread::sleep_for(
             std::chrono::milliseconds(NO_SMS_INFO_SLEEP_MS));
         continue;
@@ -262,8 +289,7 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
       std::unique_ptr<common::Request> response;
       switch (responseType) {
       case common::RequestType::SM_Delivery: {
-        auto receivedResponse =
-            parseFromBytes<common::SmDeliveryRequest>(*data);
+        auto receivedResponse = parseFromBytes<common::SmDeliveryRequest>(data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
@@ -275,7 +301,7 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
       }
       case common::RequestType::SM_Delivery_Report: {
         auto receivedResponse =
-            parseFromBytes<common::SmDeliveryReportRequest>(*data);
+            parseFromBytes<common::SmDeliveryReportRequest>(data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
@@ -286,13 +312,14 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
         break;
       }
       case common::RequestType::Error: {
-        auto error = parseFromBytes<common::ErrorRequest>(*data);
+        auto error = parseFromBytes<common::ErrorRequest>(data);
         return callback(nullptr,
                         error ? error->getDescription() : error.error());
       }
       default:
         callback(nullptr,
-                 "Unexpected request type received while receiving SMS info");
+                 "Unexpected request type received while receiving SMS info: " +
+                     common::requestTypeToStr(responseType));
         continue;
       }
 

@@ -19,8 +19,6 @@ private:
 
   SimtelBaseStation *bs = nullptr;
 
-  mutable std::mutex bufMtx;
-  std::condition_variable bufEmptyCv{};
   common::binary_t buf = {};
 
 public:

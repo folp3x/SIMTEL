@@ -31,8 +31,12 @@ private:
 
   SimtelMme *mme;
 
+  mutable std::mutex connectedUeMtx;
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
       connectedUe = {};
+
+  std::mutex sendMtxListLock;
+  std::unordered_map<common::imsi_t, std::unique_ptr<std::mutex>> sendMtxList{};
 
   static std::optional<std::string>
   handleLocationUpdate(const common::RrcConnectionRequest &req,
@@ -83,6 +87,8 @@ public:
                           bool &handover) const;
 
   void addUe(std::shared_ptr<SimtelUeContext> ctx);
+  std::mutex *getSendMtx(const common::imsi_t &mTimsi);
+
   std::shared_ptr<SimtelUeContext> copyUe(const common::imsi_t &mTImsi);
   bool removeUe(const common::imsi_t &mTImsi);
 
