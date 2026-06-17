@@ -404,7 +404,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         break;
       }
       default:
-        MessageHolder::instance().addErrorMsg("Unexpected request type");
+        MessageHolder::instance().addErrorMsg(
+            "Unexpected request type - Rrc_Connection or SM_Transfer sxpected");
       }
     }
   }

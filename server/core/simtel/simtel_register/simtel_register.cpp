@@ -31,10 +31,12 @@ SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
 }
 
 std::expected<common::imsi_t, std::string>
-SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi) {
+SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
+                                unsigned int mmeId) {
   try {
     auto records = storage.get_all<HlrRecord>(
-        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi));
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi &&
+                          sqlite_orm::c(&HlrRecord::mmeId) == mmeId));
 
     if (records.empty()) {
       return std::unexpected("HLR record not found for m-timsi: " + mTimsi);
@@ -59,6 +61,19 @@ void SimtelRegister::insertData() {
                            "89990000003",
                            subscriberStatusToStr(SubscriberStatus::BANNED),
                            std::nullopt, std::nullopt});
+
+  try {
+    auto records = storage.get_all<HlrRecord>();
+
+    MessageHolder::instance().addMsg(createLogMsg("added records"));
+
+    for (const auto &record : records) {
+      MessageHolder::instance().addMsg(createLogMsg(record.toStr()));
+    }
+  } catch (const std::exception &e) {
+    MessageHolder::instance().addErrorMsg(
+        createLogMsg("error reading records: " + std::string(e.what())));
+  }
 }
 
 bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }
@@ -75,6 +90,9 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
       return std::unexpected("HLR record not found for IMSI: " + imsi);
     }
 
+    MessageHolder::instance().addMsg(
+        createLogMsg("found record: " + records[0].toStr()));
+
     HlrRecord record = records[0];
     if (record.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
       return std::unexpected("UE is banned");
@@ -89,7 +107,7 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
     storage.update(record);
 
     MessageHolder::instance().addMsg(
-        createLogMsg("found record: " + record.toStr()));
+        createLogMsg("updated record: " + record.toStr()));
 
     return record;
   } catch (const std::exception &e) {
@@ -120,11 +138,8 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
       return std::unexpected("HLR error updating record for IMSI: " + imsi);
     }
 
-    std::string mmeIdStr =
-        (updated[0].mmeId) ? std::to_string(*updated[0].mmeId) : "?";
     MessageHolder::instance().addMsg(
-        createLogMsg("updated record: [imsi=" + updated[0].imsi +
-                     ", mmeId=" + mmeIdStr + "]"));
+        createLogMsg("updated record: " + updated[0].toStr()));
 
     return prevMmeId;
   } catch (const std::exception &e) {
@@ -133,7 +148,7 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
 }
 
 std::expected<HlrRecord, std::string>
-SimtelRegister::handleRoutingInfoSmReceiver(const common::imsi_t &imsi) {
+SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
@@ -154,7 +169,7 @@ SimtelRegister::handleRoutingInfoSmReceiver(const common::imsi_t &imsi) {
 }
 
 std::expected<HlrRecord, std::string>
-SimtelRegister::handleRoutingInfoSmSender(const common::msisdn_t &msisdn) {
+SimtelRegister::handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));

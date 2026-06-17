@@ -49,6 +49,7 @@ void SimtelListener::acceptConnections(
       activeThreads++;
       handler(ctx);
       activeThreads--;
+      ttlManager->setActive(true);
     }};
 
     singleClientHandler.detach();

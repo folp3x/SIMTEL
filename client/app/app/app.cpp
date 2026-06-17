@@ -195,7 +195,7 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
           smsList.push_back(sms);
         }
 
-        addMsg("SMS sent");
+        addMsg("SMS sent to " + targetMsisdn);
       });
 }
 
@@ -363,7 +363,7 @@ void App::run() {
           }
         }
 
-        addMsg("SMS received");
+        addMsg("SMS received from " + deliveryResponse->getMsisdn());
 
         common::Sms sms{deliveryResponse->getSmsId(),
                         {},

@@ -19,13 +19,13 @@ public:
 
   void setRecord(const VlrRecord &record);
 
-  void removeRecord(const common::imsi_t &imsi);
+  void removeRecord(const common::imsi_t &mTimsi);
 
-  bool changePath(const common::imsi_t &imsi,
+  bool changePath(const common::imsi_t &mTimsi,
                   std::shared_ptr<SimtelBaseStation> bs);
 
   size_t getSize() const;
 
-  std::optional<VlrRecord> findByImsi(const common::imsi_t &imsi) const;
+  std::optional<VlrRecord> findByMTimsi(const common::imsi_t &mTimsi) const;
 };
 } // namespace server

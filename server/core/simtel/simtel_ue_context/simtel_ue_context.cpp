@@ -93,7 +93,7 @@ std::optional<common::NetworkError> SimtelUeContext::sendBufToUe() {
   if (error) {
     return error;
   } else {
-    buf.clear();
+    clearBuf();
     return std::nullopt;
   }
 }

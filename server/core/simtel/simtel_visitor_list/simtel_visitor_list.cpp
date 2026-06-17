@@ -13,26 +13,26 @@ SimtelVisitorList::SimtelVisitorList(unsigned int mmeId_) : mmeId(mmeId_) {}
 void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
       createLogMsg("set record: " + record.toStr()));
-  records.insert({record.imsi, record});
+  records.insert({record.mTimsi, record});
 }
 
-void SimtelVisitorList::removeRecord(const common::imsi_t &imsi) {
-  size_t removedCount = records.erase(imsi);
+void SimtelVisitorList::removeRecord(const common::imsi_t &mTimsi) {
+  size_t removedCount = records.erase(mTimsi);
   if (removedCount > 0) {
     MessageHolder::instance().addMsg(
-        createLogMsg("removed record of timsi = " + imsi));
+        createLogMsg("removed record of m-timsi = " + mTimsi));
   }
 }
 
-bool SimtelVisitorList::changePath(const common::imsi_t &imsi,
+bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
                                    std::shared_ptr<SimtelBaseStation> bs) {
-  auto it = records.find(imsi);
+  auto it = records.find(mTimsi);
   if (it == records.end()) {
     return false;
   }
 
-  MessageHolder::instance().addMsg(createLogMsg("changed path of imsi " + imsi +
-                                                " to BS_" +
+  MessageHolder::instance().addMsg(createLogMsg("changed path of m-timsi " +
+                                                mTimsi + " to BS_" +
                                                 std::to_string(bs->getId())));
 
   it->second.bs = bs;
@@ -42,8 +42,8 @@ bool SimtelVisitorList::changePath(const common::imsi_t &imsi,
 size_t SimtelVisitorList::getSize() const { return records.size(); }
 
 std::optional<VlrRecord>
-SimtelVisitorList::findByImsi(const common::imsi_t &imsi) const {
-  auto it = records.find(imsi);
+SimtelVisitorList::findByMTimsi(const common::imsi_t &mTimsi) const {
+  auto it = records.find(mTimsi);
   if (it == records.end()) {
     return std::nullopt;
   }

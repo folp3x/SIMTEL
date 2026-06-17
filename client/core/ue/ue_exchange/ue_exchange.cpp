@@ -70,9 +70,7 @@ void UeExchange::handleRequests() {
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
-      std::unique_lock lock(requestsMtx);
       auto result = handleLocationUpdate(std::move(info));
-      lock.unlock();
 
       if (!result) {
         signalLevel = 0;
@@ -129,6 +127,7 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
 
 std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(RequestInfo info) {
+  std::unique_lock lock(requestsMtx);
   auto locationSendError = sendRequest(std::move(info.req));
   if (locationSendError) {
     return std::unexpected("Failed to send location - " + *locationSendError);
@@ -202,7 +201,8 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
     return std::unexpected(error ? error->getDescription() : error.error());
   }
   default:
-    return std::unexpected("Unexpected request type");
+    return std::unexpected(
+        "Unexpected request type - Keep or Handover expected");
   }
 
   if (newBsId != bestSignalResponse.getBsId()) {

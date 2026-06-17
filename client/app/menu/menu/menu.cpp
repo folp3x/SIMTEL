@@ -61,7 +61,7 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
 
 void Menu::showSentSms(const common::Sms &sms) const {
   std::cout << "To " << sms.receiver << " ";
-  common::printTime(sms.timeSent, "");
+  common::printTime(sms.timeSent, " ");
   showSmsStatus(sms.delivered);
   std::cout << sms.content << std::endl;
 }

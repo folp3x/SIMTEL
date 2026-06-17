@@ -16,7 +16,7 @@ Request::msgFromReqBytes(const binary_t &binary, Protocol &protocol) const {
   protocol = *parsedProtocol;
   auto reqType = static_cast<RequestType>(msg->header.reqType);
   if (reqType != getType()) {
-    return std::unexpected("Unexpected request type expected");
+    return std::unexpected("Unexpected request type: " + msg->header.reqType);
   }
 
   return msg;

@@ -43,16 +43,16 @@ public:
   std::optional<common::imsi_t>
   findImsiInHlr(const common::imsi_t &mTimsi) const;
 
+  std::optional<common::imsi_t>
+  findImsiInVlr(const common::imsi_t &mTimsi) const;
+
   void addOtherMme(std::shared_ptr<SimtelMme> mme);
 
   void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   unsigned int getId() const;
 
-  void removeFromVlr(const common::imsi_t &imsi);
-
-  std::optional<common::imsi_t>
-  getImsiFromOther(const common::imsi_t &mTimsi) const;
+  void removeFromVlr(const common::imsi_t &mTimsi);
 
   std::expected<common::imsi_t, std::string>
   handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei);
