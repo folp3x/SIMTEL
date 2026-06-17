@@ -243,7 +243,8 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     auto warningSec = ttlManager.getWarningSec();
     if (warningSec) {
       MessageHolder::instance().addMsg(
-          "SMS TTL: " + std::to_string(*warningSec) + " seconds left",
+          "SMS(mtimsi_s=" + mtimsi_s + ", id=" + std::to_string(smsId) +
+              ") TTL: " + std::to_string(*warningSec) + " seconds left",
           common::MenuMessageType::INFO);
     }
 
