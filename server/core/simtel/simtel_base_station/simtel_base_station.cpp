@@ -11,8 +11,6 @@
 #include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
-#include <iostream>
-
 namespace server {
 std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
@@ -352,6 +350,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 
     MessageHolder::instance().addMsg("");
 
+    std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
     auto receiveError = ctx->receiveData();
 
     if (receiveError) {
@@ -396,17 +395,9 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 
         ctx->clearBuf();
 
-        std::string error = "";
-        {
-          std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
-          auto updateError = handleLocationUpdate(*req, ctx, false);
-          if (updateError) {
-            error = *updateError;
-          }
-        }
-
-        if (!error.empty()) {
-          MessageHolder::instance().addErrorMsg(error);
+        auto updateError = handleLocationUpdate(*req, ctx, false);
+        if (updateError) {
+          MessageHolder::instance().addErrorMsg(*updateError);
         }
 
         auto ueBs = ctx->getBs();
@@ -437,7 +428,6 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
           MessageHolder::instance().addErrorMsg(*handleError);
           auto response =
               std::make_unique<common::ErrorRequest>("Failed to deliver SMS");
-          std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
           auto responseSendError = sendResponse(ctx, std::move(response));
           if (responseSendError) {
             MessageHolder::instance().addErrorMsg("Error sending error info: " +
@@ -449,7 +439,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       }
       default:
         MessageHolder::instance().addErrorMsg(
-            "Unexpected request type - Rrc_Connection or SM_Transfer sxpected");
+            "Unexpected request: " + common::requestTypeToStr(*reqType));
       }
     }
   }
@@ -575,25 +565,47 @@ SimtelBaseStation::receiveSmDeliveryAck(const common::imsi_t &imsi) {
   return *ackReq;
 }
 
-bool SimtelBaseStation::trySendSmsDelivery(const common::imsi_t &imsi,
-                                           unsigned int smsId,
-                                           const common::imsi_t &msisdn,
-                                           const common::binary_t &smsText) {
-  std::lock_guard lock(*getSendMtx(imsi));
-
+std::optional<common::SmDeliveryAckRequest>
+SimtelBaseStation::trySendSmsDelivery(const common::imsi_t &imsi,
+                                      unsigned int smsId,
+                                      const common::imsi_t &msisdn,
+                                      const common::binary_t &smsText) {
   if (!handleForwardSmReq(imsi, smsText.size())) {
-    return false;
+    return std::nullopt;
   }
 
   if (!handleMtForwardSm(imsi, smsText)) {
-    return false;
+    return std::nullopt;
   }
 
   auto preparedReq = prepareSmDelivery(imsi, smsId, msisdn);
   if (!preparedReq) {
-    return false;
+    return std::nullopt;
   }
 
-  return sendSmDelivery(imsi, *preparedReq);
+  bool sent = sendSmDelivery(imsi, *preparedReq);
+  if (!sent) {
+    return std::nullopt;
+  }
+
+  return receiveSmDeliveryAck(imsi);
+}
+
+std::optional<std::string>
+SimtelBaseStation::sendDeliveryReport(const common::imsi_t &imsi,
+                                      unsigned int smsId) {
+  std::shared_ptr<SimtelUeContext> ctx;
+  {
+    std::lock_guard lock(connectedUeMtx);
+    auto it = connectedUe.find(imsi);
+    if (it == connectedUe.end()) {
+      return "UE not connected to this BS";
+    }
+    ctx = it->second;
+  }
+
+  auto reportReq =
+      std::make_unique<common::SmDeliveryReportRequest>(imsi, smsId);
+  return sendResponse(ctx, std::move(reportReq));
 }
 } // namespace server

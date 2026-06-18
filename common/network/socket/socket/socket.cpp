@@ -153,12 +153,28 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   // чтение данных
   binary_t content(msgSize);
   received = recv(sock, content.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
-  if (received < 0)
+  if (received == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return std::unexpected(
+          NetworkError{NetworkErrorType::RECEIVE_TIMEOUT, "Receive timeout"});
+    }
+    if (errno == ECONNRESET) {
+      return std::unexpected(NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+                                          "Connection closed"});
+    }
+    if (errno == EBADF) {
+      return std::unexpected(NetworkError{NetworkErrorType::BAD_FILE_DESCRIPTOR,
+                                          "Bad file descriptor"});
+    }
     return std::unexpected(
         NetworkError{NetworkErrorType::OTHER, getLastError()});
-  if (received != msgSize)
+  } else if (received == 0) {
+    return std::unexpected(
+        NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
+  } else if (received != msgSize) {
     return std::unexpected(NetworkError{NetworkErrorType::INCOMPLETE_CONTENT,
                                         "Incomplete content"});
+  }
 
   binary_t result;
   result.reserve(header.size() + content.size());

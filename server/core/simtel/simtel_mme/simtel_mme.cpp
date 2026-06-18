@@ -268,10 +268,20 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
     std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
 
-    bool sent = bs->trySendSmsDelivery(mtimsi_d, smsId, msisdn_s, binary);
-    auto req = bs->receiveSmDeliveryAck(mtimsi_d);
+    auto req = bs->trySendSmsDelivery(mtimsi_d, smsId, msisdn_s, binary);
 
     if (req) {
+      auto record = vlr.findByMTimsi(mtimsi_s);
+      if (!record) {
+        break;
+      }
+
+      auto senderBs = record->bs;
+      auto error = senderBs->sendDeliveryReport(mtimsi_s, smsId);
+      if (error) {
+        MessageHolder::instance().addErrorMsg(*error);
+      }
+
       break;
     }
   }

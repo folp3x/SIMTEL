@@ -19,7 +19,7 @@ private:
       baseStations;
 
   static constexpr unsigned int CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC = 10000;
-  static constexpr unsigned int SM_DELIVERY_ACK_RECEIVE_TIMEOUT_MSEC = 3000;
+  static constexpr unsigned int SM_DELIVERY_ACK_RECEIVE_TIMEOUT_MSEC = 2000;
 
   static std::shared_ptr<TtlManager> ttlManager;
 
@@ -113,9 +113,13 @@ public:
   std::optional<common::SmDeliveryAckRequest>
   receiveSmDeliveryAck(const common::imsi_t &imsi);
 
-  bool trySendSmsDelivery(const common::imsi_t &imsi, unsigned int smsId,
-                          const common::imsi_t &msisdn,
-                          const common::binary_t &smsText);
+  std::optional<common::SmDeliveryAckRequest>
+  trySendSmsDelivery(const common::imsi_t &imsi, unsigned int smsId,
+                     const common::imsi_t &msisdn,
+                     const common::binary_t &smsText);
+
+  std::optional<std::string> sendDeliveryReport(const common::imsi_t &imsi,
+                                                unsigned int smsId);
 };
 } // namespace server
 

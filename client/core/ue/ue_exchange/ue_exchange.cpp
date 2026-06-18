@@ -95,6 +95,8 @@ void UeExchange::handleRequests() {
       auto sendError = sendRequest(std::move(info.req));
       if (sendError) {
         callback(nullptr, "Failed to send sms - " + *sendError);
+      } else {
+        callback(nullptr, "");
       }
       break;
     }
@@ -260,6 +262,8 @@ void UeExchange::stop() {
 void UeExchange::receiveSmsInfo(const CallbackType &callback) {
   while (running) {
     {
+      std::this_thread::sleep_for(std::chrono::milliseconds(SMS_INFO_SLEEP_MS));
+
       common::RequestType responseType;
 
       bool received = false;
@@ -280,8 +284,6 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
       }
 
       if (!received) {
-        std::this_thread::sleep_for(
-            std::chrono::milliseconds(NO_SMS_INFO_SLEEP_MS));
         continue;
       }
 
@@ -312,8 +314,8 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
       }
       case common::RequestType::Error: {
         auto error = parseFromBytes<common::ErrorRequest>(data);
-        return callback(nullptr,
-                        error ? error->getDescription() : error.error());
+        callback(nullptr, error ? error->getDescription() : error.error());
+        continue;
       }
       default:
         callback(nullptr,

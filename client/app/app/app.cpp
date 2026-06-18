@@ -360,30 +360,32 @@ void App::run() {
           return;
         }
 
+        bool isDuplicate = false;
         for (const auto &sms : smsList) {
           if (sms.id == deliveryResponse->getSmsId() &&
               sms.sender == deliveryResponse->getMsisdn()) {
-            addMsg("Duplicate SMS ignored (msisdn=" + sms.sender +
-                   ", id=" + std::to_string(sms.id) + ")");
-            return;
+            isDuplicate = true;
+            break;
           }
         }
 
-        addMsg("SMS received from " + deliveryResponse->getMsisdn() +
-               " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
+        if (!isDuplicate) {
+          addMsg("SMS received from " + deliveryResponse->getMsisdn() +
+                 " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
 
-        common::Sms sms{deliveryResponse->getSmsId(),
-                        {},
-                        std::chrono::time_point_cast<std::chrono::seconds>(
-                            std::chrono::system_clock::now()),
-                        deliveryResponse->getMsisdn(),
-                        "",
-                        deliveryResponse->getText(),
-                        true};
+          common::Sms sms{deliveryResponse->getSmsId(),
+                          {},
+                          std::chrono::time_point_cast<std::chrono::seconds>(
+                              std::chrono::system_clock::now()),
+                          deliveryResponse->getMsisdn(),
+                          "",
+                          deliveryResponse->getText(),
+                          true};
 
-        {
-          std::lock_guard lock(smsListMtx);
-          smsList.push_back(sms);
+          {
+            std::lock_guard lock(smsListMtx);
+            smsList.push_back(sms);
+          }
         }
 
         addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
@@ -394,7 +396,7 @@ void App::run() {
         std::lock_guard lock(smsListMtx);
         for (int i = 0; i < smsList.size(); ++i) {
           if (smsList[i].id == reportResponse->getSmsId() &&
-              smsList[i].receiver.empty()) {
+              smsList[i].sender.empty()) {
             smsList[i].delivered = true;
             break;
           }
