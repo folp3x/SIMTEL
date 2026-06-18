@@ -60,10 +60,12 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
     realImsi = *found;
   }
 
-  if (!found || !mmeId || *mmeId != id) {
+  if (!found) {
     MessageHolder::instance().addMsg(
         createLogMsg("Client sended m-timsi is real imsi"));
+  }
 
+  if (!found || !mmeId || *mmeId != id) {
     if (vlr.getSize() >= maxVlrSize) {
       return "VLR cant accept more records";
     }
