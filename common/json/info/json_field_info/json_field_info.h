@@ -17,7 +17,6 @@ private:
   static nlohmann::json::value_t recognizeType(bool arrayType);
 
 protected:
-  T *field;
   const std::function<void(const T &)> successCallback;
 
 public:
