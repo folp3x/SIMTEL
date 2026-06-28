@@ -206,8 +206,8 @@ cd build/server
 
 # запуск клиентов
 cd build/client
-./server -k ./data/config/config1.json
-./server -k ./data/config/config2.json
+./client -k ./data/config/config1.json
+./client -k ./data/config/config2.json
 ```
 
 ### Пример использования для UC D.1.1
