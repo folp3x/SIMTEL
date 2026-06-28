@@ -34,7 +34,6 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
       listener(addr, maxUeThreadsCount),
       hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
       smsc(std::make_unique<SimtelSmsc>(smscConfig)) {
-  SimtelBaseStation::setTtlManager(ttlManager);
   listener.setTtlManager(ttlManager);
 
   for (const auto &config : mmeConfigs) {
@@ -75,32 +74,36 @@ void App::run() {
   isRunning = true;
 
   menu.showStatus();
+
+  ttlManager->update();
+  ttlManager->setActive(true);
+
   std::jthread connectionHandler{[this]() {
     listener.acceptConnections([](std::shared_ptr<SimtelUeContext> ctx) {
       SimtelBaseStation::handleConnectionRequest(ctx);
     });
   }};
 
-  ttlManager->update();
-  ttlManager->setActive(true);
-
   while (isRunning) {
-    if (ttlManager->isActive() && ttlManager->isExpired()) {
-      break;
-    }
-
-    auto warningSec = ttlManager->getWarningSec();
-    if (warningSec) {
-      menu.showMessage({"TTL: " + std::to_string(*warningSec) + " seconds left",
-                        common::MenuMessageType::INFO});
-    }
-
     while (true) {
       auto msg = MessageHolder::instance().takeMsg();
       if (msg) {
         menu.showMessage(*msg);
       } else {
         break;
+      }
+    }
+
+    if (ttlManager->isActive()) {
+      if (ttlManager->isExpired()) {
+        break;
+      }
+
+      auto warningSec = ttlManager->getWarningSec();
+      if (warningSec) {
+        menu.showMessage(
+            {"TTL: " + std::to_string(*warningSec) + " seconds left",
+             common::MenuMessageType::INFO});
       }
     }
 

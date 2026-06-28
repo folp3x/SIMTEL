@@ -21,8 +21,6 @@ private:
   static constexpr unsigned int CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC = 10000;
   static constexpr unsigned int SM_DELIVERY_ACK_RECEIVE_TIMEOUT_MSEC = 2000;
 
-  static std::shared_ptr<TtlManager> ttlManager;
-
   const float radius;
   const unsigned int id;
   const unsigned int mmeId;
@@ -69,8 +67,6 @@ public:
   SimtelBaseStation(const BsConfig &config, SimtelMme *mme_);
 
   static void addBs(std::shared_ptr<SimtelBaseStation> bs);
-
-  static void setTtlManager(std::shared_ptr<TtlManager> ttlManager_);
 
   static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
 

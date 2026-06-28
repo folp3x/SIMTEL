@@ -42,14 +42,18 @@ void SimtelListener::acceptConnections(
       continue;
     }
 
-    ttlManager->update();
+    ttlManager->setActive(false);
 
     auto ctx = std::make_shared<SimtelUeContext>(std::move(*acceptResult));
     std::thread singleClientHandler{[this, handler, ctx]() {
       activeThreads++;
       handler(ctx);
       activeThreads--;
-      ttlManager->setActive(true);
+
+      if (activeThreads.load() == 0) {
+        ttlManager->update();
+        ttlManager->setActive(true);
+      }
     }};
 
     singleClientHandler.detach();

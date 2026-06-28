@@ -12,7 +12,7 @@ namespace server {
 class App {
 private:
   static constexpr unsigned int MENU_SLEEP_MS = 100;
-  static constexpr unsigned int TTL_WARNING_PERIOD_SEC = 30;
+  static constexpr unsigned int TTL_WARNING_PERIOD_SEC = 1;
 
   SimtelListener listener;
 

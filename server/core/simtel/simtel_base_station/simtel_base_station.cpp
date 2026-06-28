@@ -15,20 +15,12 @@ namespace server {
 std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
 
-std::shared_ptr<TtlManager> SimtelBaseStation::ttlManager = nullptr;
-
 std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
   return "BS_" + std::to_string(id) + ": " + content;
 }
 
 void SimtelBaseStation::handleConnectionRequest(
     std::shared_ptr<SimtelUeContext> ctx) {
-  if (!ttlManager) {
-    throw std::runtime_error("TTL manager not set");
-  }
-
-  ttlManager->setActive(false);
-
   bool timeoutSet =
       ctx->setReceiveTimeout(CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC);
   if (!timeoutSet) {
@@ -211,10 +203,6 @@ void SimtelBaseStation::addBs(std::shared_ptr<SimtelBaseStation> bs) {
   baseStations.emplace(bs->getId(), bs);
 }
 
-void SimtelBaseStation::setTtlManager(std::shared_ptr<TtlManager> ttlManager_) {
-  ttlManager = ttlManager_;
-}
-
 bool SimtelBaseStation::ueConnected(const common::imsi_t &mTimsi) const {
   std::lock_guard lock(connectedUeMtx);
   return connectedUe.find(mTimsi) != connectedUe.end();
@@ -345,9 +333,6 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
       return;
     }
 
-    ttlManager->update();
-    ttlManager->setActive(true);
-
     MessageHolder::instance().addMsg("");
 
     std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
@@ -359,7 +344,7 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
         removeUe(ctx->getMTimsi());
 
         MessageHolder::instance().addMsg(
-            createLogMsg(ctx->toStr() + " disconnected"),
+            createLogMsg(ctx->toStr() + " disconnected\n"),
             common::MenuMessageType::INFO);
 
         break;
@@ -367,8 +352,6 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 
       MessageHolder::instance().addErrorMsg(receiveError->description);
     } else {
-      ttlManager->setActive(false);
-
       common::binary_t data = ctx->copyBuf();
       auto reqType = common::parseRequestType(data);
       if (!reqType) {
