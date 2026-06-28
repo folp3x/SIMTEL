@@ -3,7 +3,6 @@
 #include <string>
 
 namespace common {
-// базовый класс для хранения конфигурации
 class Config {
 private:
   static constexpr int INVALID_PORT = -1;

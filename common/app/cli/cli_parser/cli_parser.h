@@ -8,7 +8,6 @@
 #include "common/app/config/config/config.h"
 
 namespace common {
-// базовый класс для парсинга аргументов командной строки
 template <std::derived_from<Config> T> class CLIParser {
 private:
   std::string configFilePath = "";
