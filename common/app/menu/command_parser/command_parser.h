@@ -9,11 +9,13 @@
 namespace common {
 class CommandParser {
 protected:
-  // парсер принимающий вектор аргументов и out-парамер для доп. сообщения
-  using ArgsParsersMap =
-      std::unordered_map<std::string,
-                         std::function<std::unique_ptr<MenuItem>(
-                             const std::vector<std::string> &, std::string &)>>;
+  using Args = std::vector<std::string>;
+
+  // парсер, принимающий вектор аргументов и out-параметр для доп. сообщения
+  using ArgParser =
+      std::function<std::unique_ptr<MenuItem>(const Args &, std::string &)>;
+
+  using ArgsParsersMap = std::unordered_map<std::string, ArgParser>;
 
   virtual ArgsParsersMap getArgsParsers() const = 0;
 
