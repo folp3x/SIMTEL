@@ -13,8 +13,7 @@ std::string SimtelSmsc::createLogMsg(const std::string &content) const {
   return "SMSC: " + content;
 }
 
-SimtelSmsc::SimtelSmsc(const SmscConfig &config)
-    : smsTtlMs(config.smsTtlMs), cdrJsonFilePath(config.cdrJsonFilePath) {}
+SimtelSmsc::SimtelSmsc(const SmscConfig &config) : smsTtlMs(config.smsTtlMs) {}
 
 bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
                                 unsigned int smsId) {

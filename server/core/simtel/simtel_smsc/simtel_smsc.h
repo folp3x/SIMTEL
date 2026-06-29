@@ -29,8 +29,6 @@ private:
 
   const unsigned int smsTtlMs = 0;
 
-  std::string cdrJsonFilePath = "";
-
   std::mutex contextMtx;
   std::map<SmsUid, SmsContext> context;
 

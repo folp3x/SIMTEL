@@ -5,7 +5,6 @@
 namespace server {
 void EpcConfigParser::initFields() {
   initTtlField();
-  initCdrAccessParamsField();
   initHlrAccessParamsField();
 }
 
@@ -37,17 +36,6 @@ void EpcConfigParser::initHlrAccessParamsField() {
           }));
 
   addParsedObject(std::move(hlrAccessParamsObj));
-}
-
-void EpcConfigParser::initCdrAccessParamsField() {
-  auto cdrAccessParamsObj =
-      std::make_unique<common::JsonObjectInfo>("cdrAccessParams");
-  cdrAccessParamsObj->addInner(
-      std::make_unique<common::JsonFieldInfo<std::string>>(
-          "jsonFilePath",
-          [this](const std::string &path) { config.cdrJsonFilePath = path; }));
-
-  addParsedObject(std::move(cdrAccessParamsObj));
 }
 
 std::unique_ptr<EpcConfigParser> EpcConfigParser::create() {

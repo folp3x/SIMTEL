@@ -20,7 +20,6 @@ private:
 
   void initTtlField();
   void initHlrAccessParamsField();
-  void initCdrAccessParamsField();
 
 public:
   static std::unique_ptr<EpcConfigParser> create();
