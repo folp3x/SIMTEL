@@ -28,16 +28,17 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
   auto portParseResult = fromString<float>(str);
 
   if (portParseResult) {
-    double port = *portParseResult;
+    float port = *portParseResult;
     if (port != floor(port)) {
       return std::unexpected("Port must be integer");
     }
 
-    std::string validationInfo = Validator::isCorrectPort(port);
-    if (validationInfo.empty()) {
-      return port;
+    std::string error = Validator::isCorrectPort(port);
+    if (!error.empty()) {
+      return std::unexpected(error);
     }
-    return std::unexpected(validationInfo);
+
+    return port;
   } else {
     return std::unexpected("Port parse error: " + portParseResult.error());
   }

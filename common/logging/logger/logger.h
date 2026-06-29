@@ -26,7 +26,7 @@ public:
   static void init(const std::string &loggerName, const std::string &logDirPath,
                    const std::string &appName, spdlog::level::level_enum level);
 
-  static void disable();
+  static void initNull();
 
   static bool isInitialized();
 
