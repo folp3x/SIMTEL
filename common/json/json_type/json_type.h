@@ -19,9 +19,9 @@ inline std::string jsonTypeToStr(nlohmann::json::value_t type) {
     return "boolean";
   case nlohmann::json::value_t::string:
     return "string";
+  default:
+    return "unknown";
   }
-
-  return "unknown";
 }
 
 inline bool hasJsonType(const nlohmann::json &field,
@@ -35,7 +35,8 @@ inline bool hasJsonType(const nlohmann::json &field,
     return field.is_number_integer();
   case nlohmann::json::value_t::number_unsigned:
     return field.is_number_unsigned();
+  default:
+    return field.type() == type;
   }
-  return field.type() == type;
 }
 } // namespace common

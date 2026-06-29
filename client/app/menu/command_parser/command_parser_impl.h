@@ -1,14 +1,11 @@
 #pragma once
 
-#include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
-#include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
-
 namespace client {
 template <typename T>
 std::unique_ptr<common::MenuItem>
 CommandParser::parseMoveArgs(const std::vector<std::string> &args,
                              std::string &extraMsg) {
-  const int requiredArgsCount = MenuItemMove<T>::getArgsCount();
+  const size_t requiredArgsCount = MenuItemMove<T>::getArgsCount();
 
   if (args.empty()) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");
@@ -22,12 +19,12 @@ CommandParser::parseMoveArgs(const std::vector<std::string> &args,
       break;
     }
 
-    auto coordsParseResult = common::fromString<T>(args[i]);
-    if (coordsParseResult) {
-      coords.push_back(*coordsParseResult);
+    auto coord = common::fromString<T>(args[i]);
+    if (coord) {
+      coords.push_back(*coord);
     } else {
       return std::make_unique<common::MenuItemInvalid>(
-          "Argument parse error: " + coordsParseResult.error());
+          "Argument parse error: " + coord.error());
     }
   }
 
@@ -37,5 +34,15 @@ CommandParser::parseMoveArgs(const std::vector<std::string> &args,
   }
 
   return std::make_unique<MenuItemMove<T>>(coords);
+}
+
+template <typename T>
+std::unique_ptr<common::MenuItem>
+CommandParser::parseWithoutArgs(const std::vector<std::string> &args,
+                                std::string &extraMsg) {
+  if (!args.empty()) {
+    extraMsg = "Extra arguments ignored";
+  }
+  return std::make_unique<T>();
 }
 } // namespace client

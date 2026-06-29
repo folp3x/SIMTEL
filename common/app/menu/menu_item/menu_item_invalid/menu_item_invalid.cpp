@@ -19,7 +19,7 @@ MenuItemInvalid::MenuItemInvalid(MenuItemInvalid &&other) noexcept
 
 void MenuItemInvalid::logConstructor(const std::string &constructorType,
                                      const std::string &error) const {
-  SPDLOG_LOGGER_DEBUG(common::Logger::instance().getInner(),
+  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
                       "client::MenuItemInvalid {} constructor called: error={}",
                       constructorType, error);
 }

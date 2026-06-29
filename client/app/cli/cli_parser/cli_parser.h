@@ -12,9 +12,13 @@ private:
   // опции для получения параметров конфига
   CLI::Option *imeiOpt = nullptr;
   CLI::Option *imsiOpt = nullptr;
+  CLI::Option *ipOpt = nullptr;
+  CLI::Option *locOpt = nullptr;
 
   void initImeiOpt();
   void initImsiOpt();
+  void initIpOpt();
+  void initLocOpt();
 
   virtual void initOptions() override;
 

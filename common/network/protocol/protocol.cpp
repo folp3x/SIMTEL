@@ -49,7 +49,6 @@ std::optional<uint8_t> protocolToNetworkId(Protocol p) {
   if (it == PROTOCOLS.end()) {
     return std::nullopt;
   }
-
   return it->second.networkId;
 }
 

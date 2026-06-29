@@ -33,9 +33,9 @@ void Logger::init(const std::string &loggerName, const std::string &logDirPath,
   }
 }
 
-void Logger::disable() {
+void Logger::initNull() {
   if (!initialized) {
-    ptr = std::unique_ptr<Logger>(new Logger());
+    ptr = std::make_unique<Logger>();
     initialized = true;
   }
 }

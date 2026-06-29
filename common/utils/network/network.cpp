@@ -2,7 +2,6 @@
 
 #include <arpa/inet.h>
 #include <cmath>
-#include <stdexcept>
 
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
@@ -21,11 +20,12 @@ std::expected<uint64_t, std::string> parseIP(const std::string &str) {
   if (validationInfo.empty()) {
     return ntohl(ip);
   }
+
   return std::unexpected(validationInfo);
 }
 
 std::expected<uint16_t, std::string> parsePort(const std::string &str) {
-  auto portParseResult = common::fromString<float>(str);
+  auto portParseResult = fromString<float>(str);
 
   if (portParseResult) {
     float port = *portParseResult;
@@ -33,11 +33,12 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
       return std::unexpected("Port must be integer");
     }
 
-    std::string validationInfo = Validator::isCorrectPort(port);
-    if (validationInfo.empty()) {
-      return port;
+    std::string error = Validator::isCorrectPort(port);
+    if (!error.empty()) {
+      return std::unexpected(error);
     }
-    return std::unexpected(validationInfo);
+
+    return port;
   } else {
     return std::unexpected("Port parse error: " + portParseResult.error());
   }
@@ -49,6 +50,7 @@ std::string toStr(const binary_t &binary) {
   }
 
   constexpr int ONE_BYTE_CHARS = 3;
+
   std::string str;
   str.reserve(binary.size() * ONE_BYTE_CHARS);
   char buf[ONE_BYTE_CHARS];
@@ -57,7 +59,7 @@ std::string toStr(const binary_t &binary) {
     if (i > 0) {
       str += " ";
     }
-    snprintf(buf, sizeof(buf), "%02X", binary[i]);
+    snprintf(buf, sizeof(buf), "%02X", static_cast<uint8_t>(binary[i]));
 
     str += buf;
   }
@@ -65,3 +67,5 @@ std::string toStr(const binary_t &binary) {
   return str;
 }
 } // namespace common
+
+#include "network_impl.h"

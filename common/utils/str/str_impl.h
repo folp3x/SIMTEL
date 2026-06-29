@@ -1,19 +1,13 @@
 #pragma once
 
-#include <stdexcept>
-
 namespace common {
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<int> precision_) {
+std::string toStr(T num, std::optional<unsigned int> precision_) {
   if (!precision_) {
     return std::to_string(num);
   } else {
-    int precision = *precision_;
-
-    if (precision < 0) {
-      throw std::invalid_argument("precision_ must be > 0");
-    }
+    unsigned int precision = *precision_;
 
     std::string formatStr = "%." + std::to_string(precision) + "f";
     size_t size = snprintf(nullptr, 0, formatStr.c_str(), num) + 1;
@@ -39,8 +33,9 @@ std::string toStr(T num, std::optional<int> precision_) {
 
 template <class Iterator, class U>
   requires std::is_arithmetic_v<U>
-std::string toStr(Iterator begin, Iterator end, std::optional<int> precision,
-                  char leftBorder, char rightBorder) {
+std::string toStr(Iterator begin, Iterator end,
+                  std::optional<unsigned int> precision, char leftBorder,
+                  char rightBorder) {
   if (begin == end) {
     return std::to_string(leftBorder) + std::to_string(rightBorder);
   }
@@ -50,7 +45,7 @@ std::string toStr(Iterator begin, Iterator end, std::optional<int> precision,
 
   for (auto it = begin; it != end; ++it) {
     if constexpr (std::is_floating_point_v<U>) {
-      str += common::toStr<U>(*it, precision);
+      str += toStr<U>(*it, precision);
     } else {
       str += std::to_string(*it);
     }
@@ -75,9 +70,11 @@ std::expected<T, std::string> fromString(const std::string &str) {
     else
       return stold(str);
   } catch (std::invalid_argument &e) {
-    return std::unexpected("not a valid number");
+    return std::unexpected("Not a valid number");
   } catch (std::out_of_range &e) {
-    return std::unexpected("value out of range");
+    return std::unexpected("Value out of range");
+  } catch (std::exception &e) {
+    return std::unexpected("Failed to deserialize number");
   }
 }
 } // namespace common

@@ -81,7 +81,7 @@ TEST_F(CLIParserTest, Parse_ConfigInvalidArg) {
 
 TEST_F(CLIParserTest, AllConfigOptsSet_AllSet) {
   ArgsSplitter splitter{"./app -a 127.0.0.1 -p 49152 -e 123456789012345 -i "
-                        "543210987654321 -l 1.1 2 3"};
+                        "543210987654321 -l 1.1"};
 
   bool isParsed =
       parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
@@ -117,7 +117,7 @@ TEST_F(CLIParserTest, AllConfigOptsSet_OneNotSetWithConfig) {
 
 TEST_F(CLIParserTest, RedefineConfig_AllRedefined) {
   ArgsSplitter splitter{"./app -a 127.0.0.1 -p 49152 -e 123456789012345 -i "
-                        "543210987654321 -l 1.1 2 3"};
+                        "543210987654321 -l 1.1"};
 
   bool isParsed =
       parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
@@ -126,7 +126,7 @@ TEST_F(CLIParserTest, RedefineConfig_AllRedefined) {
 
   client::Config redefined = parser->redefineConfig(config);
 
-  bool locRedefined = redefined.getLoc() == common::coords_t<float>{1.1, 2, 3};
+  bool locRedefined = redefined.getLoc() == common::coords_t<float>{1.1};
 
   EXPECT_TRUE(isParsed);
   EXPECT_TRUE(msg.empty());

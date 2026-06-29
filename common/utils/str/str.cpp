@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "common/types.h"
+
 namespace common {
 std::string lowercased(std::string_view str) {
   std::string result{};
@@ -58,9 +60,18 @@ std::vector<std::string> split(const std::string &str) {
 
   // добавление последнего токена
   if (!curToken.empty()) {
-    tokens.push_back(curToken);   
+    tokens.push_back(curToken);
   }
 
   return tokens;
+}
+
+std::string imsiToStr(uint64_t imsi) {
+  imsi_t str = std::to_string(imsi);
+  size_t lenDiff = common::constants::IMSI_DEFAULT_LENGTH - str.length();
+  if (lenDiff > 0) {
+    return std::string(lenDiff, '0') + str;
+  }
+  return str;
 }
 } // namespace common

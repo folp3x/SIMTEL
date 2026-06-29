@@ -7,7 +7,7 @@ MenuItemActive::MenuItemActive(bool active_) : active(active_) {}
 
 std::string_view MenuItemActive::getName() const { return "active"; }
 
-int MenuItemActive::getArgsCount() { return 1; }
+size_t MenuItemActive::getArgsCount() { return 1; }
 
 MenuItemActive::MenuItemActive(const MenuItemActive &other)
     : active(other.active) {

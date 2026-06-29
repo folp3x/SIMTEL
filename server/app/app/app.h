@@ -1,37 +1,40 @@
 #pragma once
 
-#include "common/app/app/app.h"
-
-#include <atomic>
-#include <memory>
-#include <queue>
-
-#include "common/app/menu/menu_item/menu_item/menu_item.h"
 #include "common/network/network_address/network_address.h"
+#include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/app/config/config/config.h"
-#include "server/network/socket/socket.h"
+#include "server/app/config/epc_config/epc_config/epc_config.h"
+#include "server/app/menu/menu/menu.h"
+#include "server/core/simtel/simtel_listener/simtel_listener.h"
+#include "server/core/simtel/simtel_mme/simtel_mme.h"
 
 namespace server {
-class App : common::App<Config> {
+class App {
 private:
-  bool isRunning = true;
+  static constexpr unsigned int MENU_SLEEP_MS = 100;
+  static constexpr unsigned int TTL_WARNING_PERIOD_SEC = 1;
 
-  std::unique_ptr<Socket> sock;
-  common::NetworkAddress addr;
+  SimtelListener listener;
 
-  std::atomic<int> activeClientThreads{0};
+  std::shared_ptr<SimtelRegister> hlr;
+  std::unique_ptr<SimtelSmsc> smsc;
+  std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> mmeList{};
 
-  std::priority_queue<common::MenuMessage> messages{};
+  std::shared_ptr<TtlManager> ttlManager;
 
-  virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                             bool &exit) override;
+  Menu menu;
 
-  void handleSingleClient(const std::unique_ptr<Socket> &clientSock);
-  void handleClients();
+  bool isRunning = false;
+
+  void sigintHandler(int signal);
+
+  void exitApp();
 
 public:
-  App(const common::Location<> &location_, const common::NetworkAddress &addr_);
+  App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
+      const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
+      const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig);
 
-  virtual void run() override;
+  void run();
 };
 } // namespace server

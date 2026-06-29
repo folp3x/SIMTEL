@@ -9,7 +9,7 @@ template <typename T>
 std::unique_ptr<common::MenuItem>
 CommandParser::parseDistArgs(const std::vector<std::string> &args,
                              std::string &extraMsg) {
-  const int requiredArgsCount = MenuItemDist<>::getArgsCount();
+  const size_t requiredArgsCount = MenuItemDist<>::getArgsCount();
 
   if (args.size() < requiredArgsCount) {
     return std::make_unique<common::MenuItemInvalid>("Missing arguments");

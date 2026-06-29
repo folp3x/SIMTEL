@@ -25,6 +25,6 @@ void ArgsSplitter::split(const std::string &argsStr) {
 
 ArgsSplitter::ArgsSplitter(const std::string &argsStr) { split(argsStr); }
 
-int ArgsSplitter::argc() { return args.size(); }
+int ArgsSplitter::argc() const { return args.size(); }
 
-char **ArgsSplitter::argv() { return args.data(); }
+char **ArgsSplitter::argv() const { return args.data(); }

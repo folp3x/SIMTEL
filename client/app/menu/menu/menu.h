@@ -1,29 +1,35 @@
 #pragma once
 
-#include "common/app/menu/menu/menu.h"
+#include "common/app/menu/interactive_menu/interactive_menu.h"
 
-#include <optional>
-
-#include "client/app/app_state/app_state.h"
 #include "client/app/menu/command_parser/command_parser.h"
+#include "client/core/ue/ue_active/ue_active.h"
 #include "common/core/location/location/location.h"
+#include "common/core/sms/sms.h"
 #include "common/network/network_address/network_address.h"
 #include "common/network/protocol/protocol.h"
-#include "common/types.h"
 
 namespace client {
-class Menu : public common::Menu<CommandParser> {
+class Menu : public common::InteractiveMenu<CommandParser> {
 private:
   CommandParser parser{};
 
   virtual void logInput(const std::string &input) const override;
 
 public:
-  void showStatus(AppState state, const common::imsi_t &imsi,
-                  const common::Location<> &location,
+  std::string getMessageContent() const;
+
+  void showStatus(bool inActive, const common::imsi_t &imsi,
                   common::Protocol protocol) const;
 
-  void showDistance(const common::NetworkAddress &serverAddr,
-                    std::optional<float>) const;
+  void showSignalInfo(const common::Location<> &location,
+                      unsigned int signalLevel) const;
+
+  void showAddressBook(const std::map<char, common::msisdn_t> &book) const;
+
+  void showSentSms(const common::Sms &sms) const;
+  void showReceivedSms(const common::Sms &sms) const;
+  void showError(const std::string &error) const;
+  void showSmsStatus(bool delivered) const;
 };
 } // namespace client

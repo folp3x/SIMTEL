@@ -2,24 +2,30 @@
 
 #include <system_error>
 #include <unistd.h>
+#include <zpp_bits.h>
 
 #include "common/network/socket/socket_message_header/socket_message_header.h"
 
 namespace common {
-std::optional<std::string> Socket::sendAll(const void *data,
-                                           size_t size_) const {
+std::optional<NetworkError> Socket::sendAll(const void *data,
+                                            size_t size) const {
   const char *ptr = static_cast<const char *>(data);
-  size_t size = size_;
+  size_t leftSize = size;
 
-  while (size > 0) {
-    ssize_t sent = send(sock, ptr, size, MSG_NOSIGNAL);
-    if (sent < 0)
-      return getLastError();
-    if (sent == 0)
-      return "Connection closed";
+  while (leftSize > 0) {
+    ssize_t sent = send(sock, ptr, leftSize, MSG_NOSIGNAL);
+    if (sent < 0) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        return NetworkError{NetworkErrorType::SEND_TIMEOUT, "Send timeout"};
+      }
+      return NetworkError{NetworkErrorType::OTHER, getLastError()};
+    } else if (sent == 0) {
+      return NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+                          "Connection closed"};
+    }
 
     ptr += sent;
-    size -= sent;
+    leftSize -= sent;
   }
 
   return std::nullopt;
@@ -30,7 +36,7 @@ std::string Socket::getLastError() {
   return error.message();
 }
 
-sockaddr_in Socket::toSockAddr(const common::NetworkAddress &address) {
+sockaddr_in Socket::toSockAddr(const NetworkAddress &address) {
   sockaddr_in sockAddr;
   sockAddr.sin_family = PF_INET;
   sockAddr.sin_port = htons(address.getPort());
@@ -41,6 +47,19 @@ sockaddr_in Socket::toSockAddr(const common::NetworkAddress &address) {
 
 Socket::Socket(int sock_) : sock(sock_) {}
 
+Socket::Socket(Socket &&other) {
+  sock = other.sock;
+  other.sock = INVALID_SOCK;
+}
+
+Socket &Socket::operator=(Socket &&other) {
+  if (&other != this) {
+    sock = other.sock;
+    other.sock = INVALID_SOCK;
+  }
+  return *this;
+}
+
 Socket::~Socket() { closeSock(); }
 
 std::expected<int, std::string> Socket::initSock() {
@@ -48,42 +67,40 @@ std::expected<int, std::string> Socket::initSock() {
   if (inited < 0) {
     return std::unexpected(getLastError());
   }
-
-  timeval tv = {5, 0}; // таймаут 5 секунд на отправку
-  if (setsockopt(inited, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
-    close(inited);
-    return std::unexpected(getLastError());
-  }
-
   return inited;
 }
 
-void Socket::closeSock() const {
+void Socket::closeSock() {
   shutdown(sock, SHUT_RDWR);
   close(sock);
+  sock = INVALID_SOCK;
 }
 
-std::optional<std::string> Socket::sendMessage(uint8_t protocol,
-                                               const binary_t &content) const {
-  if (content.empty()) {
-    return "Empty message";
+bool Socket::setSendTimeout(int sock, unsigned int timeoutSec) {
+  timeval tv = {timeoutSec, 0};
+  return setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) == 0;
+}
+
+bool Socket::setReceiveTimeout(int sock, unsigned int timeoutMsec) {
+  timeval tv;
+  tv.tv_sec = timeoutMsec / 1000;
+  tv.tv_usec = (timeoutMsec % 1000) * 1000;
+  return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == 0;
+}
+
+std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
+  if (data.empty()) {
+    return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
   }
 
-  if (content.size() > MAX_MSG_SIZE) {
-    return "Too large message " +
-           std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB";
+  if (data.size() > MAX_MSG_SIZE) {
+    return NetworkError{
+        NetworkErrorType::LARGE_MESSAGE,
+        "Message cant be larger than " +
+            std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB"};
   }
 
-  SocketMessageHeader header{protocol, htonl(content.size())};
-
-  // отправка заголовка
-  auto error = sendAll(&header, sizeof(header));
-  if (error) {
-    return error;
-  }
-
-  // отправка данных
-  error = sendAll(content.data(), content.size());
+  auto error = sendAll(data.data(), data.size());
   if (error) {
     return error;
   }
@@ -91,32 +108,79 @@ std::optional<std::string> Socket::sendMessage(uint8_t protocol,
   return std::nullopt;
 }
 
-std::expected<SocketMessage, std::string> Socket::receiveMessage() const {
-  SocketMessageHeader header;
+std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
+  binary_t header;
+  header.resize(constants::SOCKET_MESSAGE_HEADER_BYTES);
 
   // чтение заголовка
   ssize_t received =
-      recv(sock, &header, sizeof(header), MSG_WAITALL | MSG_NOSIGNAL);
-  if (received < 0)
-    return std::unexpected(getLastError());
-  if (received == 0)
-    return std::unexpected("Connection closed");
-  if (received != sizeof(header))
-    return std::unexpected("Incomplete header");
+      recv(sock, header.data(), header.size(), MSG_WAITALL | MSG_NOSIGNAL);
+  if (received == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return std::unexpected(
+          NetworkError{NetworkErrorType::RECEIVE_TIMEOUT, "Receive timeout"});
+    }
+    if (errno == ECONNRESET) {
+      return std::unexpected(NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+                                          "Connection closed"});
+    }
+    if (errno == EBADF) {
+      return std::unexpected(NetworkError{NetworkErrorType::BAD_FILE_DESCRIPTOR,
+                                          "Bad file descriptor"});
+    }
+    return std::unexpected(
+        NetworkError{NetworkErrorType::OTHER, getLastError()});
+  } else if (received == 0) {
+    return std::unexpected(
+        NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
+  } else if (received != header.size()) {
+    return std::unexpected(
+        NetworkError{NetworkErrorType::INCOMPLETE_HEADER, "Incomplete header"});
+  }
 
-  uint32_t msgSize = ntohl(header.msgSize);
-  if (msgSize > MAX_MSG_SIZE) {
-    return std::unexpected("Too large message");
+  auto in = zpp::bits::in(header);
+  uint32_t msgSize = 0;
+  if (in(msgSize) != zpp::bits::errc{}) {
+    return std::unexpected(
+        NetworkError{NetworkErrorType::NO_MSG_SIZE, "Failed to read size"});
+  }
+  msgSize = ntohl(msgSize);
+
+  if (msgSize == 0) {
+    return header;
   }
 
   // чтение данных
-  binary_t data(msgSize);
-  received = recv(sock, data.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
-  if (received < 0)
-    return std::unexpected(getLastError());
-  if (received != msgSize)
-    return std::unexpected("Incomplete data");
+  binary_t content(msgSize);
+  received = recv(sock, content.data(), msgSize, MSG_WAITALL | MSG_NOSIGNAL);
+  if (received == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return std::unexpected(
+          NetworkError{NetworkErrorType::RECEIVE_TIMEOUT, "Receive timeout"});
+    }
+    if (errno == ECONNRESET) {
+      return std::unexpected(NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+                                          "Connection closed"});
+    }
+    if (errno == EBADF) {
+      return std::unexpected(NetworkError{NetworkErrorType::BAD_FILE_DESCRIPTOR,
+                                          "Bad file descriptor"});
+    }
+    return std::unexpected(
+        NetworkError{NetworkErrorType::OTHER, getLastError()});
+  } else if (received == 0) {
+    return std::unexpected(
+        NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
+  } else if (received != msgSize) {
+    return std::unexpected(NetworkError{NetworkErrorType::INCOMPLETE_CONTENT,
+                                        "Incomplete content"});
+  }
 
-  return SocketMessage{header.protocol, std::move(data)};
+  binary_t result;
+  result.reserve(header.size() + content.size());
+  result.insert(result.end(), header.begin(), header.end());
+  result.insert(result.end(), content.begin(), content.end());
+
+  return result;
 }
 } // namespace common

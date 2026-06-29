@@ -5,12 +5,12 @@ enable_testing()
 # установка библиотек
 include(FetchContent)
 
-FetchContent_Declare(
+fetchcontent_declare(
 	gtest
 	URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(gtest)
+fetchcontent_makeavailable(gtest)
 
 set(TESTS_SOURCES_LIST
 	"main_test.cpp"
