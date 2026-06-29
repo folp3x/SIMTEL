@@ -5,7 +5,6 @@ set(SOURCES_LIST
 	"utils/str/str.cpp"
 	"network/protocol/protocol.cpp"
 	"validator/validator.cpp"
-	"logging/logger/logger.cpp"
 	"utils/network/network.cpp"
 	"network/network_address/network_address.cpp"
 	"app/config/config/config.cpp"
@@ -42,10 +41,6 @@ set(SOURCES_LIST
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
-
-target_compile_definitions(${APP_LIB_NAME} PUBLIC
-    SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG
-)
 
 # поиск заголовочных файлов в поддиректориях
 target_include_directories(${APP_LIB_NAME} PUBLIC ${CMAKE_SOURCE_DIR})

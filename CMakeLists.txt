@@ -28,13 +28,6 @@ fetchcontent_declare(
 fetchcontent_makeavailable(cli11)
 
 fetchcontent_declare(
-	spdlog
-	URL https://github.com/gabime/spdlog/archive/refs/tags/v1.17.0.tar.gz
-	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-fetchcontent_makeavailable(spdlog)
-
-fetchcontent_declare(
 	frozen
 	URL https://github.com/serge-sans-paille/frozen/archive/refs/tags/1.2.0.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
@@ -55,7 +48,6 @@ set(LIBRARIES_LIST
 	rang
 	nlohmann_json
 	CLI11::CLI11
-	spdlog
 	frozen
 	zpp_bits
 )

@@ -3,7 +3,6 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 
-#include "common/logging/logger/logger.h"
 #include "common/utils/network/network.h"
 
 namespace common {
@@ -38,45 +37,6 @@ NetworkAddress::NetworkAddress(const std::string &ipAddress,
 NetworkAddress::NetworkAddress(const std::string &ipAddress, int port_) {
   setIP(ipAddress);
   port = port_;
-}
-
-NetworkAddress::NetworkAddress(const NetworkAddress &other)
-    : ip(other.ip), port(other.port) {
-  logOperation("COPY constructor", ip, port);
-}
-
-NetworkAddress &NetworkAddress::operator=(const NetworkAddress &other) {
-  if (&other != this) {
-    this->ip = other.ip;
-    this->port = other.port;
-  }
-
-  logOperation("COPY operator", ip, port);
-
-  return *this;
-}
-
-NetworkAddress::NetworkAddress(NetworkAddress &&other) noexcept
-    : ip(other.ip), port(other.port) {
-  logOperation("MOVE constructor", ip, port);
-}
-
-NetworkAddress &NetworkAddress::operator=(NetworkAddress &&other) noexcept {
-  if (&other != this) {
-    this->ip = other.ip;
-    this->port = other.port;
-  }
-
-  logOperation("MOVE operator", ip, port);
-
-  return *this;
-}
-
-void NetworkAddress::logOperation(const std::string &operationName, uint32_t ip,
-                                  uint16_t port) const {
-  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
-                      "common::NetworkAddress {} called: ip={:#x}, port={}",
-                      operationName, ip, port);
 }
 
 std::string NetworkAddress::toStr() const {

@@ -3,7 +3,6 @@
 #include "common/app/menu/interactive_menu/interactive_menu.h"
 
 #include "client/app/menu/command_parser/command_parser.h"
-#include "client/core/ue/ue_active/ue_active.h"
 #include "common/core/location/location/location.h"
 #include "common/core/sms/sms.h"
 #include "common/network/network_address/network_address.h"
@@ -13,8 +12,6 @@ namespace client {
 class Menu : public common::InteractiveMenu<CommandParser> {
 private:
   CommandParser parser{};
-
-  virtual void logInput(const std::string &input) const override;
 
 public:
   std::string getMessageContent() const;
@@ -29,7 +26,9 @@ public:
 
   void showSentSms(const common::Sms &sms) const;
   void showReceivedSms(const common::Sms &sms) const;
+
   void showError(const std::string &error) const;
+
   void showSmsStatus(bool delivered) const;
 };
 } // namespace client

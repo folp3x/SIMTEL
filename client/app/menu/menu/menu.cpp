@@ -2,15 +2,10 @@
 
 #include <iostream>
 
-#include "common/logging/logger/logger.h"
+#include "client/core/ue/ue_active/ue_active.h"
 #include "common/utils/print/print.h"
 
 namespace client {
-void Menu::logInput(const std::string &input) const {
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Received input: {}", input);
-}
-
 std::string Menu::getMessageContent() const {
   std::string content;
   std::string line;

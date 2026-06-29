@@ -72,9 +72,6 @@ private:
 
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 
-  void logCommandProcess(std::string_view commandName,
-                         std::string_view argsStr = "") const;
-
   void addMsg(const std::string &content,
               common::MenuMessageType type = common::MenuMessageType::INFO);
 

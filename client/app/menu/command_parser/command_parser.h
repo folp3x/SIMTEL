@@ -7,6 +7,7 @@
 #include "client/app/menu/menu_item/menu_item_received/menu_item_received.h"
 #include "client/app/menu/menu_item/menu_item_sent/menu_item_sent.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+#include "common/utils/str/str.h"
 
 namespace client {
 class CommandParser : public common::CommandParser {

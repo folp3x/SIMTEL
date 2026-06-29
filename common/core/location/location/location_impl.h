@@ -2,44 +2,7 @@
 
 namespace common {
 template <typename T, size_t S>
-void Location<T, S>::logOperation(const std::string &operationName,
-                                  const coords_t<T, S> &coords) const {
-  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
-                      "common::Location {} called: coords={}", operationName,
-                      common::toStr(coords.begin(), coords.end()));
-}
-
-template <typename T, size_t S>
 Location<T, S>::Location(const coords_t<T, S> &coords_) : coords(coords_) {}
-
-template <typename T, size_t S>
-Location<T, S>::Location(const Location &other) : coords(other.coords) {
-  logOperation("COPY constructor", coords);
-}
-
-template <typename T, size_t S>
-Location<T, S> &Location<T, S>::operator=(const Location &other) {
-  logOperation("COPY operator", coords);
-  if (&other != this) {
-    this->coords = other.coords;
-  }
-  return *this;
-}
-
-template <typename T, size_t S>
-Location<T, S>::Location(Location &&other) noexcept
-    : coords(std::move(other.coords)) {
-  logOperation("MOVE constructor", coords);
-}
-
-template <typename T, size_t S>
-Location<T, S> &Location<T, S>::operator=(Location &&other) noexcept {
-  logOperation("MOVE operator", coords);
-  if (&other != this) {
-    this->coords = std::move(other.coords);
-  }
-  return *this;
-}
 
 template <typename T, size_t S>
 template <typename Container>

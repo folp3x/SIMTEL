@@ -17,10 +17,13 @@ public:
 
   common::msisdn_t getMsisdn() const;
   void setMsisdn(const common::msisdn_t &msisdn_);
+
   std::string getContent() const;
   void setContent(const std::string &content_);
+
   char getSpeedDialNum() const;
   void setSpeedDialNum(char speedDialNum_);
+
   static size_t getMaxArgsCount();
 };
 } // namespace client

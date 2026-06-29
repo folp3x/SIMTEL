@@ -19,10 +19,6 @@ void App::exitApp() {
   isRunning = false;
   listener.stop();
 
-  if (common::Logger::isInitialized()) {
-    common::Logger::instance().getInner()->flush();
-  }
-
   std::cout << "Exiting app..." << std::endl;
 }
 
@@ -69,8 +65,6 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
 }
 
 void App::run() {
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
-
   isRunning = true;
 
   menu.showStatus();
@@ -111,7 +105,5 @@ void App::run() {
   }
 
   exitApp();
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }
 } // namespace server

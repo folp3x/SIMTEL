@@ -2,7 +2,6 @@
 
 #include <csignal>
 #include <iostream>
-#include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #include "client/app/menu/command_info/command_info.h"
@@ -79,8 +78,6 @@ void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
 }
 
 void App::handleActiveCommand(const MenuItemActive &cmd) {
-  logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
-
   bool newActive = cmd.getActive();
   bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
@@ -102,9 +99,6 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
 
 void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   auto coords = cmd.getCoords();
-  logCommandProcess(
-      cmd.getName(),
-      fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
 
   bool locationChanged = !ctx.getLocation().coordsEqual(coords);
   try {
@@ -128,7 +122,6 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
 
 void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
-  logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
   auto parsedProtocol = common::protocolFromStr(protocolStr);
   if (!parsedProtocol) {
@@ -273,10 +266,6 @@ void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
 void App::exitApp() {
   exchange.stop();
 
-  if (common::Logger::isInitialized()) {
-    common::Logger::instance().getInner()->flush();
-  }
-
   std::cout << "Exiting app..." << std::endl;
 }
 
@@ -290,17 +279,10 @@ unsigned int App::generateSmsId() {
 
 void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
                         bool &exit) {
-  std::string cmdNameUpper = common::uppercased(cmd->getName());
-  bool isCorrectCommand = true;
-
   // выполнение команды в засимости от ее типа
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Received invalid command: {}", invalidCmd->getError());
     addErrorMsg("Error! " + invalidCmd->getError());
-    isCorrectCommand = false;
   } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
-    logCommandProcess(cmdNameUpper);
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
     handleActiveCommand(*activeCmd);
@@ -319,11 +301,6 @@ void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
   } else if (auto *emptyCmd =
                  dynamic_cast<common::MenuItemEmpty *>(cmd.get())) {
     return;
-  }
-
-  if (isCorrectCommand) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Finished command {}", cmdNameUpper);
   }
 }
 
@@ -359,7 +336,6 @@ void App::run() {
     });
   }};
 
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
   while (isRunning) {
     menu.showMenuHeaderLine();
     menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
@@ -393,21 +369,6 @@ void App::run() {
   }
 
   exitApp();
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
-}
-
-void App::logCommandProcess(std::string_view commandName,
-                            std::string_view argsStr) const {
-  std::string nameUpper = common::uppercased(commandName);
-  if (!argsStr.empty()) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Processing command {} with args: {}", nameUpper,
-                       argsStr);
-  } else {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Processing command {}", nameUpper);
-  }
 }
 
 void App::addMsg(const std::string &content, common::MenuMessageType type) {
