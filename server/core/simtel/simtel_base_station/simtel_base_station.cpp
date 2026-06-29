@@ -140,12 +140,13 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   auto initialBs = ctx->getBs();
   for (const auto &[id, bs] : baseStations) {
     unsigned int signalLevel = bs->measureSignal(locReq.getLoc());
-    MessageHolder::instance().addMsg(bs->createLogMsg(
-        "measured signal level = " + std::to_string(signalLevel)));
 
     if (signalLevel == 0) {
       continue;
     }
+
+    MessageHolder::instance().addMsg(
+        bs->createLogMsg("signal level = " + std::to_string(signalLevel)));
 
     auto response = std::make_unique<common::MeasurementControlRequest>(
         locReq.getImei(), signalLevel, bs->getId());
@@ -157,7 +158,8 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   }
   ctx->setBs(initialBs);
 
-  MessageHolder::instance().addMsg("Receiving BS id through current BS");
+  MessageHolder::instance().addMsg("Receiving chosen BS id through current BS");
+
   auto chosenBsReq =
       initialBs->receiveRequest<common::MeasurementReportRequest>(ctx);
   if (!chosenBsReq) {
@@ -258,14 +260,12 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("received m-timsi from MME: " + *mTimsi));
+      createLogMsg("response from MME: AuthRequest(m-timsi=" + *mTimsi + ")"));
 
   bool updated = ctx->setMTimsi(*mTimsi);
   if (!updated && ctx->getMTimsi() != *mTimsi) {
     return "UE IMSI cant be reassigned";
   }
-
-  MessageHolder::instance().addMsg("Sending AuthRequest through chosen BS");
 
   auto curBs = ctx->getBs();
   bool connectedToCur =
@@ -452,7 +452,8 @@ void SimtelBaseStation::handleUe(std::shared_ptr<SimtelUeContext> ctx) {
 std::optional<std::string>
 SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
                                     const common::SmTransferRequest &req) {
-  MessageHolder::instance().addMsg(createLogMsg("sending SM_Submit to MME"));
+  MessageHolder::instance().addMsg(
+      createLogMsg("sent SM_Submit to MME (Sm_Transfer without text)"));
   bool contextCreated = mme->handleSmSubmit(req.getMTimsi(), req.getSmsId());
   if (!contextCreated) {
     ctx->clearBuf();
@@ -460,7 +461,7 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("sending MO_Forward_SM to MME"));
+      createLogMsg("sent MO_Forward_SM to MME (Sm_Transfer text)"));
   bool smsMoved =
       mme->handleMoForwardSM(req.getMTimsi(), req.getSmsId(), req.getText());
   if (!smsMoved) {

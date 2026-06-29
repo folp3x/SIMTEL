@@ -48,9 +48,8 @@ common::binary_t SimtelUeContext::copyBuf() const {
 }
 
 void SimtelUeContext::clearBuf() {
-  MessageHolder::instance().addMsg(toStr() + " buf cleared (" +
-                                   std::to_string(buf.size()) + " bytes)");
   buf.clear();
+  MessageHolder::instance().addMsg(toStr() + " buf cleared");
 }
 
 void SimtelUeContext::aquireBuf(size_t size) {
@@ -63,9 +62,9 @@ bool SimtelUeContext::fillBuf(const common::binary_t &data) {
   if (buf.size() != data.size()) {
     return false;
   }
+
   buf.assign(data.begin(), data.end());
-  MessageHolder::instance().addMsg(toStr() + " buf filled (" +
-                                   std::to_string(buf.size()) + " bytes)");
+  MessageHolder::instance().addMsg(toStr() + " buf filled");
   return true;
 }
 

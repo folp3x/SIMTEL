@@ -5,8 +5,8 @@
 
 namespace server {
 std::string SimtelSmsc::smsUidToStr(const SmsUid &uid) {
-  return "uid{iTimsi=" + uid.first + ", smsId=" + std::to_string(uid.second) +
-         "}";
+  return "sms_uid{iTimsi=" + uid.first +
+         ", smsId=" + std::to_string(uid.second) + "}";
 }
 
 std::string SimtelSmsc::createLogMsg(const std::string &content) const {
@@ -56,7 +56,8 @@ bool SimtelSmsc::updateContextMTimsiD(const common::imsi_t &mtimsi_s,
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("updated mtimsi_d of " + smsUidToStr(it->first)));
+      createLogMsg("updated " + smsUidToStr(it->first)) +
+      ": mtimsi_d=" + mtimsi_d);
 
   it->second.mtimsi_d = mtimsi_d;
   return true;

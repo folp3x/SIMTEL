@@ -62,7 +62,7 @@ void SimtelRegister::insertData() {
   try {
     auto records = storage.get_all<HlrRecord>();
 
-    MessageHolder::instance().addMsg(createLogMsg("added records"));
+    MessageHolder::instance().addMsg(createLogMsg("records added:"));
 
     for (const auto &record : records) {
       MessageHolder::instance().addMsg(createLogMsg(record.toStr()));
@@ -87,9 +87,6 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
       return std::unexpected("HLR record not found for IMSI: " + imsi);
     }
 
-    MessageHolder::instance().addMsg(
-        createLogMsg("found record: " + records[0].toStr()));
-
     HlrRecord record = records[0];
     if (record.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
       return std::unexpected("UE is banned");
@@ -104,7 +101,7 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
     storage.update(record);
 
     MessageHolder::instance().addMsg(
-        createLogMsg("updated record: " + record.toStr()));
+        createLogMsg("set m-timsi: " + record.toStr()));
 
     return record;
   } catch (const std::exception &e) {
@@ -136,7 +133,7 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
     }
 
     MessageHolder::instance().addMsg(
-        createLogMsg("updated record: " + updated[0].toStr()));
+        createLogMsg("updated mmeId: " + updated[0].toStr()));
 
     return prevMmeId;
   } catch (const std::exception &e) {
@@ -157,7 +154,7 @@ SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
     HlrRecord record = records[0];
 
     MessageHolder::instance().addMsg(
-        createLogMsg("found record: " + record.toStr()));
+        createLogMsg("found by imsi: " + record.toStr()));
 
     return record;
   } catch (const std::exception &e) {
@@ -178,7 +175,7 @@ SimtelRegister::handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn) {
     HlrRecord record = records[0];
 
     MessageHolder::instance().addMsg(
-        createLogMsg("found record: " + record.toStr()));
+        createLogMsg("found by msisdn: " + record.toStr()));
 
     return record;
   } catch (const std::exception &e) {

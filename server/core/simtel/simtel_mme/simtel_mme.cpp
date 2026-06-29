@@ -60,13 +60,13 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
   auto found = findImsiInHlr(imsi, mmeId);
   if (found) {
     MessageHolder::instance().addMsg(
-        createLogMsg("Client sended m-timsi is not real imsi"));
+        createLogMsg("received m-timsi is not real imsi"));
     realImsi = *found;
   }
 
   if (!found) {
     MessageHolder::instance().addMsg(
-        createLogMsg("Client sended m-timsi is real imsi"));
+        createLogMsg("received m-timsi is real imsi"));
   }
 
   if (!found || !mmeId || *mmeId != id) {
@@ -94,6 +94,7 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   MessageHolder::instance().addMsg(
       createLogMsg("received AuthResponse(mTimsi=" + mTimsi +
                    ", bsId=" + std::to_string(bsId) + ")"));
+
   auto bs = findBsById(bsId);
   if (!bs) {
     return "BS not known by MME";
@@ -103,11 +104,6 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
   if (!changed) {
     return "IMSI not found in VLR";
   }
-
-  MessageHolder::instance().addMsg(
-      createLogMsg("Searching for real IMSI in VLR"));
-
-  MessageHolder::instance().addMsg(createLogMsg("Updating mmeId in HLR"));
 
   auto realImsi = findImsiInVlr(mTimsi);
   if (!realImsi) {
@@ -140,15 +136,14 @@ std::shared_ptr<SimtelMme> SimtelMme::findOtherById(unsigned int id) const {
 
 bool SimtelMme::handleSmSubmit(const common::imsi_t &mtimsi_s,
                                unsigned int smsId) {
-  MessageHolder::instance().addMsg(createLogMsg("sending SM_Submit to SMSC"));
+  MessageHolder::instance().addMsg(createLogMsg("sent SM_Submit to SMSC"));
   return smsc->handleSmSubmit(mtimsi_s, smsId);
 }
 
 bool SimtelMme::handleMoForwardSM(const common::imsi_t &mtimsi_s,
                                   unsigned int smsId,
                                   const std::string &smsText) {
-  MessageHolder::instance().addMsg(
-      createLogMsg("sending MO_Forward_SM to SMSC"));
+  MessageHolder::instance().addMsg(createLogMsg("sent MO_Forward_SM to SMSC"));
   return smsc->handleMoForwardSM(mtimsi_s, smsId, smsText);
 }
 
@@ -162,7 +157,7 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("sending Routing_Info_SM to SMSC"));
+      createLogMsg("request to HLR: Routing_Info_SM(msisdn=" + msisdn_d) + ")");
 
   auto senderRecord = hlr->handleRoutingInfoSmSender(*senderImsi);
   if (!senderRecord) {
@@ -178,7 +173,7 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
     return receiverRecord.error();
   }
 
-  if (receiverRecord->isMtimsiSet()) {
+  if (!receiverRecord->isMtimsiSet()) {
     return "Unknown receiver m-timsi";
   }
 
@@ -200,7 +195,8 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
 std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     const common::msisdn_t &msisdn_s, unsigned int smsId,
     const common::imsi_t &mtimsi_s, const common::imsi_t &mtimsi_d) {
-  MessageHolder::instance().addMsg(createLogMsg("updating SMSC context"));
+  MessageHolder::instance().addMsg(
+      createLogMsg("sent context update request to SMSC"));
 
   bool updated = smsc->updateContextMTimsiD(mtimsi_s, smsId, mtimsi_d);
   if (!updated) {
@@ -217,15 +213,11 @@ std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
     return "Reiver BS not found";
   }
 
-  MessageHolder::instance().addMsg(
-      createLogMsg("receiving SMS text from SMSC"));
   auto smsText = smsc->getSmsText(smsId, mtimsi_s);
   if (!smsText) {
     return "SMS text not found in SMSC";
   }
-  MessageHolder::instance().addMsg(
-      createLogMsg("received SMS text with " + std::to_string(smsText->size()) +
-                   " characters"));
+  MessageHolder::instance().addMsg(createLogMsg("received sms text from SMSC"));
 
   std::thread smmSender(&SimtelMme::trySendSms, this, msisdn_s, smsId, mtimsi_s,
                         mtimsi_d, *smsText, bs);
@@ -294,8 +286,8 @@ common::imsi_t SimtelMme::generateMTimsi() {
     curMTimsi = 0;
   }
 
-  MessageHolder::instance().addMsg("Generated m-timsi: " +
-                                   common::imsiToStr(curMTimsi));
+  MessageHolder::instance().addMsg(
+      createLogMsg("generated m-timsi: " + common::imsiToStr(curMTimsi)));
 
   return common::imsiToStr(curMTimsi);
 }

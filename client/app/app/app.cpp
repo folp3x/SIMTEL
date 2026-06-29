@@ -142,7 +142,7 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
 
 void App::handleSmsCommand(const MenuItemSMS &cmd) {
   if (!exchange.hasSignal()) {
-    addErrorMsg("No signal. Cant send SMS");
+    addErrorMsg("No signal");
     return;
   }
 

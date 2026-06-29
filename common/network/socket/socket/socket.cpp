@@ -172,8 +172,10 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
     return std::unexpected(
         NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
   } else if (received != msgSize) {
-    return std::unexpected(NetworkError{NetworkErrorType::INCOMPLETE_CONTENT,
-                                        "Incomplete content"});
+    return std::unexpected(NetworkError{
+        NetworkErrorType::INCOMPLETE_CONTENT,
+        "Incomplete content: received " + std::to_string(received) +
+            ", expected " + std::to_string(msgSize)});
   }
 
   binary_t result;

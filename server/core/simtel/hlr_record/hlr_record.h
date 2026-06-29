@@ -14,10 +14,10 @@ struct HlrRecord {
 
   std::string toStr() const {
     std::string mmeIdStr = std::to_string(mmeId);
-    std::string mTimsiStr = isMtimsiSet() ? "?" : mTimsi;
-    return "[id=" + std::to_string(id) + ", imsi=" + imsi + ", imei=" + imei +
-           ", msisdn=" + msisdn + ", status=" + status + ", mmeId=" + mmeIdStr +
-           ", mTimsi=" + mTimsiStr + "]";
+    std::string mTimsiStr = isMtimsiSet() ? mTimsi : "?";
+    return "[id=" + std::to_string(id) + ";imsi=" + imsi + ";imei=" + imei +
+           ";msisdn=" + msisdn + ";status=" + status + ";mmeId=" + mmeIdStr +
+           ";mTimsi=" + mTimsiStr + "]";
   }
 
   bool isMtimsiSet() const { return !mTimsi.empty(); }
