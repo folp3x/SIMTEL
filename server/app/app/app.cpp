@@ -69,8 +69,7 @@ void App::run() {
 
   menu.showStatus();
 
-  ttlManager->update();
-  ttlManager->setActive(true);
+  ttlManager->start();
 
   std::jthread connectionHandler{[this]() {
     listener.acceptConnections([](std::shared_ptr<SimtelUeContext> ctx) {

@@ -13,11 +13,11 @@ private:
   const nlohmann::json::value_t type;
   const std::function<std::string(const T &)> checkFn;
 
-  template <typename U>
-  static nlohmann::json::value_t recognizeType(bool arrayType);
-
 protected:
   const std::function<void(const T &)> successCallback;
+
+  template <typename U>
+  static nlohmann::json::value_t recognizeType(bool arrayType = false);
 
 public:
   JsonFieldInfo(const std::string &name,

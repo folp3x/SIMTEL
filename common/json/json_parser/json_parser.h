@@ -28,7 +28,6 @@ protected:
   void addParsedArray(
       const std::string &name,
       const std::function<void(const std::array<E, S> &)> &successCallback,
-      nlohmann::json::value_t elemType,
       const std::function<std::string(const std::array<E, S> &)> &checkFn =
           nullptr);
 
@@ -36,7 +35,6 @@ protected:
   void addParsedVector(
       const std::string &name,
       const std::function<void(const std::vector<E> &)> &successCallback,
-      nlohmann::json::value_t elemType,
       const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 

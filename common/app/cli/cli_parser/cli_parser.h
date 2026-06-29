@@ -8,7 +8,7 @@
 #include "common/app/config/config/config.h"
 
 namespace common {
-template <std::derived_from<Config> T> class CLIParser {
+template <std::derived_from<Config> T> class CliParser {
 private:
   std::string configFilePath = "";
 
@@ -23,7 +23,7 @@ protected:
 
   CLI::Option *configFileOpt = nullptr;
 
-  explicit CLIParser(const std::string &appTitle);
+  explicit CliParser(const std::string &appTitle);
 
   virtual void initOptions();
 
@@ -33,9 +33,9 @@ protected:
   void initConfigFileOpt();
 
 public:
-  virtual ~CLIParser() = default;
+  virtual ~CliParser() = default;
 
-  static std::unique_ptr<CLIParser> create(const std::string &cliAppName);
+  static std::unique_ptr<CliParser> create(const std::string &cliAppName);
 
   virtual T redefineConfig(const T &definedConfig) const;
 

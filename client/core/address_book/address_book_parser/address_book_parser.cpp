@@ -5,8 +5,7 @@
 namespace client {
 void AddressBookParser::initFields() {
   addParsedVector<common::msisdn_t>(
-      "",
-      [this](const std::vector<common::msisdn_t> &subscribers) {
+      "", [this](const std::vector<common::msisdn_t> &subscribers) {
         for (int i = 0; i < subscribers.size(); ++i) {
           if (i >= constants::MAX_ADDRESS_BOOK_SIZE) {
             break;
@@ -16,8 +15,7 @@ void AddressBookParser::initFields() {
                                        : constants::EMPTY_SPEED_DIAL_NUM;
           records[speedDialNum] = subscribers[i];
         }
-      },
-      nlohmann::json::value_t::string);
+      });
 }
 
 std::unique_ptr<AddressBookParser> AddressBookParser::create() {

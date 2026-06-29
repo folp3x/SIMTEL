@@ -30,10 +30,9 @@ template <typename E, size_t S>
 void JsonParser<T>::addParsedArray(
     const std::string &name,
     const std::function<void(const std::array<E, S> &)> &successCallback,
-    nlohmann::json::value_t elemType,
     const std::function<std::string(const std::array<E, S> &)> &checkFn) {
-  auto info = std::make_unique<JsonArrayInfo<E, S>>(name, successCallback,
-                                                    elemType, checkFn);
+  auto info =
+      std::make_unique<JsonArrayInfo<E, S>>(name, successCallback, checkFn);
   fieldsInfo.push_back(std::move(info));
 }
 
@@ -42,10 +41,9 @@ template <typename E>
 void JsonParser<T>::addParsedVector(
     const std::string &name,
     const std::function<void(const std::vector<E> &)> &successCallback,
-    nlohmann::json::value_t elemType,
     const std::function<std::string(const std::vector<E> &)> &checkFn) {
-  auto info = std::make_unique<JsonVectorInfo<E>>(name, successCallback,
-                                                  elemType, checkFn);
+  auto info =
+      std::make_unique<JsonVectorInfo<E>>(name, successCallback, checkFn);
   fieldsInfo.push_back(std::move(info));
 }
 

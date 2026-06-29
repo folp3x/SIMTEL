@@ -5,5 +5,5 @@
 #include "server/app/config/config/config.h"
 
 namespace server {
-using CLIParser = common::CLIParser<Config>;
+using CliParser = common::CliParser<Config>;
 } // namespace server

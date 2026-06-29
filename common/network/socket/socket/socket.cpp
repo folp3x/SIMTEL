@@ -40,7 +40,7 @@ sockaddr_in Socket::toSockAddr(const NetworkAddress &address) {
   sockaddr_in sockAddr;
   sockAddr.sin_family = PF_INET;
   sockAddr.sin_port = htons(address.getPort());
-  sockAddr.sin_addr.s_addr = htonl(address.getIP());
+  sockAddr.sin_addr.s_addr = htonl(address.getIp());
 
   return sockAddr;
 }

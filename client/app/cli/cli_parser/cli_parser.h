@@ -5,9 +5,9 @@
 #include "client/app/config/config/config.h"
 
 namespace client {
-class CLIParser : public common::CLIParser<Config> {
+class CliParser : public common::CliParser<Config> {
 private:
-  explicit CLIParser(const std::string &cliAppName);
+  explicit CliParser(const std::string &cliAppName);
 
   // опции для получения параметров конфига
   CLI::Option *imeiOpt = nullptr;
@@ -23,7 +23,7 @@ private:
   virtual void initOptions() override;
 
 public:
-  static std::unique_ptr<CLIParser> create();
+  static std::unique_ptr<CliParser> create();
 
   virtual Config redefineConfig(const Config &definedConfig) const override;
 };

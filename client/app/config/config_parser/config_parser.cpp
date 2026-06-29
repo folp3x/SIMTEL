@@ -7,18 +7,18 @@ namespace client {
 void ConfigParser::initImeiField() {
   addParsedField<common::imei_t>(
       "imei", [this](const common::imei_t &imei) { config.setImei(imei); },
-      common::Validator::isCorrectIMEI);
+      common::Validator::isCorrectImei);
 }
 
 void ConfigParser::initImsiField() {
   addParsedField<common::imsi_t>(
       "imsi", [this](const common::imei_t &imsi) { config.setImsi(imsi); },
-      common::Validator::isCorrectIMSI);
+      common::Validator::isCorrectImsi);
 }
 
 void ConfigParser::initIpField() {
   this->template addParsedField<std::string>(
-      "ip", [this](const std::string &ip) { config.setIP(ip); },
+      "ip", [this](const std::string &ip) { config.setIp(ip); },
       common::Validator::isCorrectIpStr);
 }
 
@@ -36,8 +36,7 @@ void ConfigParser::initAddressBookFilePathField() {
 void ConfigParser::initLocField() {
   this->template addParsedArray<float,
                                 common::constants::LOCATION_COORDS_COUNT>(
-      "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); },
-      nlohmann::json::value_t::number_float);
+      "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); });
 }
 
 void ConfigParser::initFields() {

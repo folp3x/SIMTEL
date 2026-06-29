@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[]) {
   try {
-    auto cliParser = client::CLIParser::create();
+    auto cliParser = client::CliParser::create();
 
     std::string msg = "";
     bool helpCalled = false;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     }
 
     common::Location<> location(config.getLoc());
-    common::NetworkAddress serverAddr{config.getIP(), config.getPort()};
+    common::NetworkAddress serverAddr{config.getIp(), config.getPort()};
 
     client::UeContext ctx{config.getImsi(), config.getImei(), location,
                           serverAddr};

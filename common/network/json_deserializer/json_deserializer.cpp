@@ -6,13 +6,13 @@ namespace common {
 std::expected<imei_t, std::string>
 JsonDeserializer::imeiFromJsonStr(const std::string &str,
                                   const std::string &name) {
-  return deserializeValue<imei_t>(name, str, common::Validator::isCorrectIMEI);
+  return deserializeValue<imei_t>(name, str, common::Validator::isCorrectImei);
 }
 
 std::expected<imsi_t, std::string>
 JsonDeserializer::imsiFromJsonStr(const std::string &str,
                                   const std::string &name) {
-  return deserializeValue<imsi_t>(name, str, common::Validator::isCorrectIMSI);
+  return deserializeValue<imsi_t>(name, str, common::Validator::isCorrectImsi);
 }
 
 std::expected<unsigned int, std::string>

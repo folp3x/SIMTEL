@@ -5,10 +5,8 @@ template <typename T, size_t S>
 JsonArrayInfo<T, S>::JsonArrayInfo(
     const std::string &name,
     const std::function<void(const std::array<T, S> &)> &successCallback,
-    nlohmann::json::value_t elemType_,
     const std::function<std::string(const std::array<T, S> &)> &checkFn)
-    : JsonContainerInfo<std::array<T, S>>(name, successCallback, checkFn),
-      elemType(elemType_) {}
+    : JsonContainerInfo<std::array<T, S>>(name, successCallback, checkFn) {}
 
 template <typename T, size_t S>
 std::expected<std::array<T, S>, std::string>
@@ -17,6 +15,7 @@ JsonArrayInfo<T, S>::parseContainer(const nlohmann::json &fieldJson) {
 
   for (size_t i = 0; i < S; ++i) {
     auto elemJson = fieldJson[i];
+    auto elemType = this->template recognizeType<T>();
     if (!(hasJsonType(elemJson, elemType))) {
       return std::unexpected("elements must have a type: '" +
                              jsonTypeToStr(elemType) + "'");

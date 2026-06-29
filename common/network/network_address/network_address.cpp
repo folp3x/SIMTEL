@@ -6,8 +6,8 @@
 #include "common/utils/network/network.h"
 
 namespace common {
-void NetworkAddress::setIP(const std::string &ipStr) {
-  auto parseResult = parseIP(ipStr);
+void NetworkAddress::setIp(const std::string &ipStr) {
+  auto parseResult = parseIp(ipStr);
   if (!parseResult) {
     throw std::invalid_argument(parseResult.error());
   }
@@ -30,12 +30,12 @@ NetworkAddress::NetworkAddress(const std::string &fullAddress)
 
 NetworkAddress::NetworkAddress(const std::string &ipAddress,
                                const std::string &port_) {
-  setIP(ipAddress);
+  setIp(ipAddress);
   setPort(port_);
 }
 
 NetworkAddress::NetworkAddress(const std::string &ipAddress, int port_) {
-  setIP(ipAddress);
+  setIp(ipAddress);
   port = port_;
 }
 
@@ -60,7 +60,7 @@ NetworkAddress NetworkAddress::fromStr(const std::string &fullAddress) {
   return NetworkAddress{ipAddress, port};
 }
 
-uint32_t NetworkAddress::getIP() const { return ip; }
+uint32_t NetworkAddress::getIp() const { return ip; }
 
 uint16_t NetworkAddress::getPort() const { return port; }
 } // namespace common

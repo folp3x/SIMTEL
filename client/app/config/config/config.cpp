@@ -14,9 +14,9 @@ std::string Config::getImsi() const { return imsi; }
 
 void Config::setImsi(const common::imsi_t &imsi_) { imsi = imsi_; }
 
-std::string Config::getIP() const { return ip; }
+std::string Config::getIp() const { return ip; }
 
-void Config::setIP(const std::string &ip_) { ip = ip_; }
+void Config::setIp(const std::string &ip_) { ip = ip_; }
 
 std::string Config::getAddressBookFilePath() const {
   return addressBookFilePath;

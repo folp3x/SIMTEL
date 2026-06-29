@@ -9,7 +9,7 @@ private:
   uint32_t ip;
   uint16_t port;
 
-  void setIP(const std::string &ipStr);
+  void setIp(const std::string &ipStr);
   void setPort(const std::string &portStr);
 
 public:
@@ -22,7 +22,7 @@ public:
 
   std::string toStr() const;
 
-  uint32_t getIP() const;
+  uint32_t getIp() const;
 
   uint16_t getPort() const;
 };

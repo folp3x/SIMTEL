@@ -57,8 +57,7 @@ Location<T, S>::fromJsonStr(const std::string &str) {
   Location<T, S> loc{};
   auto locInfo =
       std::make_unique<JsonArrayInfo<float, constants::LOCATION_COORDS_COUNT>>(
-          "loc", [&](const coords_t<> &coords) { loc.move(coords); },
-          nlohmann::json::value_t::number_float);
+          "loc", [&](const coords_t<> &coords) { loc.move(coords); });
 
   auto error = JsonParser<coords_t<>>::parseField(std::move(locInfo), str);
   if (error) {

@@ -69,7 +69,7 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
 }
 
 // проверяет коррекность IPv4. ip должен иметь хостовой порядок байт
-std::string Validator::isCorrectIP(uint32_t ip) {
+std::string Validator::isCorrectIp(uint32_t ip) {
   uint8_t lowByte = ip & 0xFF;
   if (lowByte < MIN_IP_LOW_BYTE || lowByte > MAX_IP_LOW_BYTE) {
     return "IP low byte must be from " + std::to_string(MIN_IP_LOW_BYTE) +
@@ -79,7 +79,7 @@ std::string Validator::isCorrectIP(uint32_t ip) {
 }
 
 std::string Validator::isCorrectIpStr(const std::string &ipStr) {
-  auto parseResult = parseIP(ipStr);
+  auto parseResult = parseIp(ipStr);
   if (parseResult) {
     return "";
   }
@@ -102,11 +102,11 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
   return parseResult.error();
 }
 
-std::string Validator::isCorrectIMEI(const imei_t &imei) {
+std::string Validator::isCorrectImei(const imei_t &imei) {
   return isCorrectDigitStr(imei, MIN_IMEI_LENGTH, MAX_IMEI_LENGTH, "IMEI");
 }
 
-std::string Validator::isCorrectIMSI(const imsi_t &imsi) {
+std::string Validator::isCorrectImsi(const imsi_t &imsi) {
   return isCorrectDigitStr(imsi, MIN_IMSI_LENGTH, MAX_IMSI_LENGTH, "IMSI");
 }
 

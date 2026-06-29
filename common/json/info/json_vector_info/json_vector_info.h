@@ -9,8 +9,6 @@ namespace common {
 template <typename T>
 class JsonVectorInfo : public JsonContainerInfo<std::vector<T>> {
 private:
-  const nlohmann::json::value_t elemType;
-
   virtual std::expected<std::vector<T>, std::string>
   parseContainer(const nlohmann::json &fieldJson) override;
 
@@ -18,7 +16,6 @@ public:
   JsonVectorInfo(
       const std::string &name,
       const std::function<void(const std::vector<T> &)> &successCallback,
-      nlohmann::json::value_t elemType_,
       const std::function<std::string(const std::vector<T> &)> &checkFn =
           nullptr);
 };

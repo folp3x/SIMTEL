@@ -4,7 +4,13 @@ namespace server {
 TtlManager::TtlManager(unsigned int timeoutSec, unsigned int warningPeriod_)
     : timeout(timeoutSec), warningPeriod(warningPeriod_) {}
 
-void TtlManager::update() {
+bool TtlManager::isExpired() const {
+  std::lock_guard lock(lastActivityMtx);
+  return std::chrono::steady_clock::now() - lastActivity >= timeout;
+}
+
+void TtlManager::start() {
+  active = true;
   {
     std::lock_guard lock(lastActivityMtx);
     lastActivity = std::chrono::steady_clock::now();
@@ -12,10 +18,7 @@ void TtlManager::update() {
   lastWarningNum = 0;
 }
 
-bool TtlManager::isExpired() const {
-  std::lock_guard lock(lastActivityMtx);
-  return std::chrono::steady_clock::now() - lastActivity >= timeout;
-}
+void TtlManager::stop() { active = false; }
 
 unsigned int TtlManager::getLeftSec() const {
   std::chrono::nanoseconds passed;
@@ -33,8 +36,6 @@ unsigned int TtlManager::getLeftSec() const {
 
   return left.count();
 }
-
-void TtlManager::setActive(bool isActive) { active = isActive; }
 
 bool TtlManager::isActive() const { return active.load(); }
 

@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[]) {
   try {
-    auto cliParser = server::CLIParser::create("server");
+    auto cliParser = server::CliParser::create("server");
 
     std::string msg = "";
     bool helpCalled = false;

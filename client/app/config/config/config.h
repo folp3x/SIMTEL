@@ -25,8 +25,8 @@ public:
   std::string getImsi() const;
   void setImsi(const common::imsi_t &imsi_);
 
-  std::string getIP() const;
-  void setIP(const std::string &ip_);
+  std::string getIp() const;
+  void setIp(const std::string &ip_);
 
   std::string getAddressBookFilePath() const;
   void setAddressBookFilePath(const std::string &addressBookFilePath_);

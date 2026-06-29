@@ -236,8 +236,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
   unsigned int smsTtlSec = smsc->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
   unsigned int warningPeriodSec = 1;
   TtlManager ttlManager{smsTtlSec, warningPeriodSec};
-  ttlManager.update();
-  ttlManager.setActive(true);
+  ttlManager.start();
 
   MessageHolder::instance().addMsg(createLogMsg("trying to send SM_Delivery"));
 

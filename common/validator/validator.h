@@ -39,12 +39,12 @@ public:
   static std::string jsonFilePathExists(const std::string &filePath,
                                         const std::string &name);
 
-  static std::string isCorrectIP(uint32_t ip);
+  static std::string isCorrectIp(uint32_t ip);
   static std::string isCorrectIpStr(const std::string &ipStr);
   static std::string isCorrectPort(int port);
   static std::string isCorrectPortStr(const std::string &portStr);
-  static std::string isCorrectIMEI(const imei_t &imei);
-  static std::string isCorrectIMSI(const imsi_t &imsi);
+  static std::string isCorrectImei(const imei_t &imei);
+  static std::string isCorrectImsi(const imsi_t &imsi);
   static std::string isCorrectMsisdn(const msisdn_t &msisdn);
   static std::string
   isCorrectSpeedDialNumStr(const std::string &speedDialNumStr);
