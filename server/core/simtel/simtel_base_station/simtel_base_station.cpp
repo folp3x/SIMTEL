@@ -8,7 +8,6 @@
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "server/app/message_holder/message_holder.h"
-#include "server/core/distance_calculator/distance_calculator.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 namespace server {
@@ -63,7 +62,7 @@ unsigned int SimtelBaseStation::getId() const { return id; }
 
 unsigned int
 SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
-  float distance = DistanceCalculator::calc(location, targetLoc);
+  float distance = calculateDistance(targetLoc);
   float coef = 1 - std::abs(distance) / radius;
   return (coef < 0) ? 0
                     : std::round(coef * common::constants::MAX_SIGNAL_LEVEL);
@@ -83,6 +82,24 @@ std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
   }
 
   return std::nullopt;
+}
+
+float SimtelBaseStation::calculateDistance(
+    const common::Location<> &ueLoc) const {
+  auto bsCoords = location.getCoords();
+  auto ueCoords = ueLoc.getCoords();
+  float dist = 0;
+
+  // вычисление евклидова расстояния
+  auto it1 = bsCoords.begin();
+  auto it2 = ueCoords.begin();
+  while (it1 != bsCoords.end() || it2 != ueCoords.end()) {
+    dist += pow(*it1 - *it2, 2);
+    ++it1;
+    ++it2;
+  }
+
+  return sqrt(dist);
 }
 
 SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_)

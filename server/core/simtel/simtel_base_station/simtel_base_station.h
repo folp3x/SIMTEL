@@ -63,6 +63,8 @@ private:
   std::optional<std::string>
   handleConfigureComplete(std::shared_ptr<SimtelUeContext> ctx) const;
 
+  float calculateDistance(const common::Location<> &ueLoc) const;
+
 public:
   SimtelBaseStation(const BsConfig &config, SimtelMme *mme_);
 
