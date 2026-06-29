@@ -27,6 +27,11 @@ void App::sigintHandler(int signal) {
   }
 }
 
+void App::addSms(const common::Sms &sms) {
+  std::lock_guard lock(smsListMtx);
+  smsList.push_back(sms);
+}
+
 std::string App::formChangeMessage(const std::string &paramName,
                                    const std::string &valueStr,
                                    bool changed) const {
@@ -39,37 +44,38 @@ std::string App::formChangeMessage(const std::string &paramName,
 void App::handleLocationUpdate() {
   auto req = std::make_unique<common::RrcConnectionRequest>(ctx.getImei(),
                                                             ctx.getLocation());
-  exchange.addRequest(
-      ctx.getState(), std::move(req),
-      [this](std::unique_ptr<common::Request> response,
-             const std::string &error) {
-        if (!error.empty()) {
-          addErrorMsg("Error: " + error);
-          return;
-        }
+  exchange.addRequest(ctx.getState(), std::move(req),
+                      [this](std::unique_ptr<common::Request> response,
+                             const std::string &error) {
+                        if (!error.empty()) {
+                          addErrorMsg("Error: " + error);
+                        } else {
+                          handleHandoverResponse(std::move(response));
+                        }
+                      });
+}
 
-        if (auto *handoverResponse =
-                dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
-                    response.get())) {
-          common::imsi_t newMTimsi = handoverResponse->getMTimsi();
-          bool updated = ctx.setMTimsi(newMTimsi);
-          if (!updated) {
-            if (ctx.getMTimsi() != newMTimsi) {
-              addErrorMsg("BS changed. New m-timsi received, but it is already "
-                          "assigned");
-            } else {
-              addMsg("BS changed. m-timsi not updated: " + ctx.getMTimsi());
-            }
-            return;
-          }
-
-          addMsg("BS changed. m-timsi set: " + ctx.getMTimsi());
-        } else if (auto *keepResponse =
-                       dynamic_cast<common::RrcReconfigurationKeepRequest *>(
-                           response.get())) {
-          addMsg("BS not changed");
-        }
-      });
+void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
+  if (auto *handoverResponse =
+          dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
+              response.get())) {
+    common::imsi_t newMTimsi = handoverResponse->getMTimsi();
+    bool updated = ctx.setMTimsi(newMTimsi);
+    if (updated) {
+      addMsg("BS changed. m-timsi set: " + ctx.getMTimsi());
+    } else {
+      if (ctx.getMTimsi() != newMTimsi) {
+        addErrorMsg("BS changed. New m-timsi received, but it is already "
+                    "assigned");
+      } else {
+        addMsg("BS changed. m-timsi not updated: " + ctx.getMTimsi());
+      }
+    }
+  } else if (auto *keepResponse =
+                 dynamic_cast<common::RrcReconfigurationKeepRequest *>(
+                     response.get())) {
+    addMsg("BS not changed");
+  }
 }
 
 void App::handleActiveCommand(const MenuItemActive &cmd) {
@@ -125,20 +131,20 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
   logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
   auto parsedProtocol = common::protocolFromStr(protocolStr);
-  if (parsedProtocol) {
-    common::Protocol newProtocol = std::move(*parsedProtocol);
-
-    bool protocolChanged = newProtocol != ctx.getProtocol();
-    if (protocolChanged) {
-      ctx.setProtocol(newProtocol);
-    }
-
-    addMsg(formChangeMessage("Protocol", protocolToStr(ctx.getProtocol()),
-                             protocolChanged));
+  if (!parsedProtocol) {
+    addErrorMsg("Invalid protocol");
     return;
   }
 
-  addErrorMsg("Invalid protocol");
+  common::Protocol newProtocol = std::move(*parsedProtocol);
+
+  bool protocolChanged = newProtocol != ctx.getProtocol();
+  if (protocolChanged) {
+    ctx.setProtocol(newProtocol);
+  }
+
+  addMsg(formChangeMessage("Protocol", protocolToStr(ctx.getProtocol()),
+                           protocolChanged));
 }
 
 void App::handleSmsCommand(const MenuItemSMS &cmd) {
@@ -153,9 +159,9 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
     if (!foundMsisdn) {
       addErrorMsg("Unknown speed dial num");
       return;
-    } else {
-      targetMsisdn = std::move(*foundMsisdn);
     }
+
+    targetMsisdn = std::move(*foundMsisdn);
   }
 
   std::string smsContent = "";
@@ -165,7 +171,6 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
     smsContent = menu.getMessageContent();
     if (smsContent.empty()) {
       addErrorMsg("SMS content cant be empty");
-      return;
     } else {
       // удаление '\n'
       smsContent.pop_back();
@@ -176,32 +181,31 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
   auto req = std::make_unique<common::SmTransferRequest>(
       ctx.getMTimsi(), smsId, targetMsisdn, smsContent);
 
-  exchange.addRequest(
-      ctx.getState(), std::move(req),
-      [this, targetMsisdn, smsContent, smsId](
-          std::unique_ptr<common::Request> response, const std::string &error) {
-        if (!error.empty()) {
-          addErrorMsg("Error: " + error);
-          return;
-        }
+  exchange.addRequest(ctx.getState(), std::move(req),
+                      [this, targetMsisdn, smsContent,
+                       smsId](std::unique_ptr<common::Request> response,
+                              const std::string &error) {
+                        if (!error.empty()) {
+                          addErrorMsg("Error: " + error);
+                        } else {
+                          addSentSms(targetMsisdn, smsContent, smsId);
+                          addMsg("SMS sent to " + targetMsisdn +
+                                 " (id=" + std::to_string(smsId) + ")");
+                        }
+                      });
+}
 
-        common::Sms sms{smsId,
-                        std::chrono::time_point_cast<std::chrono::seconds>(
-                            std::chrono::system_clock::now()),
-                        {},
-                        "",
-                        targetMsisdn,
-                        smsContent,
-                        false};
-
-        {
-          std::lock_guard lock(smsListMtx);
-          smsList.push_back(sms);
-        }
-
-        addMsg("SMS sent to " + targetMsisdn + " (id=" + std::to_string(smsId) +
-               ")");
-      });
+void App::addSentSms(const common::msisdn_t &targetMsisdn,
+                     const std::string &smsContent, unsigned int smsId) {
+  common::Sms sms{smsId,
+                  std::chrono::time_point_cast<std::chrono::seconds>(
+                      std::chrono::system_clock::now()),
+                  {},
+                  "",
+                  targetMsisdn,
+                  smsContent,
+                  false};
+  addSms(sms);
 }
 
 void App::handleDialogCommand(const MenuItemDialog &cmd) const {
@@ -262,7 +266,6 @@ void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
                              const std::string &error) {
                         if (!error.empty()) {
                           addErrorMsg("Error: " + error);
-                          return;
                         }
                       });
 }
@@ -344,65 +347,14 @@ void App::run() {
   isRunning = true;
 
   std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
+
   std::jthread smsInfoReceiver{[this]() {
     exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
                                    const std::string &error) {
       if (!error.empty()) {
         addErrorMsg("Error: " + error);
-        return;
-      }
-
-      if (auto *deliveryResponse =
-              dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
-        if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
-          addErrorMsg("Unknown m-timsi in delivery response: " +
-                      deliveryResponse->getMTimsi());
-          return;
-        }
-
-        bool isDuplicate = false;
-        for (const auto &sms : smsList) {
-          if (sms.id == deliveryResponse->getSmsId() &&
-              sms.sender == deliveryResponse->getMsisdn()) {
-            isDuplicate = true;
-            break;
-          }
-        }
-
-        if (!isDuplicate) {
-          addMsg("SMS received from " + deliveryResponse->getMsisdn() +
-                 " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
-
-          common::Sms sms{deliveryResponse->getSmsId(),
-                          {},
-                          std::chrono::time_point_cast<std::chrono::seconds>(
-                              std::chrono::system_clock::now()),
-                          deliveryResponse->getMsisdn(),
-                          "",
-                          deliveryResponse->getText(),
-                          true};
-
-          {
-            std::lock_guard lock(smsListMtx);
-            smsList.push_back(sms);
-          }
-        }
-
-        addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
-                                 deliveryResponse->getSmsId());
-      } else if (auto *reportResponse =
-                     dynamic_cast<common::SmDeliveryReportRequest *>(
-                         response.get())) {
-        std::lock_guard lock(smsListMtx);
-        for (int i = 0; i < smsList.size(); ++i) {
-          if (smsList[i].id == reportResponse->getSmsId() &&
-              smsList[i].sender.empty()) {
-            smsList[i].delivered = true;
-            break;
-          }
-        }
-
-        return;
+      } else {
+        handleSmsInfoResponse(std::move(response));
       }
     });
   }};
@@ -427,6 +379,7 @@ void App::run() {
 
     bool exit = false;
     handleCommand(cmd, exit);
+
     {
       std::lock_guard lock(messagesMtx);
       menu.showMessages(messages);
@@ -464,5 +417,55 @@ void App::addMsg(const std::string &content, common::MenuMessageType type) {
 
 void App::addErrorMsg(const std::string &content) {
   addMsg(content, common::MenuMessageType::ERR);
+}
+
+void App::handleSmsInfoResponse(std::unique_ptr<common::Request> response) {
+  if (auto *deliveryResponse =
+          dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
+    if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
+      addErrorMsg("Unknown m-timsi in delivery response: " +
+                  deliveryResponse->getMTimsi());
+      return;
+    }
+
+    bool isDuplicate = false;
+    for (const auto &sms : smsList) {
+      if (sms.id == deliveryResponse->getSmsId() &&
+          sms.sender == deliveryResponse->getMsisdn()) {
+        isDuplicate = true;
+        break;
+      }
+    }
+
+    if (!isDuplicate) {
+      addMsg("SMS received from " + deliveryResponse->getMsisdn() +
+             " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
+
+      common::Sms sms{deliveryResponse->getSmsId(),
+                      {},
+                      std::chrono::time_point_cast<std::chrono::seconds>(
+                          std::chrono::system_clock::now()),
+                      deliveryResponse->getMsisdn(),
+                      "",
+                      deliveryResponse->getText(),
+                      true};
+
+      addSms(sms);
+    }
+
+    addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
+                             deliveryResponse->getSmsId());
+  } else if (auto *reportResponse =
+                 dynamic_cast<common::SmDeliveryReportRequest *>(
+                     response.get())) {
+    std::lock_guard lock(smsListMtx);
+    for (int i = 0; i < smsList.size(); ++i) {
+      if (smsList[i].id == reportResponse->getSmsId() &&
+          smsList[i].sender.empty()) {
+        smsList[i].delivered = true;
+        break;
+      }
+    }
+  }
 }
 } // namespace client

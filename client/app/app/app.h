@@ -42,16 +42,23 @@ private:
 
   void sigintHandler(int signal);
 
+  void addSms(const common::Sms &sms);
+
   std::string formChangeMessage(const std::string &paramName,
                                 const std::string &valueStr,
                                 bool changed = true) const;
 
   void handleLocationUpdate();
+  void handleHandoverResponse(std::unique_ptr<common::Request> response);
 
   void handleActiveCommand(const MenuItemActive &cmd);
   void handleMoveCommand(const MenuItemMove<> &cmd);
   void handleProtocolCommand(const MenuItemProtocol &cmd);
+
   void handleSmsCommand(const MenuItemSMS &cmd);
+  void addSentSms(const common::msisdn_t &targetMsisdn,
+                  const std::string &smsContent, unsigned int smsId);
+
   void handleDialogCommand(const MenuItemDialog &cmd) const;
   void handleReceivedCommand() const;
   void handleSentCommand() const;
@@ -72,6 +79,8 @@ private:
               common::MenuMessageType type = common::MenuMessageType::INFO);
 
   void addErrorMsg(const std::string &content);
+
+  void handleSmsInfoResponse(std::unique_ptr<common::Request> response);
 
 public:
   App(const UeContext &ctx_,
