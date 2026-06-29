@@ -9,7 +9,11 @@ namespace server {
 SimtelMme::SimtelMme(const MmeConfig &config,
                      std::shared_ptr<SimtelRegister> hlr_, SimtelSmsc *smsc_)
     : id(config.id), maxVlrSize(config.maxVlrSize), hlr(hlr_), smsc(smsc_),
-      vlr(id) {}
+      vlr(id) {
+  if (!smsc) {
+    throw std::invalid_argument("SMSC cant be null");
+  }
+}
 
 std::optional<common::imsi_t>
 SimtelMme::findImsiInHlr(const common::imsi_t &mTimsi,

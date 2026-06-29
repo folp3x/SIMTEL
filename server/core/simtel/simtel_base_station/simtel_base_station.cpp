@@ -105,6 +105,10 @@ float SimtelBaseStation::calculateDistance(
 SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_)
     : id(config.id), mmeId(config.mmeId), radius(config.radius),
       maxConnections(config.maxConnections), location(config.loc), mme(mme_) {
+  if (!mme) {
+    throw std::invalid_argument("MME cant be null");
+  }
+
   std::lock_guard lock(connectedUeMtx);
   connectedUe.reserve(maxConnections);
 }
