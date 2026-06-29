@@ -51,16 +51,13 @@ SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
 void SimtelRegister::insertData() {
   storage.insert(HlrRecord{0, "100000000000000", "200000000000000",
                            "89990000001",
-                           subscriberStatusToStr(SubscriberStatus::ACTIVE),
-                           std::nullopt, std::nullopt});
+                           subscriberStatusToStr(SubscriberStatus::ACTIVE)});
   storage.insert(HlrRecord{0, "300000000000000", "400000000000000",
                            "89990000002",
-                           subscriberStatusToStr(SubscriberStatus::ACTIVE),
-                           std::nullopt, std::nullopt});
+                           subscriberStatusToStr(SubscriberStatus::ACTIVE)});
   storage.insert(HlrRecord{0, "500000000000000", "600000000000000",
                            "89990000003",
-                           subscriberStatusToStr(SubscriberStatus::BANNED),
-                           std::nullopt, std::nullopt});
+                           subscriberStatusToStr(SubscriberStatus::BANNED)});
 
   try {
     auto records = storage.get_all<HlrRecord>();

@@ -174,28 +174,23 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
     return receiverRecord.error();
   }
 
-  if (!receiverRecord->mmeId) {
-    return "Unknown receiver MME id";
-  }
-
-  if (!receiverRecord->mTimsi) {
+  if (receiverRecord->isMtimsiSet()) {
     return "Unknown receiver m-timsi";
   }
 
-  unsigned int receiverMmeId = *receiverRecord->mmeId;
-  if (receiverMmeId != id) {
+  if (receiverRecord->mmeId != id) {
     MessageHolder::instance().addMsg(createLogMsg("changing MME"));
-    auto receiverMme = findOtherById(receiverMmeId);
+    auto receiverMme = findOtherById(receiverRecord->mmeId);
     if (!receiverMme) {
       return "Receiver MME not found";
     }
 
     return receiverMme->handleChangeAfterSriSm(
-        senderRecord->msisdn, smsId, mtimsi_s, *(receiverRecord->mTimsi));
+        senderRecord->msisdn, smsId, mtimsi_s, receiverRecord->mTimsi);
   }
 
   return handleChangeAfterSriSm(senderRecord->msisdn, smsId, mtimsi_s,
-                                *(receiverRecord->mTimsi));
+                                receiverRecord->mTimsi);
 }
 
 std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
