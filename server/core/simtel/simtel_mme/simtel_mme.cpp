@@ -218,11 +218,12 @@ SimtelMme::sendForwardSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
   if (!smsText) {
     return "SMS text not found in SMSC";
   }
+
   MessageHolder::instance().addMsg(createLogMsg("received sms text from SMSC"));
 
-  std::thread smmSender(&SimtelMme::trySendSms, this, msisdn_s, smsId, mtimsi_s,
+  std::thread smsSender(&SimtelMme::trySendSms, this, msisdn_s, smsId, mtimsi_s,
                         mtimsi_d, *smsText, bs);
-  smmSender.detach();
+  smsSender.detach();
 
   return std::nullopt;
 }
@@ -241,10 +242,21 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
   MessageHolder::instance().addMsg(createLogMsg("trying to send SM_Delivery"));
 
+  SmsUid uid = {mtimsi_s, smsId};
   while (true) {
+    auto deliveredInfo = smsc->isDelivered(smsId, mtimsi_s);
+    if (!deliveredInfo) {
+      MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
+                                            ") not found in SMSC");
+      break;
+    }
+
+    if (*deliveredInfo) {
+      break;
+    }
+
     if (ttlManager.isActive() && ttlManager.isExpired()) {
-      MessageHolder::instance().addErrorMsg("SMS(mtimsi_s=" + mtimsi_s +
-                                            ", id=" + std::to_string(smsId) +
+      MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
                                             ") TTL expired");
       break;
     }
@@ -259,9 +271,10 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
     std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
 
-    auto req = bs->trySendSmsDelivery(mtimsi_d, smsId, msisdn_s, binary);
+    auto ack = bs->trySendSmsDelivery(mtimsi_d, smsId, msisdn_s, binary);
+    if (ack) {
+      smsc->markDelivered(smsId, mtimsi_s);
 
-    if (req) {
       auto record = vlr.findByMTimsi(mtimsi_s);
       if (!record) {
         break;
@@ -272,8 +285,6 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
       if (error) {
         MessageHolder::instance().addErrorMsg(*error);
       }
-
-      break;
     }
   }
 

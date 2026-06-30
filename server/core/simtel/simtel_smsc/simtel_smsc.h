@@ -21,7 +21,7 @@ private:
     common::msisdn_t msisdn_d = "";
     std::string text = "";
     unsigned int smsId = 0;
-    std::unique_ptr<std::atomic<bool>> isDelivered =
+    std::unique_ptr<std::atomic<bool>> delivered =
         std::make_unique<std::atomic<bool>>(false);
   };
 
@@ -29,7 +29,7 @@ private:
 
   const unsigned int smsTtlMs = 0;
 
-  std::mutex contextMtx;
+  mutable std::mutex contextMtx;
   std::map<SmsUid, SmsContext> context;
 
   std::string createLogMsg(const std::string &content) const;
@@ -50,5 +50,9 @@ public:
   unsigned int getSmsTtlMs() const;
 
   void removeSms(unsigned int smsId, const common::imsi_t &mtimsi_s);
+
+  std::optional<bool> isDelivered(unsigned int smsId,
+                                  const common::imsi_t &mtimsi_s) const;
+  bool markDelivered(unsigned int smsId, const common::imsi_t &mtimsi_s);
 };
 } // namespace server
