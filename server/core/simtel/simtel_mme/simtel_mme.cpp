@@ -7,13 +7,10 @@
 
 namespace server {
 SimtelMme::SimtelMme(const MmeConfig &config,
-                     std::shared_ptr<SimtelRegister> hlr_, SimtelSmsc *smsc_)
+                     std::shared_ptr<SimtelRegister> hlr_,
+                     std::weak_ptr<SimtelSmsc> smsc_)
     : id(config.id), maxVlrSize(config.maxVlrSize), hlr(hlr_), smsc(smsc_),
-      vlr(id) {
-  if (!smsc) {
-    throw std::invalid_argument("SMSC cant be null");
-  }
-}
+      vlr(id) {}
 
 std::optional<common::imsi_t>
 SimtelMme::findImsiInHlr(const common::imsi_t &mTimsi,
@@ -137,14 +134,14 @@ std::shared_ptr<SimtelMme> SimtelMme::findOtherById(unsigned int id) const {
 bool SimtelMme::handleSmSubmit(const common::imsi_t &mtimsi_s,
                                unsigned int smsId) {
   MessageHolder::instance().addMsg(createLogMsg("sent SM_Submit to SMSC"));
-  return smsc->handleSmSubmit(mtimsi_s, smsId);
+  return smsc.lock()->handleSmSubmit(mtimsi_s, smsId);
 }
 
 bool SimtelMme::handleMoForwardSM(const common::imsi_t &mtimsi_s,
                                   unsigned int smsId,
                                   const std::string &smsText) {
   MessageHolder::instance().addMsg(createLogMsg("sent MO_Forward_SM to SMSC"));
-  return smsc->handleMoForwardSM(mtimsi_s, smsId, smsText);
+  return smsc.lock()->handleMoForwardSM(mtimsi_s, smsId, smsText);
 }
 
 std::optional<std::string>
@@ -199,22 +196,22 @@ SimtelMme::sendForwardSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
   MessageHolder::instance().addMsg(
       createLogMsg("sent context update request to SMSC"));
 
-  bool updated = smsc->updateMTimsiD(mtimsi_s, smsId, mtimsi_d);
+  bool updated = smsc.lock()->updateMTimsiD(mtimsi_s, smsId, mtimsi_d);
   if (!updated) {
     return "Error updating SMSC context";
   }
 
   auto receiverInfo = vlr.findByMTimsi(mtimsi_d);
   if (!receiverInfo) {
-    return "Receiver info not found in VLR";
+    return "Receiver info not found";
   }
 
   auto bs = receiverInfo->bs;
   if (!bs) {
-    return "Reiver BS not found";
+    return "Receiver BS not found";
   }
 
-  auto smsText = smsc->getSmsText(smsId, mtimsi_s);
+  auto smsText = smsc.lock()->getSmsText(smsId, mtimsi_s);
   if (!smsText) {
     return "SMS text not found in SMSC";
   }
@@ -241,7 +238,7 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
   }
 
   SmsUid uid = {*mtimsi_s, smsId};
-  auto deliveredInfo = smsc->isDelivered(smsId, *mtimsi_s);
+  auto deliveredInfo = smsc.lock()->isDelivered(smsId, *mtimsi_s);
   if (!deliveredInfo) {
     return;
   }
@@ -250,7 +247,7 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
     return;
   }
 
-  smsc->markDelivered(smsId, *mtimsi_s);
+  smsc.lock()->markDelivered(smsId, *mtimsi_s);
 
   if (senderMmeId == id) {
     sendSmDeliveryReport(*mtimsi_s, smsId);
@@ -276,9 +273,9 @@ void SimtelMme::sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
 
   auto senderBs = record->bs;
 
-  MessageHolder::instance().addMsg(createLogMsg("sending SmDeliveryReport"));
+  MessageHolder::instance().addMsg(createLogMsg("sent SmDeliveryReport"));
 
-  auto error = senderBs->sendDeliveryReport(mtimsi_s, smsId);
+  auto error = senderBs->sendSmDeliveryReport(mtimsi_s, smsId);
   if (error) {
     MessageHolder::instance().addErrorMsg(*error);
   }
@@ -291,7 +288,8 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            std::shared_ptr<SimtelBaseStation> bs) {
   common::binary_t binary = common::BinarySerializer::strToBinary(smsText);
 
-  unsigned int smsTtlSec = smsc->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
+  unsigned int smsTtlSec =
+      smsc.lock()->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
   unsigned int warningPeriodSec = 1;
   TtlManager ttlManager{smsTtlSec, warningPeriodSec};
   ttlManager.start();
@@ -303,7 +301,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
     bs->sendSmDelivery(mtimsi_d, smsId, msisdn_s, binary);
     std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
 
-    auto deliveredInfo = smsc->isDelivered(smsId, mtimsi_s);
+    auto deliveredInfo = smsc.lock()->isDelivered(smsId, mtimsi_s);
     if (!deliveredInfo) {
       MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
                                             ") not found in SMSC");
@@ -329,7 +327,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
     }
   }
 
-  smsc->removeSms(smsId, mtimsi_s);
+  smsc.lock()->removeSms(smsId, mtimsi_s);
 }
 
 common::imsi_t SimtelMme::generateMTimsi() {

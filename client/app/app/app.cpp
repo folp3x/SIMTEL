@@ -81,9 +81,9 @@ void App::executeActiveCommand(const MenuItemActive &cmd) {
   bool newActive = cmd.getActive();
   bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
-    auto updateError = exchange.updateConnection(newActive);
-    if (updateError) {
-      addErrorMsg("Error updating connection: " + *updateError);
+    auto error = exchange.updateConnection(newActive);
+    if (error) {
+      addErrorMsg("Error updating connection: " + *error);
       return;
     }
 

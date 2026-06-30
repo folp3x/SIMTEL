@@ -28,7 +28,7 @@ void SimtelBaseStation::handleConnection(std::shared_ptr<SimtelUeContext> ctx) {
   }
 
   // начальное получение данных через первую вышку
-  auto *firstBs = baseStations.begin()->second.get();
+  auto firstBs = baseStations.begin()->second;
   ctx->setBs(firstBs);
 
   MessageHolder::instance().addMsg("Receiving location through first BS");
@@ -47,15 +47,12 @@ void SimtelBaseStation::handleConnection(std::shared_ptr<SimtelUeContext> ctx) {
   }
 
   auto bs = ctx->getBs();
-  if (!bs) {
+  if (auto ptr = bs.lock()) {
+    ptr->handleUeRequests(ctx);
+  } else {
     MessageHolder::instance().addErrorMsg("UE not connected to BS");
-    return;
   }
-
-  bs->handleUeRequests(ctx);
 }
-
-common::Location<> SimtelBaseStation::getLocation() const { return location; }
 
 unsigned int SimtelBaseStation::getId() const { return id; }
 
@@ -69,7 +66,7 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
 
 std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
     std::shared_ptr<SimtelUeContext> ctx) const {
-  auto changePathError = mme->handleAuthResponse(ctx->getMTimsi(), id);
+  auto changePathError = mme.lock()->handleAuthResponse(ctx->getMTimsi(), id);
   if (changePathError) {
     return "Error changing path: " + *changePathError;
   }
@@ -113,13 +110,10 @@ SimtelBaseStation::findUe(const common::imsi_t &mTimsi) const {
   return it->second;
 }
 
-SimtelBaseStation::SimtelBaseStation(const BsConfig &config, SimtelMme *mme_)
+SimtelBaseStation::SimtelBaseStation(const BsConfig &config,
+                                     std::weak_ptr<SimtelMme> mme_)
     : id(config.id), mmeId(config.mmeId), radius(config.radius),
       maxConnections(config.maxConnections), location(config.loc), mme(mme_) {
-  if (!mme) {
-    throw std::invalid_argument("MME cant be null");
-  }
-
   std::lock_guard lock(connectedUeMtx);
   connectedUe.reserve(maxConnections);
 }
@@ -133,15 +127,15 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
   }
   ctx->setBuf(*bytes);
 
-  auto sendError = ctx->sendBufToUe();
-  if (!sendError) {
+  auto error = ctx->sendBufToUe();
+  if (!error) {
     MessageHolder::instance().addMsg(
         createLogMsg("response to " + ctx->toStr() + " = " + req->toStr()),
         common::MenuMessageType::SUCCESS);
     return std::nullopt;
   }
 
-  return sendError->description;
+  return error->description;
 }
 
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
@@ -151,6 +145,11 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
 
   // имитация измерения UE уровня сигнала до базовых станций
   auto initialBs = ctx->getBs();
+  if (initialBs.expired()) {
+    return "UE not connected to BS";
+  }
+  auto initialBsPtr = initialBs.lock();
+
   for (const auto &[id, bs] : baseStations) {
     unsigned int signalLevel = bs->measureSignal(locReq.getLoc());
 
@@ -163,10 +162,11 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
 
     auto response = std::make_unique<common::MeasurementControlRequest>(
         locReq.getImei(), signalLevel, bs->getId());
-    auto responseSendError = bs->sendResponse(ctx, std::move(response));
-    if (responseSendError) {
+    auto measurementControlSendError =
+        bs->sendResponse(ctx, std::move(response));
+    if (measurementControlSendError) {
       return bs->createLogMsg("Error sending signal level: " +
-                              *responseSendError);
+                              *measurementControlSendError);
     }
   }
   ctx->setBs(initialBs);
@@ -174,7 +174,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   MessageHolder::instance().addMsg("Receiving chosen BS id through current BS");
 
   auto chosenBsReq =
-      initialBs->receiveRequest<common::MeasurementReportRequest>(ctx);
+      initialBsPtr->receiveRequest<common::MeasurementReportRequest>(ctx);
   if (!chosenBsReq) {
     return "Error receiving BS id: " + chosenBsReq.error();
   }
@@ -196,10 +196,14 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
 
   std::shared_ptr<SimtelUeContext> ue = nullptr;
   if (handover) {
-    ue = ctx->getBs()->copyUe(ctx->getMTimsi());
-    // если UE еще не подключен к какой-либо вышке
-    if (!ue) {
-      ue = ctx;
+    if (auto ptr = ctx->getBs().lock()) {
+      ue = ptr->copyUe(ctx->getMTimsi());
+      // если UE еще не подключен к какой-либо вышке
+      if (!ue) {
+        ue = ctx;
+      }
+    } else {
+      return "UE not connected to BS";
     }
   }
 
@@ -213,20 +217,24 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   }
 
   if (handover) {
-    ctx->getBs()->removeUe(ctx->getMTimsi());
-    ue->setBs(chosenBs);
-    chosenBs->addUe(std::move(ue));
+    if (auto ptr = ctx->getBs().lock()) {
+      ptr->removeUe(ctx->getMTimsi());
+      ue->setBs(chosenBs);
+      chosenBs->addUe(std::move(ue));
+    } else {
+      return "UE not connected to BS";
+    }
   }
 
   return chosenBs->handleConfigureComplete(ctx);
 }
 
-SimtelBaseStation *SimtelBaseStation::findBs(unsigned int id) {
+std::shared_ptr<SimtelBaseStation> SimtelBaseStation::findBs(unsigned int id) {
   auto it = baseStations.find(id);
   if (it == baseStations.end()) {
     return nullptr;
   }
-  return it->second.get();
+  return it->second;
 }
 
 void SimtelBaseStation::addBs(std::shared_ptr<SimtelBaseStation> bs) {
@@ -248,19 +256,19 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   if (!canAcceptConnection()) {
     std::string error = "BS busy";
     auto response = std::make_unique<common::ErrorRequest>(error);
-    auto responseSendError = sendResponse(ctx, std::move(response));
-    if (responseSendError) {
-      return "Error sending error info: " + *responseSendError;
+    auto sendError = sendResponse(ctx, std::move(response));
+    if (sendError) {
+      return "Error sending error info: " + *sendError;
     }
     return error;
   }
 
-  auto mTimsi = mme->handleAttachRequest(req.getImsi(), req.getImei());
+  auto mTimsi = mme.lock()->handleAttachRequest(req.getImsi(), req.getImei());
   if (!mTimsi) {
     auto response = std::make_unique<common::ErrorRequest>(mTimsi.error());
-    auto responseSendError = sendResponse(ctx, std::move(response));
-    if (responseSendError) {
-      return "Error sending error info: " + *responseSendError;
+    auto sendError = sendResponse(ctx, std::move(response));
+    if (sendError) {
+      return "Error sending error info: " + *sendError;
     }
     return mTimsi.error();
   }
@@ -274,21 +282,21 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   }
 
   auto curBs = ctx->getBs();
-  bool connectedToCur =
-      curBs && curBs->getId() == id && ueConnected(ctx->getMTimsi());
+  bool connectedToCur = !curBs.expired() && curBs.lock()->getId() == id &&
+                        ueConnected(ctx->getMTimsi());
   if (connectedToCur) {
     auto response = std::make_unique<common::RrcReconfigurationKeepRequest>(
         req.getImei(), id);
-    auto responseSendError = sendResponse(ctx, std::move(response));
-    if (responseSendError) {
-      return "Error sending BS keep info: " + *responseSendError;
+    auto sendError = sendResponse(ctx, std::move(response));
+    if (sendError) {
+      return "Error sending BS keep info: " + *sendError;
     }
   } else {
     auto response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
         *mTimsi, id);
-    auto responseSendError = sendResponse(ctx, std::move(response));
-    if (responseSendError) {
-      return "Error sending BS handover info: " + *responseSendError;
+    auto sendError = sendResponse(ctx, std::move(response));
+    if (sendError) {
+      return "Error sending BS handover info: " + *sendError;
     } else {
       handover = true;
     }
@@ -352,7 +360,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
     auto receiveError = ctx->receiveData();
     if (receiveError) {
       if (isNoConnectedError(*receiveError)) {
-        ctx->setBs(nullptr);
+        ctx->setBs(std::weak_ptr<SimtelBaseStation>());
         removeUe(ctx->getMTimsi());
 
         MessageHolder::instance().addMsg(
@@ -396,8 +404,10 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
         }
 
         auto bs = ctx->getBs();
-        if (bs->getId() != id) {
-          ctx->getBs()->handleUeRequests(ctx);
+        if (auto ptr = bs.lock()) {
+          if (ptr->getId() != id) {
+            ptr->handleUeRequests(ctx);
+          }
         }
 
         break;
@@ -446,8 +456,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
         ctx->setProtocol(protocol);
 
-        mme->handleSmDeliveryAck(req->getMsisdn(), req->getSmsId(),
-                                 req->getMTimsi());
+        mme.lock()->handleSmDeliveryAck(req->getMsisdn(), req->getSmsId(),
+                                        req->getMTimsi());
 
         break;
       }
@@ -464,7 +474,8 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
                                     const common::SmTransferRequest &req) {
   MessageHolder::instance().addMsg(
       createLogMsg("sent SM_Submit to MME (Sm_Transfer without text)"));
-  bool contextCreated = mme->handleSmSubmit(req.getMTimsi(), req.getSmsId());
+  bool contextCreated =
+      mme.lock()->handleSmSubmit(req.getMTimsi(), req.getSmsId());
   if (!contextCreated) {
     ctx->clearBuf();
     return "SMSC cant create context for SMS";
@@ -472,8 +483,8 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
 
   MessageHolder::instance().addMsg(
       createLogMsg("sent MO_Forward_SM to MME (Sm_Transfer text)"));
-  bool smsMoved =
-      mme->handleMoForwardSM(req.getMTimsi(), req.getSmsId(), req.getText());
+  bool smsMoved = mme.lock()->handleMoForwardSM(req.getMTimsi(), req.getSmsId(),
+                                                req.getText());
   if (!smsMoved) {
     ctx->clearBuf();
     return "SMSC cant move SMS to context";
@@ -481,8 +492,8 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
 
   ctx->clearBuf();
 
-  return mme->sendRoutingInfoSm(req.getMsisdn(), req.getSmsId(),
-                                req.getMTimsi());
+  return mme.lock()->sendRoutingInfoSm(req.getMsisdn(), req.getSmsId(),
+                                       req.getMTimsi());
 }
 
 bool SimtelBaseStation::handleForwardSmReq(const common::imsi_t &mTimsi,
@@ -574,8 +585,8 @@ void SimtelBaseStation::sendSmDelivery(const common::imsi_t &mTimsi,
 }
 
 std::optional<std::string>
-SimtelBaseStation::sendDeliveryReport(const common::imsi_t &mTimsi,
-                                      unsigned int smsId) {
+SimtelBaseStation::sendSmDeliveryReport(const common::imsi_t &mTimsi,
+                                        unsigned int smsId) {
   auto reportReq =
       std::make_unique<common::SmDeliveryReportRequest>(mTimsi, smsId);
 

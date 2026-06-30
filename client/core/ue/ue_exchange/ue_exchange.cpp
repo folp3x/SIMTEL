@@ -19,12 +19,12 @@ UeExchange::sendRequest(std::unique_ptr<common::Request> req) {
     return bytes.error();
   }
 
-  auto sendError = sock.sendMessage(*bytes);
-  if (!sendError) {
+  auto error = sock.sendMessage(*bytes);
+  if (!error) {
     return std::nullopt;
   }
 
-  return sendError->description;
+  return error->description;
 }
 
 std::expected<common::binary_t, std::string>

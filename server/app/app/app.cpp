@@ -33,8 +33,7 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
   listener.setTtlManager(ttlManager);
 
   for (const auto &config : mmeConfigs) {
-    mmeList.insert(
-        {config.id, std::make_shared<SimtelMme>(config, hlr, smsc.get())});
+    mmeList.insert({config.id, std::make_shared<SimtelMme>(config, hlr, smsc)});
   }
 
   for (auto &[id, mme] : mmeList) {
@@ -51,7 +50,7 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
       throw std::runtime_error("Unknown MME id in BS config");
     }
 
-    auto bs = std::make_shared<SimtelBaseStation>(config, it->second.get());
+    auto bs = std::make_shared<SimtelBaseStation>(config, it->second);
     it->second->addBs(bs);
     SimtelBaseStation::addBs(bs);
   }

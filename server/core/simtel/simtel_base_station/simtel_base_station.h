@@ -26,7 +26,7 @@ private:
   const size_t maxConnections;
   const common::Location<> location;
 
-  SimtelMme *mme;
+  std::weak_ptr<SimtelMme> mme;
 
   mutable std::mutex connectedUeMtx;
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
@@ -37,7 +37,7 @@ private:
                        std::shared_ptr<SimtelUeContext> ctx,
                        bool firstConnection = true);
 
-  static SimtelBaseStation *findBs(unsigned int id);
+  static std::shared_ptr<SimtelBaseStation> findBs(unsigned int id);
 
   template <std::derived_from<common::Request> T>
   std::expected<T, std::string>
@@ -87,13 +87,11 @@ private:
   void handleUeRequests(std::shared_ptr<SimtelUeContext> ctx);
 
 public:
-  SimtelBaseStation(const BsConfig &config, SimtelMme *mme_);
+  SimtelBaseStation(const BsConfig &config, std::weak_ptr<SimtelMme> mme_);
 
   static void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   static void handleConnection(std::shared_ptr<SimtelUeContext> ctx);
-
-  common::Location<> getLocation() const;
 
   unsigned int getId() const;
 
@@ -110,8 +108,8 @@ public:
                       const common::imsi_t &msisdn,
                       const common::binary_t &smsText);
 
-  std::optional<std::string> sendDeliveryReport(const common::imsi_t &mTimsi,
-                                                unsigned int smsId);
+  std::optional<std::string> sendSmDeliveryReport(const common::imsi_t &mTimsi,
+                                                  unsigned int smsId);
 };
 } // namespace server
 

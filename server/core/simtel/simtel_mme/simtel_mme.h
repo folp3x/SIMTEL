@@ -23,7 +23,7 @@ private:
   SimtelVisitorList vlr;
 
   std::shared_ptr<SimtelRegister> hlr;
-  SimtelSmsc *smsc;
+  std::weak_ptr<SimtelSmsc> smsc;
   std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
 
@@ -55,7 +55,7 @@ private:
 
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
-            SimtelSmsc *smsc_);
+            std::weak_ptr<SimtelSmsc> smsc_);
 
   void addOtherMme(std::shared_ptr<SimtelMme> mme);
 

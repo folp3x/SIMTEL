@@ -17,7 +17,7 @@ private:
   SimtelListener listener;
 
   std::shared_ptr<SimtelRegister> hlr;
-  std::unique_ptr<SimtelSmsc> smsc;
+  std::shared_ptr<SimtelSmsc> smsc;
   std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> mmeList{};
 
   std::shared_ptr<TtlManager> ttlManager;

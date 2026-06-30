@@ -18,9 +18,9 @@ bool SimtelUeContext::setMTimsi(const common::imsi_t &mTimsi_) {
   return false;
 }
 
-SimtelBaseStation *SimtelUeContext::getBs() const { return bs; }
+std::weak_ptr<SimtelBaseStation> SimtelUeContext::getBs() const { return bs; }
 
-void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
+void SimtelUeContext::setBs(std::weak_ptr<SimtelBaseStation> bs_) { bs = bs_; }
 
 common::Protocol SimtelUeContext::getProtocol() const { return protocol; }
 

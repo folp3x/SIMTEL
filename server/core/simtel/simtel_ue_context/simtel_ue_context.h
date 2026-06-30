@@ -19,7 +19,7 @@ private:
 
   common::Protocol protocol = common::Protocol::JSON;
 
-  SimtelBaseStation *bs = nullptr;
+  std::weak_ptr<SimtelBaseStation> bs;
 
   common::binary_t buf = {};
 
@@ -31,8 +31,8 @@ public:
   common::imsi_t getMTimsi() const;
   bool setMTimsi(const common::imsi_t &mTimsi_);
 
-  SimtelBaseStation *getBs() const;
-  void setBs(SimtelBaseStation *bs_);
+  std::weak_ptr<SimtelBaseStation> getBs() const;
+  void setBs(std::weak_ptr<SimtelBaseStation> bs_);
 
   common::Protocol getProtocol() const;
   void setProtocol(common::Protocol protocol_);
