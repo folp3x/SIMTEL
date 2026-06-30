@@ -318,7 +318,7 @@ App::App(const UeContext &ctx_,
 
 void App::run() {
   messages = {};
-  isRunning = true;
+  running = true;
 
   std::jthread requestsSender{[this]() { exchange.sendRequests(); }};
 
@@ -333,7 +333,7 @@ void App::run() {
     });
   }};
 
-  while (isRunning) {
+  while (running) {
     menu.showMenuHeaderLine();
     menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
     menu.showMenuHeaderLine();
@@ -355,7 +355,7 @@ void App::run() {
     showMessages();
 
     if (exit) {
-      isRunning = false;
+      running = false;
     } else {
       std::cout << std::endl;
     }
@@ -382,16 +382,16 @@ void App::handleSmsStatusResponse(std::unique_ptr<common::Request> response) {
       return;
     }
 
-    bool isDuplicate = false;
+    bool duplicate = false;
     for (const auto &sms : smsList) {
       if (sms.id == deliveryResponse->getSmsId() &&
           sms.sender == deliveryResponse->getMsisdn()) {
-        isDuplicate = true;
+        duplicate = true;
         break;
       }
     }
 
-    if (!isDuplicate) {
+    if (!duplicate) {
       addMsg("SMS received from " + deliveryResponse->getMsisdn() +
              " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
 

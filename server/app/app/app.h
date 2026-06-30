@@ -24,7 +24,7 @@ private:
 
   Menu menu;
 
-  bool isRunning = false;
+  bool running = false;
 
   void sigintHandler(int signal);
 

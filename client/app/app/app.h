@@ -27,7 +27,7 @@ private:
 
   Menu menu;
 
-  bool isRunning = false;
+  bool running = false;
 
   std::mutex messagesMtx;
   std::priority_queue<common::MenuMessage> messages{};

@@ -111,22 +111,22 @@ std::string Validator::isCorrectImsi(const imsi_t &imsi) {
 }
 
 std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
-  bool isCorrect = true;
+  bool correct = true;
 
   if (msisdn.length() != MSISDN_LENGTH) {
-    isCorrect = false;
+    correct = false;
   } else {
     for (int i = 0; i < msisdn.length(); ++i) {
       char formatCh = MSISDN_FORMAT_STR[i];
       if (isdigit(formatCh) && msisdn[i] != formatCh ||
           formatCh == MSISDN_ANY_DIGIT && !isdigit(msisdn[i])) {
-        isCorrect = false;
+        correct = false;
         break;
       }
     }
   }
 
-  return isCorrect ? "" : "MSISDN must have format: " + MSISDN_FORMAT_STR;
+  return correct ? "" : "MSISDN must have format: " + MSISDN_FORMAT_STR;
 }
 
 std::string

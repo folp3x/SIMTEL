@@ -4,11 +4,6 @@
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
 
 namespace server {
-std::string SimtelSmsc::smsUidToStr(const SmsUid &uid) {
-  return "sms_uid{iTimsi=" + uid.first +
-         ", smsId=" + std::to_string(uid.second) + "}";
-}
-
 std::string SimtelSmsc::createLogMsg(const std::string &content) const {
   return "SMSC: " + content;
 }
@@ -17,12 +12,14 @@ SimtelSmsc::SimtelSmsc(const SmscConfig &config) : smsTtlMs(config.smsTtlMs) {}
 
 bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
                                 unsigned int smsId) {
+  SmsUid uid = {mtimsi_s, smsId};
+
   std::lock_guard lock(contextMtx);
   if (context.size() < MAX_CONTEXT_SIZE) {
-    context.insert({{mtimsi_s, smsId}, {mtimsi_s, "", "", "", "", 0}});
+    MessageHolder::instance().addMsg(
+        createLogMsg("created SMS context for " + uid.toStr()));
 
-    MessageHolder::instance().addMsg(createLogMsg(
-        "created SMS context for " + smsUidToStr({mtimsi_s, smsId})));
+    context.emplace(uid, SmsContext{mtimsi_s});
 
     return true;
   }
@@ -33,15 +30,17 @@ bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
 bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mtimsi_s,
                                    unsigned int smsId,
                                    const std::string &smsText) {
+  SmsUid uid = {mtimsi_s, smsId};
+
   std::lock_guard lock(contextMtx);
-  auto it = context.find({mtimsi_s, smsId});
+  auto it = context.find(uid);
   if (it == context.end()) {
     return false;
   }
   it->second.text = smsText;
 
   MessageHolder::instance().addMsg(
-      createLogMsg("moved sms text from BS of " + smsUidToStr(it->first)));
+      createLogMsg("moved sms text from BS of " + uid.toStr()));
 
   return true;
 }
@@ -49,17 +48,18 @@ bool SimtelSmsc::handleMoForwardSM(const common::imsi_t &mtimsi_s,
 bool SimtelSmsc::updateMTimsiD(const common::imsi_t &mtimsi_s,
                                unsigned int smsId,
                                const common::imsi_t &mtimsi_d) {
+  SmsUid uid = {mtimsi_s, smsId};
+
   std::lock_guard lock(contextMtx);
-  auto it = context.find({mtimsi_s, smsId});
+  auto it = context.find(uid);
   if (it == context.end()) {
     return false;
   }
 
   it->second.mtimsi_d = mtimsi_d;
 
-  MessageHolder::instance().addMsg(
-      createLogMsg("updated " + smsUidToStr(it->first)) +
-      ": mtimsi_d=" + it->second.mtimsi_d);
+  MessageHolder::instance().addMsg(createLogMsg("updated " + uid.toStr()) +
+                                   ": mtimsi_d=" + it->second.mtimsi_d);
 
   return true;
 }
@@ -78,16 +78,17 @@ SimtelSmsc::getSmsText(unsigned int smsId, const common::imsi_t &mtimsi_s) {
 unsigned int SimtelSmsc::getSmsTtlMs() const { return smsTtlMs; }
 
 void SimtelSmsc::removeSms(unsigned int smsId, const common::imsi_t &mtimsi_s) {
+  SmsUid uid = {mtimsi_s, smsId};
   size_t removedCount = 0;
 
   {
     std::lock_guard lock(contextMtx);
-    removedCount = context.erase({mtimsi_s, smsId});
+    removedCount = context.erase(uid);
   }
 
   if (removedCount > 0) {
     MessageHolder::instance().addMsg(
-        createLogMsg("removed sms with " + smsUidToStr({mtimsi_s, smsId})));
+        createLogMsg("removed sms with " + uid.toStr()));
   }
 }
 } // namespace server

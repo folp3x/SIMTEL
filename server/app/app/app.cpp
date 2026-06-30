@@ -16,7 +16,7 @@ void App::sigintHandler(int signal) {
 }
 
 void App::exitApp() {
-  isRunning = false;
+  running = false;
   listener.stop();
 
   std::cout << "Exiting app..." << std::endl;
@@ -65,7 +65,7 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
 }
 
 void App::run() {
-  isRunning = true;
+  running = true;
 
   menu.showStatus();
 
@@ -77,7 +77,7 @@ void App::run() {
     });
   }};
 
-  while (isRunning) {
+  while (running) {
     while (true) {
       auto msg = MessageHolder::instance().takeMsg();
       if (msg) {

@@ -1,21 +1,19 @@
 #pragma once
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <optional>
 #include <unordered_map>
 
-#include "common/types.h"
 #include "server/app/config/smsc_config/smsc_config.h"
+#include "server/core/simtel/sms_uid/sms_uid.h"
 
 namespace server {
 class SimtelMme;
 
 class SimtelSmsc {
 private:
-  // mtimsi_s и sms-id
-  using SmsUid = std::pair<common::imsi_t, unsigned int>;
-
   struct SmsContext {
     common::imsi_t mtimsi_s = "";
     common::imsi_t mtimsi_d = "";
@@ -23,6 +21,8 @@ private:
     common::msisdn_t msisdn_d = "";
     std::string text = "";
     unsigned int smsId = 0;
+    std::unique_ptr<std::atomic<bool>> isDelivered =
+        std::make_unique<std::atomic<bool>>(false);
   };
 
   static constexpr unsigned int MAX_CONTEXT_SIZE = 10;
@@ -31,8 +31,6 @@ private:
 
   std::mutex contextMtx;
   std::map<SmsUid, SmsContext> context;
-
-  std::string smsUidToStr(const SmsUid &uid);
 
   std::string createLogMsg(const std::string &content) const;
 
