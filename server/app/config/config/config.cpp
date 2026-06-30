@@ -24,8 +24,4 @@ SmscConfig Config::getSmscConfig() const { return smscConfig; }
 void Config::setSmscTtlMs(unsigned int smscTtlMs) {
   smscConfig.smsTtlMs = smscTtlMs;
 }
-
-void Config::setSmscCdrJsonFilePath(const std::string &smscCdrJsonFilePath) {
-  smscConfig.cdrJsonFilePath = smscCdrJsonFilePath;
-}
 } // namespace server

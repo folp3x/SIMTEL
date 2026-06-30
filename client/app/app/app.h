@@ -7,11 +7,11 @@
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+#include "client/core/sms/sms/sms.h"
 #include "client/core/ue/ue_active/ue_active.h"
 #include "client/core/ue/ue_context/ue_context.h"
 #include "client/core/ue/ue_exchange/ue_exchange.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
-#include "common/core/sms/sms.h"
 
 namespace client {
 class App {
@@ -35,13 +35,13 @@ private:
   std::map<char, common::msisdn_t> addressBook{};
 
   std::mutex smsListMtx;
-  std::vector<common::Sms> smsList{};
+  std::vector<Sms> smsList{};
 
   void executeCommand(const std::unique_ptr<common::MenuItem> &cmd, bool &exit);
 
   void sigintHandler(int signal);
 
-  void addSms(const common::Sms &sms);
+  void addSms(const Sms &sms);
 
   std::string formChangeMessage(const std::string &paramName,
                                 const std::string &valueStr,
@@ -80,7 +80,7 @@ private:
 
   void showMessages();
 
-  void setDelivered(unsigned int smsId);
+  void setSentSmsStatus(unsigned int smsId, SmsStatus status);
 
 public:
   App(const UeContext &ctx_,

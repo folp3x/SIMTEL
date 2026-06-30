@@ -54,16 +54,16 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
   }
 }
 
-void Menu::showSentSms(const common::Sms &sms) const {
-  std::cout << "To " << sms.receiver << " ";
-  common::printTime(sms.timeSent, " ");
-  showSmsStatus(sms.delivered);
+void Menu::showSentSms(const Sms &sms) const {
+  std::cout << "To " << sms.receiver << " at ";
+  common::printTime(sms.timeSent, " (");
+  showSmsStatus(sms.status, "):\n");
   std::cout << sms.content << std::endl;
 }
 
-void Menu::showReceivedSms(const common::Sms &sms) const {
-  std::cout << "From " << sms.sender << " ";
-  common::printTime(sms.timeReceived);
+void Menu::showReceivedSms(const Sms &sms) const {
+  std::cout << "From " << sms.sender << " at ";
+  common::printTime(sms.timeReceived, ":\n");
   std::cout << sms.content << std::endl;
 }
 
@@ -71,11 +71,19 @@ void Menu::showError(const std::string &error) const {
   showMessage({error, common::MenuMessageType::ERR});
 }
 
-void Menu::showSmsStatus(bool delivered) const {
-  if (delivered) {
-    common::printColored("delivered", rang::fg::green);
-  } else {
-    common::printColored("pending", rang::fg::yellow);
+void Menu::showSmsStatus(SmsStatus status, const std::string &ending) const {
+  switch (status) {
+  case SmsStatus::PENDING:
+    common::printColored("pending", rang::fg::yellow, ending);
+    break;
+  case SmsStatus::DELIVERED:
+    common::printColored("delivered", rang::fg::green, ending);
+    break;
+  case SmsStatus::NOT_DELIVERED:
+    common::printColored("not delivered", rang::fg::red, ending);
+    break;
+  default:
+    std::cout << "unknown" << std::endl;
   }
 }
 } // namespace client

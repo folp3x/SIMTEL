@@ -2,9 +2,10 @@
 
 #include <chrono>
 
+#include "client/core/sms/sms_status/sms_status.h"
 #include "common/types.h"
 
-namespace common {
+namespace client {
 struct Sms {
   unsigned int id = 0;
   std::chrono::sys_time<std::chrono::seconds> timeSent;
@@ -12,6 +13,6 @@ struct Sms {
   common::msisdn_t sender = "";
   common::msisdn_t receiver = "";
   std::string content = "";
-  bool delivered = false;
+  SmsStatus status = SmsStatus::PENDING;
 };
-} // namespace common
+} // namespace client

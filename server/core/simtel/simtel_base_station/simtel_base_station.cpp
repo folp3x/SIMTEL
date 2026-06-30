@@ -6,6 +6,7 @@
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+#include "common/core/request/sm_delivery_error_request/sm_delivery_error_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
@@ -430,8 +431,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
         auto handleError = handleSmTransfer(ctx, *req);
         if (handleError) {
           MessageHolder::instance().addErrorMsg(*handleError);
-          auto response =
-              std::make_unique<common::ErrorRequest>("Failed to deliver SMS");
+          auto response = std::make_unique<common::SmDeliveryErrorRequest>(
+              req->getMTimsi(), req->getSmsId());
           auto sendError = sendResponse(ctx, std::move(response));
           if (sendError) {
             MessageHolder::instance().addErrorMsg("Error sending error info: " +
@@ -590,6 +591,29 @@ SimtelBaseStation::sendSmDeliveryReport(const common::imsi_t &mTimsi,
   auto reportReq =
       std::make_unique<common::SmDeliveryReportRequest>(mTimsi, smsId);
 
+  auto ue = findUe(mTimsi);
+  if (!ue) {
+    return "UE not connected to BS";
+  }
+
+  std::lock_guard lock(*ue->getSendMtx().get());
+
   return sendResponse(mTimsi, std::move(reportReq));
+}
+
+std::optional<std::string>
+SimtelBaseStation::sendSmDeliveryError(const common::imsi_t &mTimsi,
+                                       unsigned int smsId) {
+  auto errorReq =
+      std::make_unique<common::SmDeliveryErrorRequest>(mTimsi, smsId);
+
+  auto ue = findUe(mTimsi);
+  if (!ue) {
+    return "UE not connected to BS";
+  }
+
+  std::lock_guard lock(*ue->getSendMtx().get());
+
+  return sendResponse(mTimsi, std::move(errorReq));
 }
 } // namespace server

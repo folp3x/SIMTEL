@@ -45,6 +45,9 @@ private:
   void sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
                             unsigned int smsId);
 
+  void sendSmDeliveryError(const common::msisdn_t &mtimsi_s,
+                           unsigned int smsId);
+
   void removeFromVlr(const common::imsi_t &mTimsi);
 
   std::optional<common::imsi_t> findImsiInHlr(const common::imsi_t &mTimsi,

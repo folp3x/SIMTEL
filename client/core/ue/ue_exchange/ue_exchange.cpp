@@ -8,6 +8,7 @@
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+#include "common/core/request/sm_delivery_error_request/sm_delivery_error_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 
@@ -299,14 +300,30 @@ void UeExchange::receiveSmsStatus(const CallbackType &callback) {
             *receivedResponse);
         break;
       }
+      case common::RequestType::SM_Delivery_Error: {
+        auto receivedResponse =
+            parseFromBytes<common::SmDeliveryErrorRequest>(*data);
+        if (!receivedResponse) {
+          callback(nullptr, receivedResponse.error());
+          continue;
+        }
+
+        response =
+            std::make_unique<common::SmDeliveryErrorRequest>(*receivedResponse);
+        break;
+      }
       case common::RequestType::Error: {
-        auto error = parseFromBytes<common::ErrorRequest>(*data);
-        callback(nullptr, error ? error->getDescription() : error.error());
+        auto receivedResponse = parseFromBytes<common::ErrorRequest>(*data);
+        if (!receivedResponse) {
+          callback(nullptr, receivedResponse.error());
+        } else {
+          callback(nullptr, receivedResponse->getDescription());
+        }
         continue;
       }
       default:
         callback(nullptr,
-                 "Unexpected request type received while receiving SMS info: " +
+                 "Unexpected response received while receiving SMS status: " +
                      common::requestTypeToStr(responseType));
         continue;
       }

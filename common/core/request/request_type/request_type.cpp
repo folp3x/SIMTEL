@@ -18,7 +18,8 @@ static std::unordered_map<RequestType, std::string> types = {
     {RequestType::SM_Transfer, "SM_Transfer"},
     {RequestType::SM_Delivery, "SM_Delivery"},
     {RequestType::SM_Delivery_Report, "SM_Delivery_Report"},
-    {RequestType::SM_Delivery_Ack, "SM_Delivery_Ack"}};
+    {RequestType::SM_Delivery_Ack, "SM_Delivery_Ack"},
+    {RequestType::SM_Delivery_Error, "SM_Delivery_Error"}};
 
 std::expected<RequestType, std::string>
 parseRequestType(const binary_t &bytes) {

@@ -110,6 +110,9 @@ public:
 
   std::optional<std::string> sendSmDeliveryReport(const common::imsi_t &mTimsi,
                                                   unsigned int smsId);
+
+  std::optional<std::string> sendSmDeliveryError(const common::imsi_t &mTimsi,
+                                                 unsigned int smsId);
 };
 } // namespace server
 

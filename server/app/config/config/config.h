@@ -29,6 +29,5 @@ public:
   SmscConfig getSmscConfig() const;
 
   void setSmscTtlMs(unsigned int smscTtlMs);
-  void setSmscCdrJsonFilePath(const std::string &smscCdrJsonFilePath);
 };
 } // namespace server

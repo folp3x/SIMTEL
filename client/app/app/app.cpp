@@ -13,6 +13,7 @@
 #include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
 #include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
+#include "common/core/request/sm_delivery_error_request/sm_delivery_error_request.h"
 #include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
 #include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
@@ -26,7 +27,7 @@ void App::sigintHandler(int signal) {
   }
 }
 
-void App::addSms(const common::Sms &sms) {
+void App::addSms(const Sms &sms) {
   std::lock_guard lock(smsListMtx);
   smsList.push_back(sms);
 }
@@ -190,14 +191,13 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
 
 void App::addSentSms(const common::msisdn_t &targetMsisdn,
                      const std::string &smsContent, unsigned int smsId) {
-  common::Sms sms{smsId,
-                  std::chrono::time_point_cast<std::chrono::seconds>(
-                      std::chrono::system_clock::now()),
-                  {},
-                  "",
-                  targetMsisdn,
-                  smsContent,
-                  false};
+  Sms sms{smsId,
+          std::chrono::time_point_cast<std::chrono::seconds>(
+              std::chrono::system_clock::now()),
+          {},
+          "",
+          targetMsisdn,
+          smsContent};
   addSms(sms);
 }
 
@@ -218,7 +218,7 @@ void App::executeDialogCommand(const MenuItemDialog &cmd) const {
   if (!showed) {
     menu.showError("No dialog");
   } else {
-    std::cout << std::endl;
+    menu.showMenuHeaderLine();
   }
 }
 
@@ -235,7 +235,7 @@ void App::executeReceivedCommand() const {
   if (!showed) {
     menu.showError("No received sms");
   } else {
-    std::cout << std::endl;
+    menu.showMenuHeaderLine();
   }
 }
 
@@ -252,7 +252,7 @@ void App::executeSentCommand() const {
   if (!showed) {
     menu.showError("No sent sms");
   } else {
-    std::cout << std::endl;
+    menu.showMenuHeaderLine();
   }
 }
 
@@ -398,27 +398,28 @@ void App::handleSmsStatusResponse(std::unique_ptr<common::Request> response) {
     }
 
     if (!duplicate) {
-      addMsg("SMS received from " + deliveryResponse->getMsisdn() +
-             " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
+      addMsg("SMS received from " + deliveryResponse->getMsisdn());
 
-      common::Sms sms{deliveryResponse->getSmsId(),
-                      {},
-                      std::chrono::time_point_cast<std::chrono::seconds>(
-                          std::chrono::system_clock::now()),
-                      deliveryResponse->getMsisdn(),
-                      "",
-                      deliveryResponse->getText(),
-                      true};
-
+      Sms sms{deliveryResponse->getSmsId(),
+              {},
+              std::chrono::time_point_cast<std::chrono::seconds>(
+                  std::chrono::system_clock::now()),
+              deliveryResponse->getMsisdn(),
+              "",
+              deliveryResponse->getText()};
       addSms(sms);
     }
 
     addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
                              deliveryResponse->getSmsId());
+  } else if (auto *errorResponse =
+                 dynamic_cast<common::SmDeliveryErrorRequest *>(
+                     response.get())) {
+    setSentSmsStatus(errorResponse->getSmsId(), SmsStatus::NOT_DELIVERED);
   } else if (auto *reportResponse =
                  dynamic_cast<common::SmDeliveryReportRequest *>(
                      response.get())) {
-    setDelivered(reportResponse->getSmsId());
+    setSentSmsStatus(reportResponse->getSmsId(), SmsStatus::DELIVERED);
   }
 }
 
@@ -427,12 +428,12 @@ void App::showMessages() {
   menu.showMessages(messages);
 }
 
-void App::setDelivered(unsigned int smsId) {
+void App::setSentSmsStatus(unsigned int smsId, SmsStatus status) {
   std::lock_guard lock(smsListMtx);
 
   for (int i = 0; i < smsList.size(); ++i) {
     if (smsList[i].id == smsId && smsList[i].sender.empty()) {
-      smsList[i].delivered = true;
+      smsList[i].status = status;
       return;
     }
   }

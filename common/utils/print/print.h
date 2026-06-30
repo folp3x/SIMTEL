@@ -17,6 +17,6 @@ inline void printTime(std::chrono::system_clock::time_point time,
   auto time_t = std::chrono::system_clock::to_time_t(time);
   std::tm *tm = std::localtime(&time_t);
 
-  std::cout << std::put_time(tm, "%d-%m-%Y %H:%M:%S") << ending;
+  std::cout << std::put_time(tm, "%d.%m.%Y %H:%M:%S") << ending;
 }
 } // namespace common

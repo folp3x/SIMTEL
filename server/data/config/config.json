@@ -13,9 +13,6 @@
     }
   ],
   "smscConfig": {
-    "smsTtl_ms": 30000,
-    "cdrAccessParams": {
-      "jsonFilePath": "./data/cdr.json"
-    }
+    "smsTtl_ms": 20000
   }
 }
