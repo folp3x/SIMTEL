@@ -18,7 +18,7 @@ private:
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;
 
-  uint64_t curMTimsi = 0;
+  static uint64_t curMTimsi;
 
   SimtelVisitorList vlr;
 
@@ -29,7 +29,7 @@ private:
 
   std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> otherMme{};
 
-  common::imsi_t generateMTimsi();
+  static common::imsi_t generateMTimsi();
 
   std::shared_ptr<SimtelBaseStation> findBsById(unsigned int id) const;
 

@@ -6,6 +6,8 @@
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {
+uint64_t SimtelMme::curMTimsi = 0;
+
 SimtelMme::SimtelMme(const MmeConfig &config,
                      std::shared_ptr<SimtelRegister> hlr_,
                      std::weak_ptr<SimtelSmsc> smsc_)
@@ -77,7 +79,10 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
       return std::unexpected("VLR cant accept more records");
     }
 
-    auto mTimsi = generateMTimsi();
+    common::imsi_t mTimsi = generateMTimsi();
+
+    MessageHolder::instance().addMsg(
+        createLogMsg("generated m-timsi: " + mTimsi));
 
     auto hlrRecord = hlr->handleAuthInfoRequest(imsi, imei, mTimsi);
     if (!hlrRecord) {
@@ -339,9 +344,6 @@ common::imsi_t SimtelMme::generateMTimsi() {
   if (curMTimsi > MAX_MTIMSI) {
     curMTimsi = 0;
   }
-
-  MessageHolder::instance().addMsg(
-      createLogMsg("generated m-timsi: " + common::imsiToStr(curMTimsi)));
 
   return common::imsiToStr(curMTimsi);
 }
