@@ -51,39 +51,43 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
                                const common::imei_t &imei) {
   MessageHolder::instance().addMsg(createLogMsg(
       "received AttachRequest(imsi=" + imsi + ", imei=" + imei + ")"));
-
-  common::imsi_t realImsi = imsi;
   unsigned int mmeId;
   auto found = findImsiInHlr(imsi, mmeId);
   if (found) {
+    common::imsi_t mTimsi = imsi;
+
     MessageHolder::instance().addMsg(
         createLogMsg("received m-timsi is not real imsi"));
-    realImsi = *found;
-  }
 
-  if (!found) {
+    if (mmeId != id) {
+      auto hlrRecord = hlr->handleAuthInfoRequest(*found, imei, mTimsi);
+      if (!hlrRecord) {
+        return std::unexpected(hlrRecord.error());
+      }
+
+      vlr.setRecord({mTimsi, *found, imei, hlrRecord->msisdn, nullptr});
+    }
+
+    return mTimsi;
+  } else {
     MessageHolder::instance().addMsg(
         createLogMsg("received m-timsi is real imsi"));
-  }
 
-  if (!found || mmeId != id) {
     if (vlr.getSize() >= maxVlrSize) {
-      return "VLR cant accept more records";
+      return std::unexpected("VLR cant accept more records");
     }
 
     auto mTimsi = generateMTimsi();
 
-    auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei, mTimsi);
+    auto hlrRecord = hlr->handleAuthInfoRequest(imsi, imei, mTimsi);
     if (!hlrRecord) {
       return std::unexpected(hlrRecord.error());
     }
 
-    vlr.setRecord({mTimsi, realImsi, imei, hlrRecord->msisdn, nullptr});
+    vlr.setRecord({mTimsi, imsi, imei, hlrRecord->msisdn, nullptr});
+
     return mTimsi;
   }
-
-  // если клиент уже зарегистрирован и прислал свой m-timsi
-  return imsi;
 }
 
 std::optional<std::string>
