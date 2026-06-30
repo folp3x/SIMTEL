@@ -38,7 +38,10 @@ public:
   getImsiByMTimsi(const common::imsi_t &mTimsi, unsigned int &mmeId);
 
   std::expected<common::imsi_t, std::string>
-  getMTimsiByMsisdn(const common::imsi_t &msisdn, unsigned int &mmeId);
+  getMTimsiByMsisdn(const common::imsi_t &msisdn);
+
+  std::expected<unsigned int, std::string>
+  getMmeIdByMTimsi(const common::imsi_t &mTimsi);
 
   void insertData();
   bool hasData();

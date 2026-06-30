@@ -255,7 +255,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     const common::MeasurementReportRequest &req,
     std::shared_ptr<SimtelUeContext> ctx, bool &handover) const {
   if (!canAcceptConnection()) {
-    std::string error = "BS busy";
+    std::string error = "BS is busy";
     auto response = std::make_unique<common::ErrorRequest>(error);
     auto sendError = sendResponse(ctx, std::move(response));
     if (sendError) {
@@ -266,7 +266,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
 
   auto mTimsi = mme.lock()->handleAttachRequest(req.getImsi(), req.getImei());
   if (!mTimsi) {
-    auto response = std::make_unique<common::ErrorRequest>(mTimsi.error());
+    auto response = std::make_unique<common::ErrorRequest>("Connection failed");
     auto sendError = sendResponse(ctx, std::move(response));
     if (sendError) {
       return "Error sending error info: " + *sendError;
@@ -385,9 +385,9 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
       case common::RequestType::Rrc_Connection: {
         common::Protocol protocol;
         auto req = parseFromBytes<common::RrcConnectionRequest>(data, protocol);
+        ctx->clearBuf();
         if (!req) {
           MessageHolder::instance().addErrorMsg(req.error());
-          ctx->clearBuf();
           continue;
         }
 
@@ -396,8 +396,6 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
         MessageHolder::instance().addMsg(
             createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
             common::MenuMessageType::INFO);
-
-        ctx->clearBuf();
 
         auto updateError = handleLocationUpdate(*req, ctx, false);
         if (updateError) {
@@ -416,9 +414,9 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
       case common::RequestType::SM_Transfer: {
         common::Protocol protocol;
         auto req = parseFromBytes<common::SmTransferRequest>(data, protocol);
+        ctx->clearBuf();
         if (!req) {
           MessageHolder::instance().addErrorMsg(req.error());
-          ctx->clearBuf();
           continue;
         }
 
@@ -445,9 +443,9 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
       case common::RequestType::SM_Delivery_Ack: {
         common::Protocol protocol;
         auto req = parseFromBytes<common::SmDeliveryAckRequest>(data, protocol);
+        ctx->clearBuf();
         if (!req) {
           MessageHolder::instance().addErrorMsg(req.error());
-          ctx->clearBuf();
           continue;
         }
 

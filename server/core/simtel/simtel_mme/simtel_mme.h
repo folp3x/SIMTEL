@@ -14,6 +14,7 @@ class SimtelMme {
 private:
   static constexpr uint64_t MAX_MTIMSI = 999'999'999'999'999;
   static constexpr unsigned int SEND_SMS_SLEEP_MS = 1000;
+  static constexpr unsigned int SEND_REPORT_SLEEP_MS = 1000;
 
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;
@@ -42,7 +43,7 @@ private:
                   const common::imsi_t &mtimsi_d, const std::string &smsText,
                   std::shared_ptr<SimtelBaseStation> bs);
 
-  void sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
+  bool sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
                             unsigned int smsId);
 
   void sendSmDeliveryError(const common::msisdn_t &mtimsi_s,
