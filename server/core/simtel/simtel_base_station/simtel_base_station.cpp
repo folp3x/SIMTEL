@@ -52,7 +52,7 @@ void SimtelBaseStation::handleConnection(std::shared_ptr<SimtelUeContext> ctx) {
     return;
   }
 
-  bs->receiveFromUe(ctx);
+  bs->handleUeRequests(ctx);
 }
 
 common::Location<> SimtelBaseStation::getLocation() const { return location; }
@@ -147,6 +147,8 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
 std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     const common::RrcConnectionRequest &locReq,
     std::shared_ptr<SimtelUeContext> ctx, bool firstConnection) {
+  std::lock_guard<std::mutex> lock(*ctx->getSendMtx().get());
+
   // имитация измерения UE уровня сигнала до базовых станций
   auto initialBs = ctx->getBs();
   for (const auto &[id, bs] : baseStations) {
@@ -214,12 +216,6 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     ctx->getBs()->removeUe(ctx->getMTimsi());
     ue->setBs(chosenBs);
     chosenBs->addUe(std::move(ue));
-  }
-
-  std::unique_lock lock(*chosenBs->getSendMtx(ctx->getMTimsi()),
-                        std::defer_lock);
-  if (firstConnection) {
-    lock.lock();
   }
 
   return chosenBs->handleConfigureComplete(ctx);
@@ -311,18 +307,6 @@ void SimtelBaseStation::addUe(std::shared_ptr<SimtelUeContext> ctx) {
       createLogMsg(ctx->toStr() + " buffer added"));
 }
 
-std::mutex *SimtelBaseStation::getSendMtx(const common::imsi_t &mTimsi) {
-  std::lock_guard<std::mutex> lock(sendMtxListLock);
-
-  auto it = sendMtxList.find(mTimsi);
-  if (it == sendMtxList.end()) {
-    auto [newIt, inserted] =
-        sendMtxList.emplace(mTimsi, std::make_unique<std::mutex>());
-    return newIt->second.get();
-  }
-  return it->second.get();
-}
-
 std::shared_ptr<SimtelUeContext>
 SimtelBaseStation::copyUe(const common::imsi_t &mTimsi) {
   auto ue = findUe(mTimsi);
@@ -350,7 +334,7 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTimsi) {
   return true;
 }
 
-void SimtelBaseStation::receiveFromUe(std::shared_ptr<SimtelUeContext> ctx) {
+void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
   MessageHolder::instance().addMsg(
       createLogMsg("started handling requests from " + ctx->toStr()),
       common::MenuMessageType::INFO);
@@ -365,9 +349,7 @@ void SimtelBaseStation::receiveFromUe(std::shared_ptr<SimtelUeContext> ctx) {
 
     MessageHolder::instance().addMsg("");
 
-    std::lock_guard lock(*getSendMtx(ctx->getMTimsi()));
     auto receiveError = ctx->receiveData();
-
     if (receiveError) {
       if (isNoConnectedError(*receiveError)) {
         ctx->setBs(nullptr);
@@ -415,7 +397,7 @@ void SimtelBaseStation::receiveFromUe(std::shared_ptr<SimtelUeContext> ctx) {
 
         auto bs = ctx->getBs();
         if (bs->getId() != id) {
-          ctx->getBs()->receiveFromUe(ctx);
+          ctx->getBs()->handleUeRequests(ctx);
         }
 
         break;
@@ -446,6 +428,26 @@ void SimtelBaseStation::receiveFromUe(std::shared_ptr<SimtelUeContext> ctx) {
                                                   *sendError);
           }
         }
+
+        break;
+      }
+      case common::RequestType::SM_Delivery_Ack: {
+        common::Protocol protocol;
+        auto req = parseFromBytes<common::SmDeliveryAckRequest>(data, protocol);
+        if (!req) {
+          MessageHolder::instance().addErrorMsg(req.error());
+          ctx->clearBuf();
+          continue;
+        }
+
+        MessageHolder::instance().addMsg(
+            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
+            common::MenuMessageType::INFO);
+
+        ctx->setProtocol(protocol);
+
+        mme->handleSmDeliveryAck(req->getMsisdn(), req->getSmsId(),
+                                 req->getMTimsi());
 
         break;
       }
@@ -532,69 +534,51 @@ SimtelBaseStation::prepareSmDelivery(const common::imsi_t &mTimsi,
   return response;
 }
 
-bool SimtelBaseStation::sendSmDelivery(
-    const common::imsi_t &mTimsi, const common::SmDeliveryRequest &response) {
-  auto ue = findUe(mTimsi);
-  if (!ue) {
-    return false;
-  }
-
-  return sendResponse(ue, std::make_unique<common::SmDeliveryRequest>(
-                              response)) == std::nullopt;
-}
-
-std::optional<common::SmDeliveryAckRequest>
-SimtelBaseStation::receiveSmDeliveryAck(const common::imsi_t &mTimsi) {
-  auto ue = findUe(mTimsi);
-  if (!ue) {
-    return std::nullopt;
-  }
-
-  ue->setReceiveTimeout(SM_DELIVERY_ACK_RECEIVE_TIMEOUT_MSEC);
-  auto ackReq = receiveRequest<common::SmDeliveryAckRequest>(ue);
-  if (!ackReq) {
-    return std::nullopt;
-  }
-
-  return *ackReq;
-}
-
-std::optional<common::SmDeliveryAckRequest>
-SimtelBaseStation::trySendSmsDelivery(const common::imsi_t &mTimsi,
-                                      unsigned int smsId,
-                                      const common::imsi_t &msisdn,
-                                      const common::binary_t &smsText) {
-  if (!handleForwardSmReq(mTimsi, smsText.size())) {
-    return std::nullopt;
-  }
-
-  if (!handleMtForwardSm(mTimsi, smsText)) {
-    return std::nullopt;
-  }
-
-  auto preparedReq = prepareSmDelivery(mTimsi, smsId, msisdn);
-  if (!preparedReq) {
-    return std::nullopt;
-  }
-
-  bool sent = sendSmDelivery(mTimsi, *preparedReq);
-  if (!sent) {
-    return std::nullopt;
-  }
-
-  return receiveSmDeliveryAck(mTimsi);
-}
-
 std::optional<std::string>
-SimtelBaseStation::sendDeliveryReport(const common::imsi_t &mTimsi,
-                                      unsigned int smsId) {
+SimtelBaseStation::sendResponse(const common::imsi_t &mTimsi,
+                                std::unique_ptr<common::Request> req) {
   auto ue = findUe(mTimsi);
   if (!ue) {
     return "UE with such m-timsi not connected";
   }
 
+  return sendResponse(ue, std::move(req));
+}
+
+void SimtelBaseStation::sendSmDelivery(const common::imsi_t &mTimsi,
+                                       unsigned int smsId,
+                                       const common::imsi_t &msisdn,
+                                       const common::binary_t &smsText) {
+  auto ue = findUe(mTimsi);
+  if (!ue) {
+    return;
+  }
+
+  std::lock_guard lock(*ue->getSendMtx().get());
+
+  if (!handleForwardSmReq(mTimsi, smsText.size())) {
+    return;
+  }
+
+  if (!handleMtForwardSm(mTimsi, smsText)) {
+    return;
+  }
+
+  auto preparedReq = prepareSmDelivery(mTimsi, smsId, msisdn);
+  if (!preparedReq) {
+    return;
+  }
+
+  sendResponse(mTimsi,
+               std::make_unique<common::SmDeliveryRequest>(*preparedReq));
+}
+
+std::optional<std::string>
+SimtelBaseStation::sendDeliveryReport(const common::imsi_t &mTimsi,
+                                      unsigned int smsId) {
   auto reportReq =
       std::make_unique<common::SmDeliveryReportRequest>(mTimsi, smsId);
-  return sendResponse(ue, std::move(reportReq));
+
+  return sendResponse(mTimsi, std::move(reportReq));
 }
 } // namespace server

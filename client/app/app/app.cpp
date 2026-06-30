@@ -217,6 +217,8 @@ void App::executeDialogCommand(const MenuItemDialog &cmd) const {
 
   if (!showed) {
     menu.showError("No dialog");
+  } else {
+    std::cout << std::endl;
   }
 }
 
@@ -232,6 +234,8 @@ void App::executeReceivedCommand() const {
 
   if (!showed) {
     menu.showError("No received sms");
+  } else {
+    std::cout << std::endl;
   }
 }
 
@@ -247,6 +251,8 @@ void App::executeSentCommand() const {
 
   if (!showed) {
     menu.showError("No sent sms");
+  } else {
+    std::cout << std::endl;
   }
 }
 

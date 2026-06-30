@@ -32,7 +32,7 @@ SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
 
 std::expected<common::imsi_t, std::string>
 SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
-                                std::optional<unsigned int> &mmeId) {
+                                unsigned int &mmeId) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi));
@@ -43,6 +43,24 @@ SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
 
     mmeId = records[0].mmeId;
     return records[0].imsi;
+  } catch (const std::exception &e) {
+    return std::unexpected("HLR DB error: " + std::string(e.what()));
+  }
+}
+
+std::expected<common::imsi_t, std::string>
+SimtelRegister::getMTimsiByMsisdn(const common::imsi_t &msisdn,
+                                  unsigned int &mmeId) {
+  try {
+    auto records = storage.get_all<HlrRecord>(
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));
+
+    if (records.empty()) {
+      return std::unexpected("HLR record not found for msisdn: " + msisdn);
+    }
+
+    mmeId = records[0].mmeId;
+    return records[0].mTimsi;
   } catch (const std::exception &e) {
     return std::unexpected("HLR DB error: " + std::string(e.what()));
   }

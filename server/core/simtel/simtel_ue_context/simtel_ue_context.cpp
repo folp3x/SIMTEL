@@ -100,4 +100,8 @@ bool SimtelUeContext::setReceiveTimeout(unsigned int timeoutMsec) {
 bool SimtelUeContext::removeReceiveTimeout() {
   return sock->removeReceiveTimeout();
 }
+
+std::shared_ptr<std::mutex> SimtelUeContext::getSendMtx() const {
+  return sendMtx;
+}
 } // namespace server

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "common/core/location/location/location.h"
 #include "common/network/protocol/protocol.h"
 #include "server/app/message_holder/message_holder.h"
@@ -20,6 +22,8 @@ private:
   SimtelBaseStation *bs = nullptr;
 
   common::binary_t buf = {};
+
+  std::shared_ptr<std::mutex> sendMtx = std::make_shared<std::mutex>();
 
 public:
   SimtelUeContext(std::unique_ptr<Socket> sock_);
@@ -49,5 +53,7 @@ public:
 
   bool setReceiveTimeout(unsigned int timeoutMsec);
   bool removeReceiveTimeout();
+
+  std::shared_ptr<std::mutex> getSendMtx() const;
 };
 } // namespace server

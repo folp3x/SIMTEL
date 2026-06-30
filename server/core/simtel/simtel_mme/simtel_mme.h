@@ -42,24 +42,26 @@ private:
                   const common::imsi_t &mtimsi_d, const std::string &smsText,
                   std::shared_ptr<SimtelBaseStation> bs);
 
-public:
-  SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
-            SimtelSmsc *smsc_);
+  void sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
+                            unsigned int smsId);
 
-  std::optional<common::imsi_t>
-  findImsiInHlr(const common::imsi_t &mTimsi,
-                std::optional<unsigned int> &mmeId) const;
+  void removeFromVlr(const common::imsi_t &mTimsi);
+
+  std::optional<common::imsi_t> findImsiInHlr(const common::imsi_t &mTimsi,
+                                              unsigned int &mmeId) const;
 
   std::optional<common::imsi_t>
   findImsiInVlr(const common::imsi_t &mTimsi) const;
+
+public:
+  SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
+            SimtelSmsc *smsc_);
 
   void addOtherMme(std::shared_ptr<SimtelMme> mme);
 
   void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
   unsigned int getId() const;
-
-  void removeFromVlr(const common::imsi_t &mTimsi);
 
   std::expected<common::imsi_t, std::string>
   handleAttachRequest(const common::imsi_t &imsi, const common::imei_t &imei);
@@ -80,5 +82,8 @@ public:
                                            unsigned int smsId,
                                            const common::imsi_t &mtimsi_s,
                                            const common::imsi_t &mtimsi_d);
+
+  void handleSmDeliveryAck(const common::msisdn_t &msisdn_s, unsigned int smsId,
+                           const common::imsi_t &mtimsi_d);
 };
 } // namespace server
