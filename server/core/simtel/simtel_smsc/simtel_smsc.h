@@ -43,8 +43,8 @@ public:
   bool handleMoForwardSM(const common::imsi_t &mtimsi_s, unsigned int smsId,
                          const std::string &smsText);
 
-  bool updateContextMTimsiD(const common::imsi_t &mtimsi_s, unsigned int smsId,
-                            const common::imsi_t &mtimsi_d);
+  bool updateMTimsiD(const common::imsi_t &mtimsi_s, unsigned int smsId,
+                     const common::imsi_t &mtimsi_d);
 
   std::optional<std::string> getSmsText(unsigned int smsId,
                                         const common::imsi_t &mtimsi_s);

@@ -57,7 +57,7 @@ public:
   std::expected<std::unique_ptr<common::Request>, std::string>
   handleLocationUpdate(RequestInfo info);
 
-  void handleRequests();
+  void sendRequests();
 
   void addRequest(const UeState &state, std::unique_ptr<common::Request> req,
                   const CallbackType &callback);
@@ -71,7 +71,7 @@ public:
 
   void stop();
 
-  void receiveSmsInfo(const CallbackType &callback);
+  void receiveSmsStatus(const CallbackType &callback);
 };
 } // namespace client
 

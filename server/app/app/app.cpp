@@ -73,7 +73,7 @@ void App::run() {
 
   std::jthread connectionHandler{[this]() {
     listener.acceptConnections([](std::shared_ptr<SimtelUeContext> ctx) {
-      SimtelBaseStation::handleConnectionRequest(ctx);
+      SimtelBaseStation::handleConnection(ctx);
     });
   }};
 

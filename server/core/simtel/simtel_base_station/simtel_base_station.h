@@ -65,12 +65,14 @@ private:
 
   float calculateDistance(const common::Location<> &ueLoc) const;
 
+  std::shared_ptr<SimtelUeContext> findUe(const common::imsi_t &mTimsi) const;
+
 public:
   SimtelBaseStation(const BsConfig &config, SimtelMme *mme_);
 
   static void addBs(std::shared_ptr<SimtelBaseStation> bs);
 
-  static void handleConnectionRequest(std::shared_ptr<SimtelUeContext> ctx);
+  static void handleConnection(std::shared_ptr<SimtelUeContext> ctx);
 
   common::Location<> getLocation() const;
 
@@ -88,35 +90,36 @@ public:
   void addUe(std::shared_ptr<SimtelUeContext> ctx);
   std::mutex *getSendMtx(const common::imsi_t &mTimsi);
 
-  std::shared_ptr<SimtelUeContext> copyUe(const common::imsi_t &mTImsi);
-  bool removeUe(const common::imsi_t &mTImsi);
+  std::shared_ptr<SimtelUeContext> copyUe(const common::imsi_t &mTimsi);
+  bool removeUe(const common::imsi_t &mTimsi);
 
-  void handleUe(std::shared_ptr<SimtelUeContext> ctx);
+  void receiveFromUe(std::shared_ptr<SimtelUeContext> ctx);
 
   std::optional<std::string>
   handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
                    const common::SmTransferRequest &req);
 
-  bool handleForwardSmReq(const common::imsi_t &imsi, size_t smsTextSize);
-  bool handleMtForwardSm(const common::imsi_t &imsi,
+  bool handleForwardSmReq(const common::imsi_t &mTimsi, size_t smsTextSize);
+
+  bool handleMtForwardSm(const common::imsi_t &mTimsi,
                          const common::binary_t &smsText);
 
   std::expected<common::SmDeliveryRequest, std::string>
-  prepareSmDelivery(const common::imsi_t &imsi, unsigned int smsId,
+  prepareSmDelivery(const common::imsi_t &mTimsi, unsigned int smsId,
                     const common::imsi_t &msisdn);
 
-  bool sendSmDelivery(const common::imsi_t &imsi,
+  bool sendSmDelivery(const common::imsi_t &mTimsi,
                       const common::SmDeliveryRequest &response);
 
   std::optional<common::SmDeliveryAckRequest>
-  receiveSmDeliveryAck(const common::imsi_t &imsi);
+  receiveSmDeliveryAck(const common::imsi_t &mTimsi);
 
   std::optional<common::SmDeliveryAckRequest>
-  trySendSmsDelivery(const common::imsi_t &imsi, unsigned int smsId,
+  trySendSmsDelivery(const common::imsi_t &mTimsi, unsigned int smsId,
                      const common::imsi_t &msisdn,
                      const common::binary_t &smsText);
 
-  std::optional<std::string> sendDeliveryReport(const common::imsi_t &imsi,
+  std::optional<std::string> sendDeliveryReport(const common::imsi_t &mTimsi,
                                                 unsigned int smsId);
 };
 } // namespace server

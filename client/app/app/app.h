@@ -37,8 +37,7 @@ private:
   std::mutex smsListMtx;
   std::vector<common::Sms> smsList{};
 
-  virtual void handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                             bool &exit);
+  void executeCommand(const std::unique_ptr<common::MenuItem> &cmd, bool &exit);
 
   void sigintHandler(int signal);
 
@@ -51,17 +50,17 @@ private:
   void handleLocationUpdate();
   void handleHandoverResponse(std::unique_ptr<common::Request> response);
 
-  void handleActiveCommand(const MenuItemActive &cmd);
-  void handleMoveCommand(const MenuItemMove<> &cmd);
-  void handleProtocolCommand(const MenuItemProtocol &cmd);
+  void executeActiveCommand(const MenuItemActive &cmd);
+  void executeMoveCommand(const MenuItemMove<> &cmd);
+  void executeProtocolCommand(const MenuItemProtocol &cmd);
 
-  void handleSmsCommand(const MenuItemSMS &cmd);
+  void executeSmsCommand(const MenuItemSMS &cmd);
   void addSentSms(const common::msisdn_t &targetMsisdn,
                   const std::string &smsContent, unsigned int smsId);
 
-  void handleDialogCommand(const MenuItemDialog &cmd) const;
-  void handleReceivedCommand() const;
-  void handleSentCommand() const;
+  void executeDialogCommand(const MenuItemDialog &cmd) const;
+  void executeReceivedCommand() const;
+  void executeSentCommand() const;
 
   void addDeliveryAckToExchange(const common::msisdn_t &msisdn,
                                 unsigned int smsId);
@@ -77,7 +76,11 @@ private:
 
   void addErrorMsg(const std::string &content);
 
-  void handleSmsInfoResponse(std::unique_ptr<common::Request> response);
+  void handleSmsStatusResponse(std::unique_ptr<common::Request> response);
+
+  void showMessages();
+
+  void setDelivered(unsigned int smsId);
 
 public:
   App(const UeContext &ctx_,

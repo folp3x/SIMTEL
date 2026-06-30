@@ -10,19 +10,17 @@ bool TtlManager::isExpired() const {
 }
 
 void TtlManager::start() {
+  std::lock_guard lock(lastActivityMtx);
   active = true;
-  {
-    std::lock_guard lock(lastActivityMtx);
-    lastActivity = std::chrono::steady_clock::now();
-  }
+  lastActivity = std::chrono::steady_clock::now();
   lastWarningNum = 0;
 }
 
 void TtlManager::stop() { active = false; }
 
 unsigned int TtlManager::getLeftSec() const {
-  std::chrono::nanoseconds passed;
   auto now = std::chrono::steady_clock::now();
+  std::chrono::nanoseconds passed;
   {
     std::lock_guard lock(lastActivityMtx);
     passed = now - lastActivity;

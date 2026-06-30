@@ -184,21 +184,22 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
       return "Receiver MME not found";
     }
 
-    return receiverMme->handleChangeAfterSriSm(
-        senderRecord->msisdn, smsId, mtimsi_s, receiverRecord->mTimsi);
+    return receiverMme->sendForwardSm(senderRecord->msisdn, smsId, mtimsi_s,
+                                      receiverRecord->mTimsi);
   }
 
-  return handleChangeAfterSriSm(senderRecord->msisdn, smsId, mtimsi_s,
-                                receiverRecord->mTimsi);
+  return sendForwardSm(senderRecord->msisdn, smsId, mtimsi_s,
+                       receiverRecord->mTimsi);
 }
 
-std::optional<std::string> SimtelMme::handleChangeAfterSriSm(
-    const common::msisdn_t &msisdn_s, unsigned int smsId,
-    const common::imsi_t &mtimsi_s, const common::imsi_t &mtimsi_d) {
+std::optional<std::string>
+SimtelMme::sendForwardSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
+                         const common::imsi_t &mtimsi_s,
+                         const common::imsi_t &mtimsi_d) {
   MessageHolder::instance().addMsg(
       createLogMsg("sent context update request to SMSC"));
 
-  bool updated = smsc->updateContextMTimsiD(mtimsi_s, smsId, mtimsi_d);
+  bool updated = smsc->updateMTimsiD(mtimsi_s, smsId, mtimsi_d);
   if (!updated) {
     return "Error updating SMSC context";
   }

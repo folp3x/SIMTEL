@@ -46,13 +46,14 @@ UeExchange::receiveResponseData(common::RequestType &type) const {
 UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
     : serverAddr(serverAddr_) {}
 
-void UeExchange::handleRequests() {
+void UeExchange::sendRequests() {
   while (running) {
     std::unique_lock lock(requestsMtx);
     requestsCv.wait(
         lock, [this] { return !requests.empty() && connected || !running; });
 
     if (!running) {
+      lock.unlock();
       break;
     }
 
@@ -70,23 +71,15 @@ void UeExchange::handleRequests() {
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
-      std::unique_ptr<common::Request> response;
-      std::string error = "";
-      {
-        std::lock_guard lock(receiveMtx);
-        auto result = handleLocationUpdate(std::move(info));
-        if (!result) {
-          error = result.error();
-        } else {
-          response = std::move(*result);
-        }
-      }
+      std::unique_lock lock(receiveMtx);
+      auto response = handleLocationUpdate(std::move(info));
+      lock.unlock();
 
-      if (!error.empty()) {
+      if (!response) {
         signalLevel = 0;
-        callback(nullptr, error);
+        callback(nullptr, response.error());
       } else {
-        callback(std::move(response), "");
+        callback(std::move(*response), "");
       }
 
       break;
@@ -259,38 +252,32 @@ void UeExchange::stop() {
   closeConnection();
 }
 
-void UeExchange::receiveSmsInfo(const CallbackType &callback) {
+void UeExchange::receiveSmsStatus(const CallbackType &callback) {
   while (running) {
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(SMS_INFO_SLEEP_MS));
 
-      common::RequestType responseType;
-
-      bool received = false;
-      common::binary_t data{};
-      {
-        std::lock_guard lock(receiveMtx);
-        bool set = sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
-        if (!set) {
-          received = false;
-        } else {
-          auto receivedData = receiveResponseData(responseType);
-
-          received = receivedData.has_value();
-          if (received) {
-            data = std::move(*receivedData);
-          }
-        }
-      }
-
-      if (!received) {
+      std::unique_lock lock(receiveMtx);
+      bool set = sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
+      if (!set) {
+        lock.unlock();
         continue;
       }
+
+      common::RequestType responseType;
+      auto data = receiveResponseData(responseType);
+      if (!data) {
+        lock.unlock();
+        continue;
+      }
+
+      lock.unlock();
 
       std::unique_ptr<common::Request> response;
       switch (responseType) {
       case common::RequestType::SM_Delivery: {
-        auto receivedResponse = parseFromBytes<common::SmDeliveryRequest>(data);
+        auto receivedResponse =
+            parseFromBytes<common::SmDeliveryRequest>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
@@ -302,7 +289,7 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
       }
       case common::RequestType::SM_Delivery_Report: {
         auto receivedResponse =
-            parseFromBytes<common::SmDeliveryReportRequest>(data);
+            parseFromBytes<common::SmDeliveryReportRequest>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
@@ -313,7 +300,7 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
         break;
       }
       case common::RequestType::Error: {
-        auto error = parseFromBytes<common::ErrorRequest>(data);
+        auto error = parseFromBytes<common::ErrorRequest>(*data);
         callback(nullptr, error ? error->getDescription() : error.error());
         continue;
       }

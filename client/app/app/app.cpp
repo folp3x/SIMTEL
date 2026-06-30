@@ -77,7 +77,7 @@ void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
   }
 }
 
-void App::handleActiveCommand(const MenuItemActive &cmd) {
+void App::executeActiveCommand(const MenuItemActive &cmd) {
   bool newActive = cmd.getActive();
   bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
@@ -97,7 +97,7 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
                            stateChanged));
 }
 
-void App::handleMoveCommand(const MenuItemMove<> &cmd) {
+void App::executeMoveCommand(const MenuItemMove<> &cmd) {
   auto coords = cmd.getCoords();
 
   bool locationChanged = !ctx.getLocation().coordsEqual(coords);
@@ -120,7 +120,7 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   }
 }
 
-void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
+void App::executeProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
 
   auto parsedProtocol = common::protocolFromStr(protocolStr);
@@ -140,7 +140,7 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
                            protocolChanged));
 }
 
-void App::handleSmsCommand(const MenuItemSMS &cmd) {
+void App::executeSmsCommand(const MenuItemSMS &cmd) {
   if (!exchange.hasSignal()) {
     addErrorMsg("No signal");
     return;
@@ -201,7 +201,7 @@ void App::addSentSms(const common::msisdn_t &targetMsisdn,
   addSms(sms);
 }
 
-void App::handleDialogCommand(const MenuItemDialog &cmd) const {
+void App::executeDialogCommand(const MenuItemDialog &cmd) const {
   bool showed = false;
   for (const auto &sms : smsList) {
     if (sms.receiver == cmd.getMsisdn()) {
@@ -220,7 +220,7 @@ void App::handleDialogCommand(const MenuItemDialog &cmd) const {
   }
 }
 
-void App::handleReceivedCommand() const {
+void App::executeReceivedCommand() const {
   bool showed = false;
   for (const auto &sms : smsList) {
     if (sms.receiver.empty()) {
@@ -235,7 +235,7 @@ void App::handleReceivedCommand() const {
   }
 }
 
-void App::handleSentCommand() const {
+void App::executeSentCommand() const {
   bool showed = false;
   for (const auto &sms : smsList) {
     if (!sms.receiver.empty()) {
@@ -277,30 +277,27 @@ unsigned int App::generateSmsId() {
   return curSmsId;
 }
 
-void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                        bool &exit) {
+void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                         bool &exit) {
   // выполнение команды в засимости от ее типа
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
     addErrorMsg("Error! " + invalidCmd->getError());
   } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
-    handleActiveCommand(*activeCmd);
+    executeActiveCommand(*activeCmd);
   } else if (auto *moveCmd = dynamic_cast<MenuItemMove<> *>(cmd.get())) {
-    handleMoveCommand(*moveCmd);
+    executeMoveCommand(*moveCmd);
   } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
-    handleProtocolCommand(*protocolCmd);
+    executeProtocolCommand(*protocolCmd);
   } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
-    handleSmsCommand(*smsCmd);
+    executeSmsCommand(*smsCmd);
   } else if (auto *sentCmd = dynamic_cast<MenuItemSent *>(cmd.get())) {
-    handleSentCommand();
+    executeSentCommand();
   } else if (auto *receivedCmd = dynamic_cast<MenuItemReceived *>(cmd.get())) {
-    handleReceivedCommand();
+    executeReceivedCommand();
   } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
-    handleDialogCommand(*dialogCmd);
-  } else if (auto *emptyCmd =
-                 dynamic_cast<common::MenuItemEmpty *>(cmd.get())) {
-    return;
+    executeDialogCommand(*dialogCmd);
   }
 }
 
@@ -323,15 +320,15 @@ void App::run() {
   messages = {};
   isRunning = true;
 
-  std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
+  std::jthread requestsSender{[this]() { exchange.sendRequests(); }};
 
-  std::jthread smsInfoReceiver{[this]() {
-    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
-                                   const std::string &error) {
+  std::jthread smsStatusReceiver{[this]() {
+    exchange.receiveSmsStatus([this](std::unique_ptr<common::Request> response,
+                                     const std::string &error) {
       if (!error.empty()) {
         addErrorMsg("Error: " + error);
       } else {
-        handleSmsInfoResponse(std::move(response));
+        handleSmsStatusResponse(std::move(response));
       }
     });
   }};
@@ -354,12 +351,8 @@ void App::run() {
     }
 
     bool exit = false;
-    handleCommand(cmd, exit);
-
-    {
-      std::lock_guard lock(messagesMtx);
-      menu.showMessages(messages);
-    }
+    executeCommand(cmd, exit);
+    showMessages();
 
     if (exit) {
       isRunning = false;
@@ -380,7 +373,7 @@ void App::addErrorMsg(const std::string &content) {
   addMsg(content, common::MenuMessageType::ERR);
 }
 
-void App::handleSmsInfoResponse(std::unique_ptr<common::Request> response) {
+void App::handleSmsStatusResponse(std::unique_ptr<common::Request> response) {
   if (auto *deliveryResponse =
           dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
     if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
@@ -419,13 +412,22 @@ void App::handleSmsInfoResponse(std::unique_ptr<common::Request> response) {
   } else if (auto *reportResponse =
                  dynamic_cast<common::SmDeliveryReportRequest *>(
                      response.get())) {
-    std::lock_guard lock(smsListMtx);
-    for (int i = 0; i < smsList.size(); ++i) {
-      if (smsList[i].id == reportResponse->getSmsId() &&
-          smsList[i].sender.empty()) {
-        smsList[i].delivered = true;
-        break;
-      }
+    setDelivered(reportResponse->getSmsId());
+  }
+}
+
+void App::showMessages() {
+  std::lock_guard lock(messagesMtx);
+  menu.showMessages(messages);
+}
+
+void App::setDelivered(unsigned int smsId) {
+  std::lock_guard lock(smsListMtx);
+
+  for (int i = 0; i < smsList.size(); ++i) {
+    if (smsList[i].id == smsId && smsList[i].sender.empty()) {
+      smsList[i].delivered = true;
+      return;
     }
   }
 }

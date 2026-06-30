@@ -37,6 +37,11 @@ private:
 
   std::shared_ptr<SimtelMme> findOtherById(unsigned int id) const;
 
+  void trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
+                  const common::imsi_t &mtimsi_s,
+                  const common::imsi_t &mtimsi_d, const std::string &smsText,
+                  std::shared_ptr<SimtelBaseStation> bs);
+
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
             SimtelSmsc *smsc_);
@@ -71,14 +76,9 @@ public:
                                                unsigned int smsId,
                                                const common::imsi_t &mtimsi_s);
 
-  std::optional<std::string>
-  handleChangeAfterSriSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
-                         const common::imsi_t &mtimsi_s,
-                         const common::imsi_t &mtimsi_d);
-
-  void trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
-                  const common::imsi_t &mtimsi_s,
-                  const common::imsi_t &mtimsi_d, const std::string &smsText,
-                  std::shared_ptr<SimtelBaseStation> bs);
+  std::optional<std::string> sendForwardSm(const common::msisdn_t &msisdn_s,
+                                           unsigned int smsId,
+                                           const common::imsi_t &mtimsi_s,
+                                           const common::imsi_t &mtimsi_d);
 };
 } // namespace server
