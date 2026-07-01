@@ -156,6 +156,8 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
     }
 
     targetMsisdn = std::move(*foundMsisdn);
+  } else {
+    targetMsisdn = cmd.getMsisdn();
   }
 
   std::string smsContent = "";
