@@ -15,17 +15,22 @@ SimtelMme::SimtelMme(const MmeConfig &config,
       vlr(id) {}
 
 std::optional<common::imsi_t>
-SimtelMme::findImsiInHlr(const common::imsi_t &mTimsi,
-                         unsigned int &mmeId) const {
-  auto imsi = hlr->getImsiByMTimsi(mTimsi, mmeId);
-  if (!imsi) {
-    return std::nullopt;
+SimtelMme::findImsiInOther(const common::imsi_t &mTimsi,
+                           unsigned int &mmeId) const {
+  for (const auto &other : otherMme) {
+    auto found = other.second->findImsiInVlr(mTimsi);
+    if (found) {
+      mmeId = other.first;
+      return *found;
+    }
   }
-  return *imsi;
+
+  return std::nullopt;
 }
 
 std::optional<common::imsi_t>
 SimtelMme::findImsiInVlr(const common::imsi_t &mTimsi) const {
+  MessageHolder::instance().addErrorMsg(createLogMsg("VLR:"));
   auto found = vlr.findByMTimsi(mTimsi);
   if (!found) {
     return std::nullopt;
@@ -53,27 +58,42 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
                                const common::imei_t &imei) {
   MessageHolder::instance().addMsg(createLogMsg(
       "received AttachRequest(imsi=" + imsi + ", imei=" + imei + ")"));
+
   unsigned int mmeId;
-  auto found = findImsiInHlr(imsi, mmeId);
-  if (found) {
+  common::imsi_t realImsi;
+  bool isRealImsi = true;
+  auto imsiInCurrent = findImsiInVlr(imsi);
+  if (imsiInCurrent) {
+    mmeId = id;
+    realImsi = *imsiInCurrent;
+    isRealImsi = false;
+  } else {
+    auto imsiInOther = findImsiInOther(imsi, mmeId);
+    if (imsiInOther) {
+      realImsi = *imsiInOther;
+      isRealImsi = false;
+    }
+  }
+
+  if (!isRealImsi) {
     common::imsi_t mTimsi = imsi;
 
     MessageHolder::instance().addMsg(
-        createLogMsg("received m-timsi is not real imsi"));
+        createLogMsg("received imsi is m-timsi, real imsi is " + realImsi));
 
     if (mmeId != id) {
-      auto hlrRecord = hlr->handleAuthInfoRequest(*found, imei, mTimsi);
+      auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei, mTimsi);
       if (!hlrRecord) {
         return std::unexpected(hlrRecord.error());
       }
 
-      vlr.setRecord({mTimsi, *found, imei, hlrRecord->msisdn, nullptr});
+      vlr.setRecord({mTimsi, realImsi, imei, hlrRecord->msisdn, nullptr});
     }
 
     return mTimsi;
   } else {
     MessageHolder::instance().addMsg(
-        createLogMsg("received m-timsi is real imsi"));
+        createLogMsg("received imsi is real imsi"));
 
     if (vlr.getSize() >= maxVlrSize) {
       return std::unexpected("VLR cant accept more records");
@@ -309,7 +329,7 @@ bool SimtelMme::sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
                                      unsigned int smsId) {
   auto record = vlr.findByMTimsi(mtimsi_s);
   if (!record) {
-    MessageHolder::instance().addErrorMsg("mtimsi_s not found in VLR");
+    MessageHolder::instance().addErrorMsg("Sender not known by MME");
     return false;
   }
 
@@ -327,7 +347,7 @@ void SimtelMme::sendSmDeliveryError(const common::msisdn_t &mtimsi_s,
                                     unsigned int smsId) {
   auto record = vlr.findByMTimsi(mtimsi_s);
   if (!record) {
-    MessageHolder::instance().addErrorMsg("mtimsi_s not found in VLR");
+    MessageHolder::instance().addErrorMsg("Sender not known by MME");
     return;
   }
 

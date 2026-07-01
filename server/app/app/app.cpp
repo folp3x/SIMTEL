@@ -59,6 +59,8 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     hlr->insertData();
   }
 
+  hlr->logRecords();
+
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }

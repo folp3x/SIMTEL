@@ -58,5 +58,7 @@ public:
 
   std::expected<HlrRecord, std::string>
   handleRoutingInfoSmSender(const common::imsi_t &imsi);
+
+  void logRecords();
 };
 } // namespace server

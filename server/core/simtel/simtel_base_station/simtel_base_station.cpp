@@ -356,10 +356,6 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
       return;
     }
 
-    MessageHolder::instance().addMsg("");
-    MessageHolder::instance().addMsg(
-        createLogMsg("Waiting for request from " + ctx->toStr()));
-
     auto receiveError = ctx->receiveData();
     if (receiveError) {
       if (isNoConnectedError(*receiveError)) {
@@ -377,6 +373,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
       MessageHolder::instance().addErrorMsg(receiveError->description);
     } else {
+      MessageHolder::instance().addMsg("");
+
       common::binary_t data = ctx->copyBuf();
       auto reqType = common::parseRequestType(data);
       if (!reqType) {

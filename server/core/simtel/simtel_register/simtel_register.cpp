@@ -25,6 +25,21 @@ std::string SimtelRegister::createLogMsg(const std::string &content) const {
   return "HLR: " + content;
 }
 
+void SimtelRegister::logRecords() {
+  try {
+    auto records = storage.get_all<HlrRecord>();
+
+    MessageHolder::instance().addMsg(createLogMsg("records:"));
+
+    for (const auto &record : records) {
+      MessageHolder::instance().addMsg(createLogMsg(record.toStr()));
+    }
+  } catch (const std::exception &e) {
+    MessageHolder::instance().addErrorMsg(
+        createLogMsg("failed to read records: " + std::string(e.what())));
+  }
+}
+
 SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
     : storage(createStorage(hlrSqliteFilePath)) {
   storage.sync_schema();
@@ -90,19 +105,6 @@ void SimtelRegister::insertData() {
   storage.insert(HlrRecord{0, "500000000000000", "600000000000000",
                            "89990000003",
                            subscriberStatusToStr(SubscriberStatus::BANNED)});
-
-  try {
-    auto records = storage.get_all<HlrRecord>();
-
-    MessageHolder::instance().addMsg(createLogMsg("records added:"));
-
-    for (const auto &record : records) {
-      MessageHolder::instance().addMsg(createLogMsg(record.toStr()));
-    }
-  } catch (const std::exception &e) {
-    MessageHolder::instance().addErrorMsg(
-        createLogMsg("error reading records: " + std::string(e.what())));
-  }
 }
 
 bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }

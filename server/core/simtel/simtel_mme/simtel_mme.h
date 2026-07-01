@@ -51,11 +51,8 @@ private:
 
   void removeFromVlr(const common::imsi_t &mTimsi);
 
-  std::optional<common::imsi_t> findImsiInHlr(const common::imsi_t &mTimsi,
-                                              unsigned int &mmeId) const;
-
-  std::optional<common::imsi_t>
-  findImsiInVlr(const common::imsi_t &mTimsi) const;
+  std::optional<common::imsi_t> findImsiInOther(const common::imsi_t &mTimsi,
+                                                unsigned int &mmeId) const;
 
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
@@ -89,5 +86,8 @@ public:
 
   void handleSmDeliveryAck(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            const common::imsi_t &mtimsi_d);
+
+  std::optional<common::imsi_t>
+  findImsiInVlr(const common::imsi_t &mTimsi) const;
 };
 } // namespace server
