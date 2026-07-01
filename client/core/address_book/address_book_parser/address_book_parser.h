@@ -7,7 +7,6 @@
 #include "common/types.h"
 
 namespace client {
-// класс для парсинга адресной книги из JSON
 class AddressBookParser
     : public common::JsonParser<std::map<char, common::msisdn_t>> {
 private:

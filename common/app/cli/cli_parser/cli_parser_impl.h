@@ -49,7 +49,6 @@ template <std::derived_from<Config> T>
 bool CliParser<T>::parse(int argc, char *argv[], std::string &msg,
                          bool &helpCalled) {
   try {
-    // очистка конфига
     config = T{};
     cliApp.parse(argc, argv);
     return true;

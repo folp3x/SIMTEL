@@ -285,7 +285,6 @@ unsigned int App::generateSmsId() {
 
 void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
                          bool &exit) {
-  // выполнение команды в засимости от ее типа
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
     addErrorMsg("Error! " + invalidCmd->getError());
   } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {

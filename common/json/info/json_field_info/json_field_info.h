@@ -7,7 +7,7 @@
 #include "common/json/json_type/json_type.h"
 
 namespace common {
-// класс с информацией для парсинга простого JSON-поля
+// класс с информацией для парсинга простого JSON-поля из объекта
 template <typename T> class JsonFieldInfo : public JsonBaseInfo {
 private:
   const nlohmann::json::value_t type;

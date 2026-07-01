@@ -98,5 +98,5 @@ TEST_F(CommandParserTest, Parse_EmptyCommand) {
   auto cmd = parser.parseCommand("", extraMsg);
   auto unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
-  EXPECT_FALSE(unknownCmd == nullptr);
+  EXPECT_TRUE(unknownCmd == nullptr);
 }

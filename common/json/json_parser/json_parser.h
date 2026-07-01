@@ -12,7 +12,6 @@
 #include "common/json/info/json_vector_info/json_vector_info.h"
 
 namespace common {
-// абстрактный класс для парсинга данных из JSON
 template <typename T> class JsonParser {
 private:
   std::vector<std::unique_ptr<JsonBaseInfo>> fieldsInfo = {};

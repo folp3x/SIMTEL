@@ -4,7 +4,7 @@
 
 namespace server {
 std::string VlrRecord::toStr() const {
-  std::string bsIdStr = (bs == nullptr) ? "?" : std::to_string(bs->getId());
+  std::string bsIdStr = (!bs) ? "?" : std::to_string(bs->getId());
   return "[mTimsi=" + mTimsi + ";imsi=" + imsi + ";imei=" + imei +
          ";msisdn=" + msisdn + ";bsId=" + bsIdStr + "]";
 }

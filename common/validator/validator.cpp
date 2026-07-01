@@ -10,7 +10,6 @@ namespace common {
 const std::string Validator::MSISDN_FORMAT_STR =
     "8" + std::string(MSISDN_LENGTH, MSISDN_ANY_DIGIT);
 
-// проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(std::string_view filePath) {
   size_t jsonExtLen = std::strlen(".json");
   return (filePath.size() < jsonExtLen) ||
@@ -68,7 +67,7 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
   return "";
 }
 
-// проверяет коррекность IPv4. ip должен иметь хостовой порядок байт
+// проверяет коррекность IPv4. IP должен иметь хостовой порядок байт
 std::string Validator::isCorrectIp(uint32_t ip) {
   uint8_t lowByte = ip & 0xFF;
   if (lowByte < MIN_IP_LOW_BYTE || lowByte > MAX_IP_LOW_BYTE) {

@@ -9,7 +9,6 @@ class CliParser : public common::CliParser<Config> {
 private:
   explicit CliParser(const std::string &cliAppName);
 
-  // опции для получения параметров конфига
   CLI::Option *imeiOpt = nullptr;
   CLI::Option *imsiOpt = nullptr;
   CLI::Option *ipOpt = nullptr;

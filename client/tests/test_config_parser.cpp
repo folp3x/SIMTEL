@@ -17,7 +17,8 @@ protected:
                           {"port", 49152},
                           {"imei", "123456789012345"},
                           {"imsi", "543210987654321"},
-                          {"loc", {1.1}}};
+                          {"loc", {1.1}},
+                          {"addressBookFilePath", "address_book.json"}};
   }
 };
 
@@ -59,22 +60,28 @@ TEST_F(ConfigParserTest, Parse_NonIntegerPortValue) {
 
 TEST_F(ConfigParserTest, Parse_CorrectJson) {
   nlohmann::json json = getValidJson();
-  TempFile file{"test.json", json.dump()};
+  TempFile configFile{"test.json", json.dump()};
 
-  if (!std::filesystem::exists(file.getPath()))
-    GTEST_SKIP() << "Error creating temp file, skipping test";
+  TempFile addressBookFile{"address_book.json", "[]"};
 
-  auto result = parser->parse(file.getPath());
+  if (!std::filesystem::exists(configFile.getPath()))
+    GTEST_SKIP() << "Error creating temp config file, skipping test";
+
+  if (!std::filesystem::exists(addressBookFile.getPath()))
+    GTEST_SKIP() << "Error creating temp address book file, skipping test";
+
+  auto result = parser->parse(configFile.getPath());
 
   ASSERT_TRUE(result.has_value());
 
   client::Config config = *result;
   bool locParsed = config.getLoc() == common::coords_t<float>{1.1};
 
-  EXPECT_TRUE(config.getIP() == "127.0.0.1");
+  EXPECT_TRUE(config.getIp() == "127.0.0.1");
   EXPECT_EQ(config.getPort(), 49152);
   EXPECT_TRUE(config.getImei() == "123456789012345");
   EXPECT_TRUE(config.getImsi() == "543210987654321");
+  EXPECT_TRUE(config.getAddressBookFilePath() == addressBookFile.getPath());
   EXPECT_TRUE(locParsed);
 }
 

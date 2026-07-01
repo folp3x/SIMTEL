@@ -36,7 +36,6 @@ bool allDigits(std::string_view str) {
   return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-// возвращает строку с убранными слева непечатными символами
 std::string ltrimmed(std::string_view str) {
   auto it = std::find_if(str.begin(), str.end(), isprint);
 
@@ -49,7 +48,6 @@ std::vector<std::string> split(const std::string &str) {
   for (auto ch : str) {
     if (isspace(ch)) {
       if (!curToken.empty()) {
-        // если найден очередной токен
         tokens.push_back(curToken);
         curToken.clear();
       }
@@ -58,7 +56,6 @@ std::vector<std::string> split(const std::string &str) {
     }
   }
 
-  // добавление последнего токена
   if (!curToken.empty()) {
     tokens.push_back(curToken);
   }

@@ -6,7 +6,7 @@
 class ArgsSplitter {
 private:
   std::vector<std::string> argsValues = {};
-  std::vector<char *> args = {};
+  std::vector<const char *> args = {};
 
   void split(const std::string &argsStr);
 

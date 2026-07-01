@@ -24,7 +24,6 @@ int main(int argc, char *argv[]) {
     client::Config config{};
     auto filePath = cliParser->getConfigFilePath();
     if (filePath) {
-      // парсинг данных из конфигурационного файла
       auto configParser = client::ConfigParser::create();
       auto parsedConfig = configParser->parse(*filePath);
       if (!parsedConfig) {

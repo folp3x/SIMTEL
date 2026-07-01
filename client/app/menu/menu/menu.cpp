@@ -24,7 +24,6 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
                       common::Protocol protocol) const {
   std::cout << "IMSI: " << imsi;
 
-  // текущее состояние
   std::cout << ", state: ";
   std::string statusStr = ueActiveToStr(inActive);
   if (inActive) {

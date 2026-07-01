@@ -3,7 +3,6 @@
 #include <string>
 
 namespace common {
-// абстрактный класс команды
 class MenuItem {
 public:
   virtual ~MenuItem() = default;

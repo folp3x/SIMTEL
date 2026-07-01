@@ -29,7 +29,6 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    // парсинг данных из конфигурационного файла
     auto configParser = server::ConfigParser::create();
     auto parsedConfig = configParser->parse(*filePath);
     if (!parsedConfig) {
@@ -38,7 +37,6 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    // переопределение опций из файла опциями командной строки
     config = cliParser->redefineConfig(*parsedConfig);
 
     auto bsConfigParser =

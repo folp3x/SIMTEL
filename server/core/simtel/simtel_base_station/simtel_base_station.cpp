@@ -28,7 +28,7 @@ void SimtelBaseStation::handleConnection(std::shared_ptr<SimtelUeContext> ctx) {
     return;
   }
 
-  // начальное получение данных через первую вышку
+  // начальное получение данных через первую базовую станцию
   auto firstBs = baseStations.begin()->second;
   ctx->setBs(firstBs);
 
@@ -199,7 +199,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   if (handover) {
     if (auto ptr = ctx->getBs().lock()) {
       ue = ptr->copyUe(ctx->getMTimsi());
-      // если UE еще не подключен к какой-либо вышке
+      // если UE еще не подключен к какой-либо базовой станции
       if (!ue) {
         ue = ctx;
       }
