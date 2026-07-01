@@ -22,8 +22,7 @@ private:
               sqlite_orm::make_column("msisdn", &HlrRecord::msisdn,
                                       sqlite_orm::unique()),
               sqlite_orm::make_column("status", &HlrRecord::status),
-              sqlite_orm::make_column("mmeId", &HlrRecord::mmeId),
-              sqlite_orm::make_column("mTimsi", &HlrRecord::mTimsi))));
+              sqlite_orm::make_column("mmeId", &HlrRecord::mmeId))));
 
   StorageType storage;
 
@@ -35,20 +34,16 @@ public:
   explicit SimtelRegister(const std::string &hlrSqliteFilePath);
 
   std::expected<common::imsi_t, std::string>
-  getImsiByMTimsi(const common::imsi_t &mTimsi, unsigned int &mmeId);
-
-  std::expected<common::imsi_t, std::string>
-  getMTimsiByMsisdn(const common::imsi_t &msisdn);
+  getImsiByMsisdn(const common::imsi_t &msisdn, unsigned int &mmeId);
 
   std::expected<unsigned int, std::string>
-  getMmeIdByMTimsi(const common::imsi_t &mTimsi);
+  getMmeIdByImsi(const common::imsi_t &imsi);
 
   void insertData();
   bool hasData();
 
   std::expected<HlrRecord, std::string>
-  handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei,
-                        const common::imsi_t &mTimsi);
+  handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei);
 
   std::expected<std::optional<unsigned int>, std::string>
   handleUpdateLocationRequest(const common::imsi_t &imsi, unsigned int mmeId);

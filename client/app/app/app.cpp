@@ -183,8 +183,7 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
                           addErrorMsg("Error: " + error);
                         } else {
                           addSentSms(targetMsisdn, smsContent, smsId);
-                          addMsg("SMS sent to " + targetMsisdn +
-                                 " (id=" + std::to_string(smsId) + ")");
+                          addMsg("SMS sent to " + targetMsisdn);
                         }
                       });
 }

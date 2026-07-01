@@ -54,6 +54,14 @@ private:
   std::optional<common::imsi_t> findImsiInOther(const common::imsi_t &mTimsi,
                                                 unsigned int &mmeId) const;
 
+  std::optional<common::imsi_t>
+  findImsiInVlr(const common::imsi_t &mTimsi) const;
+
+  std::optional<common::imsi_t>
+  findMTimsiInVlr(const common::imsi_t &imsi) const;
+
+  void trySendReport(unsigned int smsId, const common::imsi_t &imsi_s);
+
 public:
   SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
             std::weak_ptr<SimtelSmsc> smsc_);
@@ -82,12 +90,9 @@ public:
   std::optional<std::string> sendForwardSm(const common::msisdn_t &msisdn_s,
                                            unsigned int smsId,
                                            const common::imsi_t &mtimsi_s,
-                                           const common::imsi_t &mtimsi_d);
+                                           const common::imsi_t &imsi_d);
 
   void handleSmDeliveryAck(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            const common::imsi_t &mtimsi_d);
-
-  std::optional<common::imsi_t>
-  findImsiInVlr(const common::imsi_t &mTimsi) const;
 };
 } // namespace server

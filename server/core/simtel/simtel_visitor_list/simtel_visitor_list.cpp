@@ -43,15 +43,22 @@ size_t SimtelVisitorList::getSize() const { return records.size(); }
 
 std::optional<VlrRecord>
 SimtelVisitorList::findByMTimsi(const common::imsi_t &mTimsi) const {
-  for (const auto &record : records) {
-    MessageHolder::instance().addErrorMsg(record.second.toStr());
-  }
-
   auto it = records.find(mTimsi);
   if (it == records.end()) {
     return std::nullopt;
   }
   return it->second;
+}
+
+std::optional<VlrRecord>
+SimtelVisitorList::findByImsi(const common::imsi_t &imsi) const {
+  for (const auto &[mTimsi, record] : records) {
+    if (record.imsi == imsi) {
+      return record;
+    }
+  }
+
+  return std::nullopt;
 }
 
 } // namespace server

@@ -17,8 +17,7 @@ auto SimtelRegister::createStorage(const std::string &filePath) {
                     sqlite_orm::make_column("msisdn", &HlrRecord::msisdn,
                                             sqlite_orm::unique()),
                     sqlite_orm::make_column("status", &HlrRecord::status),
-                    sqlite_orm::make_column("mmeId", &HlrRecord::mmeId),
-                    sqlite_orm::make_column("mTimsi", &HlrRecord::mTimsi)));
+                    sqlite_orm::make_column("mmeId", &HlrRecord::mmeId)));
 }
 
 std::string SimtelRegister::createLogMsg(const std::string &content) const {
@@ -46,14 +45,14 @@ SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
 }
 
 std::expected<common::imsi_t, std::string>
-SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
+SimtelRegister::getImsiByMsisdn(const common::imsi_t &msisdn,
                                 unsigned int &mmeId) {
   try {
     auto records = storage.get_all<HlrRecord>(
-        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi));
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));
 
     if (records.empty()) {
-      return std::unexpected("HLR record not found for m-timsi: " + mTimsi);
+      return std::unexpected("HLR record not found for MSISDN: " + msisdn);
     }
 
     mmeId = records[0].mmeId;
@@ -63,30 +62,14 @@ SimtelRegister::getImsiByMTimsi(const common::imsi_t &mTimsi,
   }
 }
 
-std::expected<common::imsi_t, std::string>
-SimtelRegister::getMTimsiByMsisdn(const common::imsi_t &msisdn) {
-  try {
-    auto records = storage.get_all<HlrRecord>(
-        sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));
-
-    if (records.empty()) {
-      return std::unexpected("HLR record not found for msisdn: " + msisdn);
-    }
-
-    return records[0].mTimsi;
-  } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
-  }
-}
-
 std::expected<unsigned int, std::string>
-SimtelRegister::getMmeIdByMTimsi(const common::imsi_t &mTimsi) {
+SimtelRegister::getMmeIdByImsi(const common::imsi_t &imsi) {
   try {
     auto records = storage.get_all<HlrRecord>(
-        sqlite_orm::where(sqlite_orm::c(&HlrRecord::mTimsi) == mTimsi));
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
-      return std::unexpected("HLR record not found for m-timsi: " + mTimsi);
+      return std::unexpected("HLR record not found for IMSI: " + imsi);
     }
 
     return records[0].mmeId;
@@ -111,8 +94,7 @@ bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }
 
 std::expected<HlrRecord, std::string>
 SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
-                                      const common::imei_t &imei,
-                                      const common::imsi_t &mTimsi) {
+                                      const common::imei_t &imei) {
   try {
     auto records = storage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
@@ -130,12 +112,6 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
       return std::unexpected("Expected IMEI - " + record.imei + ", actual - " +
                              imei);
     }
-
-    record.mTimsi = mTimsi;
-    storage.update(record);
-
-    MessageHolder::instance().addMsg(
-        createLogMsg("set m-timsi: " + record.toStr()));
 
     return record;
   } catch (const std::exception &e) {

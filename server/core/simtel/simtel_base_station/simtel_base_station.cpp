@@ -337,7 +337,7 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTimsi) {
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg(it->second->toStr() + " buffer removed "));
+      createLogMsg("\n" + it->second->toStr() + " buffer removed "));
 
   connectedUe.erase(it);
   return true;

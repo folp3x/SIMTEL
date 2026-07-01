@@ -10,16 +10,11 @@ struct HlrRecord {
   common::msisdn_t msisdn;
   std::string status;
   unsigned int mmeId = 0;
-  common::imsi_t mTimsi = "";
 
   std::string toStr() const {
-    std::string mmeIdStr = std::to_string(mmeId);
-    std::string mTimsiStr = isMtimsiSet() ? mTimsi : "?";
-    return "[id=" + std::to_string(id) + ";imsi=" + imsi + ";imei=" + imei +
-           ";msisdn=" + msisdn + ";status=" + status + ";mmeId=" + mmeIdStr +
-           ";mTimsi=" + mTimsiStr + "]";
+    return "[id=" + std::to_string(id) + ", imsi=" + imsi + ", imei=" + imei +
+           ", msisdn=" + msisdn + ", status=" + status +
+           ", mmeId=" + std::to_string(mmeId) + "]";
   }
-
-  bool isMtimsiSet() const { return !mTimsi.empty(); }
 };
 } // namespace server

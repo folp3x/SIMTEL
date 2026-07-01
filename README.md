@@ -238,7 +238,7 @@ BS changed. m-timsi set: 000000000000002
 
 > Enter
 
-SMS sent to 89990000002 (id=1)
+SMS sent to 89990000002
 
 > sent
 
@@ -248,7 +248,7 @@ SMS со статусом delivered
 
 > Enter
 
-SMS received from 89990000001 (id=1)
+SMS received from 89990000001
 
 ```
 
@@ -271,7 +271,7 @@ SMS received from 89990000001 (id=1)
 
 > Enter
 
-SMS sent to 89990000002 (id=1)
+SMS sent to 89990000002
 
 # клиент 2
 
@@ -282,7 +282,7 @@ SMS sent to 89990000002 (id=1)
 > Enter
 
 BS changed. m-timsi not updated: 000000000000002
-SMS received from 89990000001 (id=1)
+SMS received from 89990000001
 
 # клиент 1
 

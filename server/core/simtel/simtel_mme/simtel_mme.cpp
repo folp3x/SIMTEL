@@ -30,13 +30,90 @@ SimtelMme::findImsiInOther(const common::imsi_t &mTimsi,
 
 std::optional<common::imsi_t>
 SimtelMme::findImsiInVlr(const common::imsi_t &mTimsi) const {
-  MessageHolder::instance().addErrorMsg(createLogMsg("VLR:"));
   auto found = vlr.findByMTimsi(mTimsi);
   if (!found) {
     return std::nullopt;
   }
 
   return found->imsi;
+}
+
+std::optional<common::imsi_t>
+SimtelMme::findMTimsiInVlr(const common::imsi_t &imsi) const {
+  auto found = vlr.findByImsi(imsi);
+  if (!found) {
+    return std::nullopt;
+  }
+
+  return found->mTimsi;
+}
+
+void SimtelMme::trySendReport(unsigned int smsId,
+                              const common::imsi_t &imsi_s) {
+  auto mtimsi_s = findMTimsiInVlr(imsi_s);
+  if (!mtimsi_s) {
+    MessageHolder::instance().addErrorMsg("Sender not known by MME");
+    return;
+  }
+
+  SmsUid uid = {*mtimsi_s, smsId};
+  auto deliveredInfo = smsc.lock()->isDelivered(smsId, *mtimsi_s);
+  if (!deliveredInfo) {
+    return;
+  }
+
+  if (*deliveredInfo) {
+    return;
+  }
+
+  smsc.lock()->markDelivered(smsId, *mtimsi_s);
+
+  auto ttlManager = smsc.lock()->getTtlManager(smsId, *mtimsi_s);
+  if (!ttlManager) {
+    MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
+                                          ") not found in SMSC");
+    return;
+  }
+
+  bool reportSent = false;
+  while (!reportSent) {
+    if (ttlManager->isActive() && ttlManager->isExpired()) {
+      MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
+                                            ") TTL expired");
+      break;
+    }
+
+    auto warningSec = ttlManager->getWarningSec();
+    if (warningSec) {
+      MessageHolder::instance().addMsg(
+          "SMS(" + uid.toStr() + ") TTL: " + std::to_string(*warningSec) +
+              " seconds left",
+          common::MenuMessageType::INFO);
+    }
+
+    MessageHolder::instance().addMsg(
+        createLogMsg("trying to send SM_Delivery_Report"));
+
+    auto senderMmeId = hlr->getMmeIdByImsi(imsi_s);
+    if (!senderMmeId) {
+      continue;
+    }
+
+    if (*senderMmeId == id) {
+      reportSent = sendSmDeliveryReport(*mtimsi_s, smsId);
+    } else {
+      auto senderMme = findOtherById(*senderMmeId);
+      if (!senderMme) {
+        MessageHolder::instance().addErrorMsg("unknown sender MME");
+        return;
+      }
+
+      reportSent = senderMme->sendSmDeliveryReport(*mtimsi_s, smsId);
+    }
+
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(SEND_REPORT_SLEEP_MS));
+  }
 }
 
 void SimtelMme::addOtherMme(std::shared_ptr<SimtelMme> mme) {
@@ -82,7 +159,7 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
         createLogMsg("received imsi is m-timsi, real imsi is " + realImsi));
 
     if (mmeId != id) {
-      auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei, mTimsi);
+      auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei);
       if (!hlrRecord) {
         return std::unexpected(hlrRecord.error());
       }
@@ -104,7 +181,7 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
     MessageHolder::instance().addMsg(
         createLogMsg("generated m-timsi: " + mTimsi));
 
-    auto hlrRecord = hlr->handleAuthInfoRequest(imsi, imei, mTimsi);
+    auto hlrRecord = hlr->handleAuthInfoRequest(imsi, imei);
     if (!hlrRecord) {
       return std::unexpected(hlrRecord.error());
     }
@@ -128,12 +205,12 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
 
   bool changed = vlr.changePath(mTimsi, bs);
   if (!changed) {
-    return "IMSI not found in VLR";
+    return "UE not known by MME";
   }
 
   auto realImsi = findImsiInVlr(mTimsi);
   if (!realImsi) {
-    return "IMSI not found in VLR";
+    return "UE not known by MME";
   }
 
   auto result = hlr->handleUpdateLocationRequest(*realImsi, id);
@@ -179,7 +256,7 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
                              const common::imsi_t &mtimsi_s) {
   auto senderImsi = findImsiInVlr(mtimsi_s);
   if (!senderImsi) {
-    return "Sender IMSI not found in VLR";
+    return "Sender not known by MME";
   }
 
   MessageHolder::instance().addMsg(
@@ -199,10 +276,6 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
     return receiverRecord.error();
   }
 
-  if (!receiverRecord->isMtimsiSet()) {
-    return "Unknown receiver m-timsi";
-  }
-
   if (receiverRecord->mmeId != id) {
     MessageHolder::instance().addMsg(createLogMsg("changing MME"));
     auto receiverMme = findOtherById(receiverRecord->mmeId);
@@ -211,26 +284,31 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
     }
 
     return receiverMme->sendForwardSm(senderRecord->msisdn, smsId, mtimsi_s,
-                                      receiverRecord->mTimsi);
+                                      receiverRecord->imsi);
   }
 
   return sendForwardSm(senderRecord->msisdn, smsId, mtimsi_s,
-                       receiverRecord->mTimsi);
+                       receiverRecord->imsi);
 }
 
 std::optional<std::string>
 SimtelMme::sendForwardSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
                          const common::imsi_t &mtimsi_s,
-                         const common::imsi_t &mtimsi_d) {
+                         const common::imsi_t &imsi_d) {
+  auto mtimsi_d = findMTimsiInVlr(imsi_d);
+  if (!mtimsi_d) {
+    return "Receiver not known by MME";
+  }
+
   MessageHolder::instance().addMsg(
       createLogMsg("sent context update request to SMSC"));
 
-  bool updated = smsc.lock()->updateMTimsiD(mtimsi_s, smsId, mtimsi_d);
+  bool updated = smsc.lock()->updateMTimsiD(mtimsi_s, smsId, *mtimsi_d);
   if (!updated) {
     return "Error updating SMSC context";
   }
 
-  auto receiverInfo = vlr.findByMTimsi(mtimsi_d);
+  auto receiverInfo = vlr.findByMTimsi(*mtimsi_d);
   if (!receiverInfo) {
     return "Unknown receiver";
   }
@@ -248,7 +326,7 @@ SimtelMme::sendForwardSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
   MessageHolder::instance().addMsg(createLogMsg("received sms text from SMSC"));
 
   std::thread smsSender(&SimtelMme::trySendSms, this, msisdn_s, smsId, mtimsi_s,
-                        mtimsi_d, *smsText, bs);
+                        *mtimsi_d, *smsText, bs);
   smsSender.detach();
 
   return std::nullopt;
@@ -258,70 +336,24 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
                                     unsigned int smsId,
                                     const common::imsi_t &mtimsi_d) {
   MessageHolder::instance().addMsg(createLogMsg("received SmDeliveryAck"));
-  auto mtimsi_s = hlr->getMTimsiByMsisdn(msisdn_s);
-  if (!mtimsi_s) {
-    MessageHolder::instance().addErrorMsg("mtimsi_s not found in HLR");
+
+  unsigned int senderMmeId;
+  auto imsi_s = hlr->getImsiByMsisdn(msisdn_s, senderMmeId);
+  if (!imsi_s) {
+    MessageHolder::instance().addErrorMsg("Sender record not found in HLR");
     return;
   }
 
-  SmsUid uid = {*mtimsi_s, smsId};
-  auto deliveredInfo = smsc.lock()->isDelivered(smsId, *mtimsi_s);
-  if (!deliveredInfo) {
-    return;
-  }
-
-  if (*deliveredInfo) {
-    return;
-  }
-
-  smsc.lock()->markDelivered(smsId, *mtimsi_s);
-
-  auto ttlManager = smsc.lock()->getTtlManager(smsId, *mtimsi_s);
-  if (!ttlManager) {
-    MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
-                                          ") not found in SMSC");
-    return;
-  }
-
-  bool reportSent = false;
-
-  while (!reportSent) {
-    if (ttlManager->isActive() && ttlManager->isExpired()) {
-      MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
-                                            ") TTL expired");
-      break;
+  if (senderMmeId == id) {
+    trySendReport(smsId, *imsi_s);
+  } else {
+    auto senderMme = findOtherById(senderMmeId);
+    if (!senderMme) {
+      MessageHolder::instance().addErrorMsg("unknown sender MME");
+      return;
     }
 
-    auto warningSec = ttlManager->getWarningSec();
-    if (warningSec) {
-      MessageHolder::instance().addMsg(
-          "SMS(" + uid.toStr() + ") TTL: " + std::to_string(*warningSec) +
-              " seconds left",
-          common::MenuMessageType::INFO);
-    }
-
-    MessageHolder::instance().addMsg(
-        createLogMsg("trying to send SM_Delivery_Report"));
-
-    auto senderMmeId = hlr->getMmeIdByMTimsi(*mtimsi_s);
-    if (!senderMmeId) {
-      continue;
-    }
-
-    if (*senderMmeId == id) {
-      reportSent = sendSmDeliveryReport(*mtimsi_s, smsId);
-    } else {
-      auto senderMme = findOtherById(*senderMmeId);
-      if (!senderMme) {
-        MessageHolder::instance().addErrorMsg("unknown sender MME");
-        return;
-      }
-
-      reportSent = senderMme->sendSmDeliveryReport(*mtimsi_s, smsId);
-    }
-
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(SEND_REPORT_SLEEP_MS));
+    senderMme->trySendReport(smsId, *imsi_s);
   }
 }
 
