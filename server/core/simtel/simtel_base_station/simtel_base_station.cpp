@@ -364,11 +364,13 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
     if (receiveError) {
       if (isNoConnectedError(*receiveError)) {
         ctx->setBs(std::weak_ptr<SimtelBaseStation>());
-        removeUe(ctx->getMTimsi());
+        bool removed = removeUe(ctx->getMTimsi());
 
-        MessageHolder::instance().addMsg(
-            createLogMsg(ctx->toStr() + " disconnected\n"),
-            common::MenuMessageType::INFO);
+        if (removed) {
+          MessageHolder::instance().addMsg(
+              createLogMsg(ctx->toStr() + " disconnected\n"),
+              common::MenuMessageType::INFO);
+        }
 
         break;
       }

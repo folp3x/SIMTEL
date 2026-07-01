@@ -125,7 +125,7 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
     }
 
     if (record.imei != imei) {
-      return std::unexpected("Expected IMEI -" + record.imei + ", got - " +
+      return std::unexpected("Expected IMEI - " + record.imei + ", actual - " +
                              imei);
     }
 
