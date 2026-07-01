@@ -7,7 +7,7 @@
 
 namespace common {
 class Menu {
-private:
+protected:
   static constexpr int MENU_HEADER_LINE_LENGTH = 60;
 
 public:

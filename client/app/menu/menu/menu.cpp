@@ -6,6 +6,19 @@
 #include "common/utils/print/print.h"
 
 namespace client {
+rang::fg Menu::getSmsStatusColor(SmsStatus status) const {
+  switch (status) {
+  case SmsStatus::PENDING:
+    return rang::fg::yellow;
+  case SmsStatus::DELIVERED:
+    return rang::fg::green;
+  case SmsStatus::NOT_DELIVERED:
+    return rang::fg::red;
+  default:
+    return rang::fg::reset;
+  }
+}
+
 std::string Menu::getMessageContent() const {
   std::string content;
   std::string line;
@@ -53,36 +66,40 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
   }
 }
 
-void Menu::showSentSms(const Sms &sms) const {
-  std::cout << "To " << sms.receiver << " at ";
-  common::printTime(sms.timeSent, " (");
-  showSmsStatus(sms.status, "):\n");
-  std::cout << sms.content << std::endl;
+void Menu::showSentSms(const Sms &sms, bool alignRight) const {
+  std::string leftHeaderPart =
+      "To " + sms.receiver + " at " + common::formatTime(sms.timeSent) + " ";
+  std::string statusStr = "(" + smsStatusToStr(sms.status) + ")";
+  std::string headerEnding = ":";
+
+  size_t fullHeaderLength =
+      leftHeaderPart.size() + statusStr.size() + headerEnding.size();
+
+  size_t headerLeftPadding =
+      alignRight ? MENU_HEADER_LINE_LENGTH - fullHeaderLength : 0;
+  std::string headerLeftSpace = std::string(headerLeftPadding, ' ');
+
+  std::cout << headerLeftSpace << leftHeaderPart;
+  common::printColored(statusStr, getSmsStatusColor(sms.status), "");
+  std::cout << headerEnding << std::endl;
+
+  if (alignRight) {
+    std::cout << std::right << std::setw(MENU_HEADER_LINE_LENGTH)
+              << sms.content;
+  } else {
+    std::cout << sms.content;
+  }
+
+  std::cout << std::endl;
 }
 
 void Menu::showReceivedSms(const Sms &sms) const {
   std::cout << "From " << sms.sender << " at ";
-  common::printTime(sms.timeReceived, ":\n");
+  std::cout << common::formatTime(sms.timeSent) << ":" << std::endl;
   std::cout << sms.content << std::endl;
 }
 
 void Menu::showError(const std::string &error) const {
   showMessage({error, common::MenuMessageType::ERR});
-}
-
-void Menu::showSmsStatus(SmsStatus status, const std::string &ending) const {
-  switch (status) {
-  case SmsStatus::PENDING:
-    common::printColored("pending", rang::fg::yellow, ending);
-    break;
-  case SmsStatus::DELIVERED:
-    common::printColored("delivered", rang::fg::green, ending);
-    break;
-  case SmsStatus::NOT_DELIVERED:
-    common::printColored("not delivered", rang::fg::red, ending);
-    break;
-  default:
-    std::cout << "unknown" << std::endl;
-  }
 }
 } // namespace client

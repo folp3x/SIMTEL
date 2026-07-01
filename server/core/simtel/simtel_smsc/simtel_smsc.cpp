@@ -19,7 +19,12 @@ bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
     MessageHolder::instance().addMsg(
         createLogMsg("created SMS context for " + uid.toStr()));
 
-    context.emplace(uid, SmsContext{mtimsi_s});
+    SmsContext ctx{mtimsi_s};
+    unsigned int warningPeriodSec = 1;
+    ctx.ttlManager = std::make_shared<TtlManager>(
+        smsTtlMs / common::constants::MSEC_IN_SEC, warningPeriodSec);
+
+    context.emplace(uid, std::move(ctx));
     return true;
   }
 
@@ -75,8 +80,6 @@ SimtelSmsc::getSmsText(unsigned int smsId, const common::imsi_t &mtimsi_s) {
   return it->second.text;
 }
 
-unsigned int SimtelSmsc::getSmsTtlMs() const { return smsTtlMs; }
-
 void SimtelSmsc::removeSms(unsigned int smsId, const common::imsi_t &mtimsi_s) {
   SmsUid uid = {mtimsi_s, smsId};
   size_t removedCount = 0;
@@ -106,15 +109,24 @@ SimtelSmsc::isDelivered(unsigned int smsId,
 
 bool SimtelSmsc::markDelivered(unsigned int smsId,
                                const common::imsi_t &mtimsi_s) {
-  SmsUid uid = {mtimsi_s, smsId};
-
   std::lock_guard lock(contextMtx);
-  auto it = context.find(uid);
+  auto it = context.find({mtimsi_s, smsId});
   if (it == context.end()) {
     return false;
   }
 
   it->second.delivered->store(true);
   return true;
+}
+
+std::shared_ptr<TtlManager>
+SimtelSmsc::getTtlManager(unsigned int smsId, const common::imsi_t &mtimsi_s) {
+  std::lock_guard lock(contextMtx);
+  auto it = context.find({mtimsi_s, smsId});
+  if (it == context.end()) {
+    return nullptr;
+  }
+
+  return it->second.ttlManager;
 }
 } // namespace server

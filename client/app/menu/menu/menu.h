@@ -13,6 +13,8 @@ class Menu : public common::InteractiveMenu<CommandParser> {
 private:
   CommandParser parser{};
 
+  rang::fg getSmsStatusColor(SmsStatus status) const;
+
 public:
   std::string getMessageContent() const;
 
@@ -24,11 +26,9 @@ public:
 
   void showAddressBook(const std::map<char, common::msisdn_t> &book) const;
 
-  void showSentSms(const Sms &sms) const;
+  void showSentSms(const Sms &sms, bool alignRight = false) const;
   void showReceivedSms(const Sms &sms) const;
 
   void showError(const std::string &error) const;
-
-  void showSmsStatus(SmsStatus status, const std::string &ending = "\n") const;
 };
 } // namespace client

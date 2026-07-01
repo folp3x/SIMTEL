@@ -210,7 +210,7 @@ void App::executeDialogCommand(const MenuItemDialog &cmd) const {
       showed = true;
     } else if (sms.sender == cmd.getMsisdn()) {
       menu.showMenuHeaderLine();
-      menu.showSentSms(sms);
+      menu.showSentSms(sms, true);
       showed = true;
     }
   }

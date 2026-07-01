@@ -357,6 +357,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
     }
 
     MessageHolder::instance().addMsg("");
+    MessageHolder::instance().addMsg(
+        createLogMsg("Waiting for request from " + ctx->toStr()));
 
     auto receiveError = ctx->receiveData();
     if (receiveError) {

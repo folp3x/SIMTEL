@@ -4,7 +4,9 @@
 #include <iomanip>
 #include <iostream>
 #include <rang.hpp>
-#include <string>
+#include <sstream>
+
+#include "common/constants.h"
 
 namespace common {
 inline void printColored(std::string_view output, rang::fg color,
@@ -12,11 +14,12 @@ inline void printColored(std::string_view output, rang::fg color,
   std::cout << color << output << rang::fg::reset << ending;
 }
 
-inline void printTime(std::chrono::system_clock::time_point time,
-                      std::string ending = "\n") {
+inline std::string formatTime(std::chrono::system_clock::time_point time) {
   auto time_t = std::chrono::system_clock::to_time_t(time);
   std::tm *tm = std::localtime(&time_t);
 
-  std::cout << std::put_time(tm, "%d.%m.%Y %H:%M:%S") << ending;
+  std::ostringstream oss;
+  oss << std::put_time(tm, "%d.%m.%Y %H:%M:%S");
+  return oss.str();
 }
 } // namespace common

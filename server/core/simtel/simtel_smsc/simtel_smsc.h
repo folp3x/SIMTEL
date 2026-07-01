@@ -8,6 +8,7 @@
 
 #include "server/app/config/smsc_config/smsc_config.h"
 #include "server/core/simtel/sms_uid/sms_uid.h"
+#include "server/core/ttl_manager/ttl_manager.h"
 
 namespace server {
 class SimtelMme;
@@ -21,8 +22,11 @@ private:
     common::msisdn_t msisdn_d = "";
     std::string text = "";
     unsigned int smsId = 0;
+
     std::unique_ptr<std::atomic<bool>> delivered =
         std::make_unique<std::atomic<bool>>(false);
+
+    std::shared_ptr<TtlManager> ttlManager = nullptr;
   };
 
   static constexpr unsigned int MAX_CONTEXT_SIZE = 10;
@@ -47,12 +51,13 @@ public:
   std::optional<std::string> getSmsText(unsigned int smsId,
                                         const common::imsi_t &mtimsi_s);
 
-  unsigned int getSmsTtlMs() const;
-
   void removeSms(unsigned int smsId, const common::imsi_t &mtimsi_s);
 
   std::optional<bool> isDelivered(unsigned int smsId,
                                   const common::imsi_t &mtimsi_s) const;
   bool markDelivered(unsigned int smsId, const common::imsi_t &mtimsi_s);
+
+  std::shared_ptr<TtlManager> getTtlManager(unsigned int smsId,
+                                            const common::imsi_t &mtimsi_s);
 };
 } // namespace server

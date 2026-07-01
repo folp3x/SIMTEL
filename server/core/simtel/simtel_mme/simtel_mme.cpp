@@ -256,8 +256,33 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
 
   smsc.lock()->markDelivered(smsId, *mtimsi_s);
 
+  auto ttlManager = smsc.lock()->getTtlManager(smsId, *mtimsi_s);
+  if (!ttlManager) {
+    MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
+                                          ") not found in SMSC");
+    return;
+  }
+
   bool reportSent = false;
+
   while (!reportSent) {
+    if (ttlManager->isActive() && ttlManager->isExpired()) {
+      MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
+                                            ") TTL expired");
+      break;
+    }
+
+    auto warningSec = ttlManager->getWarningSec();
+    if (warningSec) {
+      MessageHolder::instance().addMsg(
+          "SMS(" + uid.toStr() + ") TTL: " + std::to_string(*warningSec) +
+              " seconds left",
+          common::MenuMessageType::INFO);
+    }
+
+    MessageHolder::instance().addMsg(
+        createLogMsg("trying to send SM_Delivery_Report"));
+
     auto senderMmeId = hlr->getMmeIdByMTimsi(*mtimsi_s);
     if (!senderMmeId) {
       continue;
@@ -290,12 +315,8 @@ bool SimtelMme::sendSmDeliveryReport(const common::msisdn_t &mtimsi_s,
 
   auto senderBs = record->bs;
 
-  MessageHolder::instance().addMsg(
-      createLogMsg("trying to send SmDeliveryReport"));
-
   auto error = senderBs->sendSmDeliveryReport(mtimsi_s, smsId);
   if (error) {
-    MessageHolder::instance().addErrorMsg(*error);
     return false;
   }
 
@@ -312,7 +333,7 @@ void SimtelMme::sendSmDeliveryError(const common::msisdn_t &mtimsi_s,
 
   auto senderBs = record->bs;
 
-  MessageHolder::instance().addMsg(createLogMsg("sent SmDeliveryError"));
+  MessageHolder::instance().addMsg(createLogMsg("sending SmDeliveryError"));
 
   auto error = senderBs->sendSmDeliveryError(mtimsi_s, smsId);
   if (error) {
@@ -327,24 +348,26 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            std::shared_ptr<SimtelBaseStation> bs) {
   common::binary_t binary = common::BinarySerializer::strToBinary(smsText);
 
-  unsigned int smsTtlSec =
-      smsc.lock()->getSmsTtlMs() / common::constants::MSEC_IN_SEC;
-  unsigned int warningPeriodSec = 1;
-  TtlManager ttlManager{smsTtlSec, warningPeriodSec};
-  ttlManager.start();
-
-  MessageHolder::instance().addMsg(createLogMsg("trying to send SM_Delivery"));
-
   SmsUid uid = {mtimsi_s, smsId};
+
+  auto ttlManager = smsc.lock()->getTtlManager(smsId, mtimsi_s);
+  if (!ttlManager) {
+    MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
+                                          ") not found in SMSC");
+    return;
+  }
+
+  ttlManager->start();
+
   bool delivered = false;
   while (true) {
-    if (ttlManager.isActive() && ttlManager.isExpired()) {
+    if (ttlManager->isActive() && ttlManager->isExpired()) {
       MessageHolder::instance().addErrorMsg("SMS(" + uid.toStr() +
                                             ") TTL expired");
       break;
     }
 
-    auto warningSec = ttlManager.getWarningSec();
+    auto warningSec = ttlManager->getWarningSec();
     if (warningSec) {
       MessageHolder::instance().addMsg(
           "SMS(" + uid.toStr() + ") TTL: " + std::to_string(*warningSec) +
@@ -352,7 +375,11 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
           common::MenuMessageType::INFO);
     }
 
+    MessageHolder::instance().addMsg(
+        createLogMsg("trying to send SM_Delivery"));
+
     bs->sendSmDelivery(mtimsi_d, smsId, msisdn_s, binary);
+
     std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
 
     auto deliveredInfo = smsc.lock()->isDelivered(smsId, mtimsi_s);
