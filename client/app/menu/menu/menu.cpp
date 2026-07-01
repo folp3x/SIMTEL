@@ -95,7 +95,7 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
 
 void Menu::showReceivedSms(const Sms &sms) const {
   std::cout << "From " << sms.sender << " at ";
-  std::cout << common::formatTime(sms.timeSent) << ":" << std::endl;
+  std::cout << common::formatTime(sms.timeReceived) << ":" << std::endl;
   std::cout << sms.content << std::endl;
 }
 

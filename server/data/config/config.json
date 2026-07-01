@@ -13,6 +13,6 @@
     }
   ],
   "smscConfig": {
-    "smsTtl_ms": 20000
+    "smsTtl_ms": 30000
   }
 }

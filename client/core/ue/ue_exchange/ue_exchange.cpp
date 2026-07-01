@@ -253,13 +253,13 @@ void UeExchange::stop() {
   closeConnection();
 }
 
-void UeExchange::receiveSmsStatus(const CallbackType &callback) {
+void UeExchange::receiveSmsInfo(const CallbackType &callback) {
   while (running) {
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(SMS_INFO_SLEEP_MS));
 
       std::unique_lock lock(receiveMtx);
-      bool set = sock.setReceiveTimeout(RECEIVE_SMS_STATUS_TIMEOUT_MSEC);
+      bool set = sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
       if (!set) {
         lock.unlock();
         continue;

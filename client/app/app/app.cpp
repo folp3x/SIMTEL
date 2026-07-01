@@ -328,9 +328,9 @@ void App::run() {
 
   std::jthread requestsSender{[this]() { exchange.sendRequests(); }};
 
-  std::jthread smsStatusReceiver{[this]() {
-    exchange.receiveSmsStatus([this](std::unique_ptr<common::Request> response,
-                                     const std::string &error) {
+  std::jthread smsInfoReceiver{[this]() {
+    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
+                                   const std::string &error) {
       if (!error.empty()) {
         addErrorMsg("Error: " + error);
       } else {
