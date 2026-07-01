@@ -72,10 +72,8 @@ void UeExchange::sendRequests() {
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
-      std::unique_lock lock(receiveMtx);
+      std::lock_guard lock(receiveMtx);
       auto response = handleLocationUpdate(std::move(info));
-      lock.unlock();
-
       if (!response) {
         signalLevel = 0;
         callback(nullptr, response.error());

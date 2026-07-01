@@ -68,8 +68,8 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
 
 void Menu::showSentSms(const Sms &sms, bool alignRight) const {
   std::string leftHeaderPart =
-      "To " + sms.receiver + " at " + common::formatTime(sms.timeSent) + " ";
-  std::string statusStr = "(" + smsStatusToStr(sms.status) + ")";
+      "To " + sms.receiver + " at " + common::formatTime(sms.timeSent);
+  std::string statusStr = " " + smsStatusToStr(sms.status);
   std::string headerEnding = ":";
 
   size_t fullHeaderLength =
@@ -80,17 +80,22 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
   std::string headerLeftSpace = std::string(headerLeftPadding, ' ');
 
   std::cout << headerLeftSpace << leftHeaderPart;
-  common::printColored(statusStr, getSmsStatusColor(sms.status), "");
+  if (sms.status != SmsStatus::PENDING) {
+    common::printColored(statusStr, getSmsStatusColor(sms.status), "");
+  }
   std::cout << headerEnding << std::endl;
 
-  if (alignRight) {
-    std::cout << std::right << std::setw(MENU_HEADER_LINE_LENGTH)
-              << sms.content;
+  if (!alignRight) {
+    std::cout << sms.content << std::endl;
   } else {
-    std::cout << sms.content;
-  }
+    std::istringstream stream(sms.content);
+    std::string curLine;
 
-  std::cout << std::endl;
+    while (std::getline(stream, curLine)) {
+      std::cout << std::right << std::setw(MENU_HEADER_LINE_LENGTH) << curLine
+                << std::endl;
+    }
+  }
 }
 
 void Menu::showReceivedSms(const Sms &sms) const {
