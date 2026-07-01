@@ -19,7 +19,6 @@ private:
     common::imsi_t mtimsi_s = "";
     common::imsi_t mtimsi_d = "";
     common::msisdn_t msisdn_s = "";
-    common::msisdn_t msisdn_d = "";
     std::string text = "";
     unsigned int smsId = 0;
 
