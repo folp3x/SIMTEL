@@ -4,34 +4,26 @@
 #include "server/core/simtel/subscriber_status/subscriber_status.h"
 
 namespace server {
-auto SimtelRegister::createStorage(const std::string &filePath) {
-  return sqlite_orm::make_storage(
-      filePath, sqlite_orm::make_table(
-                    "hlr",
-                    sqlite_orm::make_column("id", &HlrRecord::id,
-                                            sqlite_orm::primary_key()),
-                    sqlite_orm::make_column("imsi", &HlrRecord::imsi,
-                                            sqlite_orm::unique()),
-                    sqlite_orm::make_column("imei", &HlrRecord::imei,
-                                            sqlite_orm::unique()),
-                    sqlite_orm::make_column("msisdn", &HlrRecord::msisdn,
-                                            sqlite_orm::unique()),
-                    sqlite_orm::make_column("status", &HlrRecord::status),
-                    sqlite_orm::make_column("mmeId", &HlrRecord::mmeId)));
-}
-
 std::string SimtelRegister::createLogMsg(const std::string &content) const {
-  return "HLR: " + content;
+  return "HLR/EIR: " + content;
 }
 
 void SimtelRegister::logRecords() {
   try {
-    auto records = storage.get_all<HlrRecord>();
+    auto hlrRecords = hlrStorage.get_all<HlrRecord>();
 
-    MessageHolder::instance().addMsg(createLogMsg("records:"));
+    MessageHolder::instance().addMsg("HLR records:");
 
-    for (const auto &record : records) {
-      MessageHolder::instance().addMsg(createLogMsg(record.toStr()));
+    for (const auto &record : hlrRecords) {
+      MessageHolder::instance().addMsg(record.toStr());
+    }
+
+    auto eirRecords = eirStorage.get_all<EirRecord>();
+
+    MessageHolder::instance().addMsg("EIR records:");
+
+    for (const auto &record : eirRecords) {
+      MessageHolder::instance().addMsg(record.toStr());
     }
   } catch (const std::exception &e) {
     MessageHolder::instance().addErrorMsg(
@@ -39,16 +31,19 @@ void SimtelRegister::logRecords() {
   }
 }
 
-SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath)
-    : storage(createStorage(hlrSqliteFilePath)) {
-  storage.sync_schema();
+SimtelRegister::SimtelRegister(const std::string &hlrSqliteFilePath,
+                               const std::string &eirSqliteFilePath)
+    : hlrStorage(HlrStorageHelper::create(hlrSqliteFilePath)),
+      eirStorage(EirStorageHelper::create(eirSqliteFilePath)) {
+  hlrStorage.sync_schema();
+  eirStorage.sync_schema();
 }
 
 std::expected<common::imsi_t, std::string>
 SimtelRegister::getImsiByMsisdn(const common::imsi_t &msisdn,
                                 unsigned int &mmeId) {
   try {
-    auto records = storage.get_all<HlrRecord>(
+    auto records = hlrStorage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));
 
     if (records.empty()) {
@@ -58,14 +53,14 @@ SimtelRegister::getImsiByMsisdn(const common::imsi_t &msisdn,
     mmeId = records[0].mmeId;
     return records[0].imsi;
   } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
+    return std::unexpected("HLR error: " + std::string(e.what()));
   }
 }
 
 std::expected<unsigned int, std::string>
 SimtelRegister::getMmeIdByImsi(const common::imsi_t &imsi) {
   try {
-    auto records = storage.get_all<HlrRecord>(
+    auto records = hlrStorage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
@@ -74,48 +69,53 @@ SimtelRegister::getMmeIdByImsi(const common::imsi_t &imsi) {
 
     return records[0].mmeId;
   } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
+    return std::unexpected("HLR error: " + std::string(e.what()));
   }
 }
 
-void SimtelRegister::insertData() {
-  storage.insert(HlrRecord{0, "100000000000000", "200000000000000",
-                           "89990000001",
-                           subscriberStatusToStr(SubscriberStatus::ACTIVE)});
-  storage.insert(HlrRecord{0, "300000000000000", "400000000000000",
-                           "89990000002",
-                           subscriberStatusToStr(SubscriberStatus::ACTIVE)});
-  storage.insert(HlrRecord{0, "500000000000000", "600000000000000",
-                           "89990000003",
-                           subscriberStatusToStr(SubscriberStatus::BANNED)});
+void SimtelRegister::insertHlrData() {
+  hlrStorage.insert(HlrRecord{0, "200000000000000", "89990000001"});
+  hlrStorage.insert(HlrRecord{0, "400000000000000", "89990000002"});
+  hlrStorage.insert(HlrRecord{0, "600000000000000", "89990000003"});
 }
 
-bool SimtelRegister::hasData() { return storage.count<HlrRecord>() != 0; }
+bool SimtelRegister::hasHlrData() { return hlrStorage.count<HlrRecord>() != 0; }
+
+void SimtelRegister::insertEirData() {
+  eirStorage.insert(EirRecord{0, "100000000000000",
+                              subscriberStatusToStr(SubscriberStatus::ACTIVE)});
+  eirStorage.insert(EirRecord{0, "300000000000000",
+                              subscriberStatusToStr(SubscriberStatus::ACTIVE)});
+  eirStorage.insert(EirRecord{0, "500000000000000",
+                              subscriberStatusToStr(SubscriberStatus::BANNED)});
+}
+
+bool SimtelRegister::hasEirData() { return eirStorage.count<EirRecord>() != 0; }
 
 std::expected<HlrRecord, std::string>
 SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
                                       const common::imei_t &imei) {
   try {
-    auto records = storage.get_all<HlrRecord>(
-        sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
+    auto eirRecords = eirStorage.get_all<EirRecord>(
+        sqlite_orm::where(sqlite_orm::c(&EirRecord::imei) == imei));
+    if (eirRecords.empty()) {
+      return std::unexpected("EIR record not found for IMEI: " + imei);
+    }
 
-    if (records.empty()) {
+    EirRecord eirRecord = eirRecords[0];
+    if (eirRecord.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
+      return std::unexpected("UE is banned by IMEI");
+    }
+
+    auto hlrRecords = hlrStorage.get_all<HlrRecord>(
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
+    if (hlrRecords.empty()) {
       return std::unexpected("HLR record not found for IMSI: " + imsi);
     }
 
-    HlrRecord record = records[0];
-    if (record.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
-      return std::unexpected("UE is banned");
-    }
-
-    if (record.imei != imei) {
-      return std::unexpected("Expected IMEI - " + record.imei + ", actual - " +
-                             imei);
-    }
-
-    return record;
+    return hlrRecords[0];
   } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
+    return std::unexpected("HLR error: " + std::string(e.what()));
   }
 }
 
@@ -123,7 +123,7 @@ std::expected<std::optional<unsigned int>, std::string>
 SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
                                             unsigned int mmeId) {
   try {
-    auto records = storage.get_all<HlrRecord>(
+    auto records = hlrStorage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
@@ -133,9 +133,9 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
     HlrRecord record = records[0];
     std::optional<unsigned int> prevMmeId = record.mmeId;
     record.mmeId = mmeId;
-    storage.update(record);
+    hlrStorage.update(record);
 
-    auto updated = storage.get_all<HlrRecord>(
+    auto updated = hlrStorage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (updated.empty()) {
@@ -147,14 +147,14 @@ SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
 
     return prevMmeId;
   } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
+    return std::unexpected("HLR error: " + std::string(e.what()));
   }
 }
 
 std::expected<HlrRecord, std::string>
 SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
   try {
-    auto records = storage.get_all<HlrRecord>(
+    auto records = hlrStorage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
 
     if (records.empty()) {
@@ -168,14 +168,14 @@ SimtelRegister::handleRoutingInfoSmSender(const common::imsi_t &imsi) {
 
     return record;
   } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
+    return std::unexpected("HLR error: " + std::string(e.what()));
   }
 }
 
 std::expected<HlrRecord, std::string>
 SimtelRegister::handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn) {
   try {
-    auto records = storage.get_all<HlrRecord>(
+    auto records = hlrStorage.get_all<HlrRecord>(
         sqlite_orm::where(sqlite_orm::c(&HlrRecord::msisdn) == msisdn));
 
     if (records.empty()) {
@@ -189,7 +189,7 @@ SimtelRegister::handleRoutingInfoSmReceiver(const common::msisdn_t &msisdn) {
 
     return record;
   } catch (const std::exception &e) {
-    return std::unexpected("HLR DB error: " + std::string(e.what()));
+    return std::unexpected("HLR error: " + std::string(e.what()));
   }
 }
 } // namespace server

@@ -1,4 +1,5 @@
 {
     "ttl_sec": 120,
-    "hlrAccessParams": {"sqliteFilePath": "./data/storage/hlr.db"}
+    "hlrAccessParams": {"sqliteFilePath": "./data/storage/hlr.db"},
+    "eirAccessParams": {"sqliteFilePath": "./data/storage/eir.db"}
 }

@@ -28,7 +28,8 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec,
                                               TTL_WARNING_PERIOD_SEC)),
       listener(addr, maxUeThreadsCount),
-      hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
+      hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath,
+                                           epcConfig.eirSqliteFilePath)),
       smsc(std::make_unique<SimtelSmsc>(smscConfig)) {
   listener.setTtlManager(ttlManager);
 
@@ -55,8 +56,12 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     SimtelBaseStation::addBs(bs);
   }
 
-  if (!hlr->hasData()) {
-    hlr->insertData();
+  if (!hlr->hasHlrData()) {
+    hlr->insertHlrData();
+  }
+
+  if (!hlr->hasEirData()) {
+    hlr->insertEirData();
   }
 
   hlr->logRecords();

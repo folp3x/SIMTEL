@@ -6,6 +6,7 @@ namespace server {
 void EpcConfigParser::initFields() {
   initTtlField();
   initHlrAccessParamsField();
+  initEirAccessParamsField();
 }
 
 std::expected<EpcConfig, std::string>
@@ -36,6 +37,18 @@ void EpcConfigParser::initHlrAccessParamsField() {
           }));
 
   addParsedObject(std::move(hlrAccessParamsObj));
+}
+
+void EpcConfigParser::initEirAccessParamsField() {
+  auto eirAccessParamsObj =
+      std::make_unique<common::JsonObjectInfo>("eirAccessParams");
+  eirAccessParamsObj->addInner(
+      std::make_unique<common::JsonFieldInfo<std::string>>(
+          "sqliteFilePath", [this](const std::string &path) {
+            config.eirSqliteFilePath = path;
+          }));
+
+  addParsedObject(std::move(eirAccessParamsObj));
 }
 
 std::unique_ptr<EpcConfigParser> EpcConfigParser::create() {
