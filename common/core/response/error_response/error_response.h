@@ -3,13 +3,13 @@
 #include "common/core/request/request/request.h"
 
 namespace common {
-class ErrorRequest : public Request {
+class ErrorResponse : public Request {
 private:
   std::string description = "";
 
 public:
-  ErrorRequest() = default;
-  ErrorRequest(const std::string &description_);
+  ErrorResponse() = default;
+  ErrorResponse(const std::string &description_);
 
   virtual RequestType getType() const override;
 

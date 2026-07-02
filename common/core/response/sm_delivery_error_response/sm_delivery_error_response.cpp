@@ -1,29 +1,28 @@
-#include "sm_delivery_error_request.h"
+#include "sm_delivery_error_response.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
 namespace common {
-SmDeliveryErrorRequest::SmDeliveryErrorRequest(const imsi_t &mTimsi,
-                                               unsigned int smsId,
-                                               const std::string &description_)
-    : SmDeliveryReportRequest(mTimsi, smsId), description(description_) {}
+SmDeliveryErrorResponse::SmDeliveryErrorResponse(
+    const imsi_t &mTimsi, unsigned int smsId, const std::string &description_)
+    : SmDeliveryReportResponse(mTimsi, smsId), description(description_) {}
 
-RequestType SmDeliveryErrorRequest::getType() const {
+RequestType SmDeliveryErrorResponse::getType() const {
   return RequestType::SM_Delivery_Error;
 }
 
-nlohmann::json SmDeliveryErrorRequest::toJson() const {
-  nlohmann::json json = SmDeliveryReportRequest::toJson();
+nlohmann::json SmDeliveryErrorResponse::toJson() const {
+  nlohmann::json json = SmDeliveryReportResponse::toJson();
   json["description"] = description;
 
   return json;
 }
 
 std::optional<std::string>
-SmDeliveryErrorRequest::fromJsonStr(const std::string &jsonStr) {
-  auto error = SmDeliveryReportRequest::fromJsonStr(jsonStr);
+SmDeliveryErrorResponse::fromJsonStr(const std::string &jsonStr) {
+  auto error = SmDeliveryReportResponse::fromJsonStr(jsonStr);
   if (error) {
     return *error;
   }
@@ -38,8 +37,8 @@ SmDeliveryErrorRequest::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> SmDeliveryErrorRequest::toBinary() const {
-  auto binary = SmDeliveryReportRequest::toBinary();
+std::expected<binary_t, std::string> SmDeliveryErrorResponse::toBinary() const {
+  auto binary = SmDeliveryReportResponse::toBinary();
   if (!binary) {
     return std::unexpected(binary.error());
   }
@@ -50,15 +49,15 @@ std::expected<binary_t, std::string> SmDeliveryErrorRequest::toBinary() const {
 }
 
 std::optional<std::string>
-SmDeliveryErrorRequest::fromBinary(const binary_t &binary) {
-  auto error = SmDeliveryReportRequest::fromBinary(binary);
+SmDeliveryErrorResponse::fromBinary(const binary_t &binary) {
+  auto error = SmDeliveryReportResponse::fromBinary(binary);
   if (error) {
     return *error;
   }
 
   BinaryIterator it{binary};
 
-  bool skipped = it.skip(SmDeliveryReportRequest::binaryBytesCount);
+  bool skipped = it.skip(SmDeliveryReportResponse::binaryBytesCount);
   if (!skipped) {
     return "Not enough bytes";
   }
@@ -72,7 +71,7 @@ SmDeliveryErrorRequest::fromBinary(const binary_t &binary) {
   return std::nullopt;
 }
 
-std::string SmDeliveryErrorRequest::getDescription() const {
+std::string SmDeliveryErrorResponse::getDescription() const {
   return description;
 }
 } // namespace common

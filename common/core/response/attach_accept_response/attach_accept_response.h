@@ -3,7 +3,7 @@
 #include "common/core/request/empty_request/empty_request.h"
 
 namespace common {
-class AttachAcceptRequest : public EmptyRequest {
+class AttachAcceptResponse : public EmptyRequest {
 public:
   virtual RequestType getType() const override;
 };

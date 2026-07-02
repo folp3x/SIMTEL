@@ -3,15 +3,14 @@
 #include "common/core/request/request/request.h"
 
 namespace common {
-class MeasurementControlRequest : public Request {
-  imei_t imei = "";
-  unsigned int signal = 0;
+class RrcReconfigurationHandoverResponse : public Request {
+private:
+  imsi_t mTimsi = "";
   unsigned int bsId = 0;
 
 public:
-  MeasurementControlRequest() = default;
-  MeasurementControlRequest(const imei_t &imei_, unsigned int signal_,
-                            unsigned int bsId_);
+  RrcReconfigurationHandoverResponse() = default;
+  RrcReconfigurationHandoverResponse(const imsi_t &mTimsi_, unsigned int bsId_);
 
   virtual RequestType getType() const override;
 
@@ -21,8 +20,7 @@ public:
   virtual std::expected<binary_t, std::string> toBinary() const;
   virtual std::optional<std::string> fromBinary(const binary_t &binary);
 
-  imei_t getImei() const;
-  unsigned int getSignal() const;
+  imsi_t getMTimsi() const;
   unsigned int getBsId() const;
 };
 } // namespace common

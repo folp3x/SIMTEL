@@ -1,25 +1,25 @@
-#include "measurement_control_request.h"
+#include "measurement_control_response.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
 namespace common {
-MeasurementControlRequest::MeasurementControlRequest(const imei_t &imei_,
-                                                     unsigned int signal_,
-                                                     unsigned int bsId_)
+MeasurementControlResponse::MeasurementControlResponse(const imei_t &imei_,
+                                                       unsigned int signal_,
+                                                       unsigned int bsId_)
     : imei(imei_), signal(signal_), bsId(bsId_) {}
 
-RequestType MeasurementControlRequest::getType() const {
+RequestType MeasurementControlResponse::getType() const {
   return RequestType::Measurement_Control;
 }
 
-nlohmann::json MeasurementControlRequest::toJson() const {
+nlohmann::json MeasurementControlResponse::toJson() const {
   return nlohmann::json{{"imei", imei}, {"signal", signal}, {"bsId", bsId}};
 }
 
 std::optional<std::string>
-MeasurementControlRequest::fromJsonStr(const std::string &jsonStr) {
+MeasurementControlResponse::fromJsonStr(const std::string &jsonStr) {
   auto parsedImei = JsonDeserializer::imeiFromJsonStr(jsonStr, "imei");
   if (!parsedImei) {
     return parsedImei.error();
@@ -42,7 +42,7 @@ MeasurementControlRequest::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string>
-MeasurementControlRequest::toBinary() const {
+MeasurementControlResponse::toBinary() const {
   auto binImei = BinarySerializer::imeiToBinary(imei);
   if (!binImei) {
     return std::unexpected("IMEI serialize error");
@@ -60,7 +60,7 @@ MeasurementControlRequest::toBinary() const {
 }
 
 std::optional<std::string>
-MeasurementControlRequest::fromBinary(const binary_t &binary) {
+MeasurementControlResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
   auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
@@ -96,9 +96,9 @@ MeasurementControlRequest::fromBinary(const binary_t &binary) {
   return std::nullopt;
 }
 
-imei_t MeasurementControlRequest::getImei() const { return imei; }
+imei_t MeasurementControlResponse::getImei() const { return imei; }
 
-unsigned int MeasurementControlRequest::getSignal() const { return signal; }
+unsigned int MeasurementControlResponse::getSignal() const { return signal; }
 
-unsigned int MeasurementControlRequest::getBsId() const { return bsId; }
+unsigned int MeasurementControlResponse::getBsId() const { return bsId; }
 } // namespace common

@@ -1,16 +1,16 @@
 #pragma once
 
-#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
+#include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
 
 namespace common {
-class SmDeliveryErrorRequest : public SmDeliveryReportRequest {
+class SmDeliveryErrorResponse : public SmDeliveryReportResponse {
 private:
   std::string description = "";
 
 public:
-  SmDeliveryErrorRequest() = default;
-  SmDeliveryErrorRequest(const imsi_t &mTimsi, unsigned int smsId,
-                         const std::string &description_);
+  SmDeliveryErrorResponse() = default;
+  SmDeliveryErrorResponse(const imsi_t &mTimsi, unsigned int smsId,
+                          const std::string &description_);
 
   virtual RequestType getType() const override;
 

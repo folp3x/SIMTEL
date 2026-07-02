@@ -1,24 +1,24 @@
-#include "sm_delivery_report_request.h"
+#include "sm_delivery_report_response.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
 namespace common {
-SmDeliveryReportRequest::SmDeliveryReportRequest(const imsi_t &mTimsi_,
-                                                 unsigned int smsId_)
+SmDeliveryReportResponse::SmDeliveryReportResponse(const imsi_t &mTimsi_,
+                                                   unsigned int smsId_)
     : mTimsi(mTimsi_), smsId(smsId_) {}
 
-RequestType SmDeliveryReportRequest::getType() const {
+RequestType SmDeliveryReportResponse::getType() const {
   return RequestType::SM_Delivery_Report;
 }
 
-nlohmann::json SmDeliveryReportRequest::toJson() const {
+nlohmann::json SmDeliveryReportResponse::toJson() const {
   return nlohmann::json{{"mTimsi", mTimsi}, {"smsId", smsId}};
 }
 
 std::optional<std::string>
-SmDeliveryReportRequest::fromJsonStr(const std::string &jsonStr) {
+SmDeliveryReportResponse::fromJsonStr(const std::string &jsonStr) {
   auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
   if (!parsedMTimsi) {
     return parsedMTimsi.error();
@@ -34,7 +34,8 @@ SmDeliveryReportRequest::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> SmDeliveryReportRequest::toBinary() const {
+std::expected<binary_t, std::string>
+SmDeliveryReportResponse::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
     return std::unexpected("m-imsi serialize error");
@@ -49,7 +50,7 @@ std::expected<binary_t, std::string> SmDeliveryReportRequest::toBinary() const {
 }
 
 std::optional<std::string>
-SmDeliveryReportRequest::fromBinary(const binary_t &binary) {
+SmDeliveryReportResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
   auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
@@ -75,7 +76,7 @@ SmDeliveryReportRequest::fromBinary(const binary_t &binary) {
   return std::nullopt;
 }
 
-imsi_t SmDeliveryReportRequest::getMTimsi() const { return mTimsi; }
+imsi_t SmDeliveryReportResponse::getMTimsi() const { return mTimsi; }
 
-unsigned int SmDeliveryReportRequest::getSmsId() const { return smsId; }
+unsigned int SmDeliveryReportResponse::getSmsId() const { return smsId; }
 } // namespace common

@@ -1,24 +1,24 @@
-#include "rrc_reconfiguration_keep_request.h"
+#include "rrc_reconfiguration_keep_response.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
 namespace common {
-RrcReconfigurationKeepRequest::RrcReconfigurationKeepRequest(
+RrcReconfigurationKeepResponse::RrcReconfigurationKeepResponse(
     const imei_t &imei_, unsigned int bsId_)
     : imei(imei_), bsId(bsId_) {}
 
-RequestType RrcReconfigurationKeepRequest::getType() const {
+RequestType RrcReconfigurationKeepResponse::getType() const {
   return RequestType::Rrc_Reconfiguration_Keep;
 }
 
-nlohmann::json RrcReconfigurationKeepRequest::toJson() const {
+nlohmann::json RrcReconfigurationKeepResponse::toJson() const {
   return nlohmann::json{{"imei", imei}, {"bsId", bsId}};
 }
 
 std::optional<std::string>
-RrcReconfigurationKeepRequest::fromJsonStr(const std::string &jsonStr) {
+RrcReconfigurationKeepResponse::fromJsonStr(const std::string &jsonStr) {
   auto parsedImei = JsonDeserializer::imeiFromJsonStr(jsonStr, "imei");
   if (!parsedImei) {
     return parsedImei.error();
@@ -35,7 +35,7 @@ RrcReconfigurationKeepRequest::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string>
-RrcReconfigurationKeepRequest::toBinary() const {
+RrcReconfigurationKeepResponse::toBinary() const {
   auto binImei = BinarySerializer::imeiToBinary(imei);
   if (!binImei) {
     return std::unexpected("IMEI serialize error");
@@ -49,7 +49,7 @@ RrcReconfigurationKeepRequest::toBinary() const {
 }
 
 std::optional<std::string>
-RrcReconfigurationKeepRequest::fromBinary(const binary_t &binary) {
+RrcReconfigurationKeepResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
   auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
@@ -75,7 +75,7 @@ RrcReconfigurationKeepRequest::fromBinary(const binary_t &binary) {
   return std::nullopt;
 }
 
-imei_t RrcReconfigurationKeepRequest::getImei() const { return imei; }
+imei_t RrcReconfigurationKeepResponse::getImei() const { return imei; }
 
-unsigned int RrcReconfigurationKeepRequest::getBsId() const { return bsId; }
+unsigned int RrcReconfigurationKeepResponse::getBsId() const { return bsId; }
 } // namespace common

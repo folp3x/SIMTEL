@@ -1,13 +1,13 @@
 #include "simtel_base_station.h"
 
-#include "common/core/request/attach_accept_request/attach_accept_request.h"
-#include "common/core/request/error_request/error_request.h"
-#include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
-#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
-#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
-#include "common/core/request/sm_delivery_error_request/sm_delivery_error_request.h"
-#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
+#include "common/core/response/attach_accept_response/attach_accept_response.h"
+#include "common/core/response/error_response/error_response.h"
+#include "common/core/response/measurement_control_response/measurement_control_response.h"
+#include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
+#include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+#include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
+#include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
@@ -72,7 +72,7 @@ std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
     return "Error changing path: " + *handleAuthError;
   }
 
-  auto response = std::make_unique<common::AttachAcceptRequest>();
+  auto response = std::make_unique<common::AttachAcceptResponse>();
   auto responseSendError = sendResponse(ctx, std::move(response));
   if (responseSendError) {
     return "Error sending attach accept: " + *responseSendError;
@@ -161,7 +161,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     MessageHolder::instance().addMsg(
         bs->createLogMsg("signal level = " + std::to_string(signalLevel)));
 
-    auto response = std::make_unique<common::MeasurementControlRequest>(
+    auto response = std::make_unique<common::MeasurementControlResponse>(
         locReq.getImei(), signalLevel, bs->getId());
     auto measurementControlSendError =
         bs->sendResponse(ctx, std::move(response));
@@ -267,7 +267,7 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
     std::shared_ptr<SimtelUeContext> ctx, bool &handover) const {
   if (!canAcceptConnection()) {
     std::string error = "BS is busy";
-    auto response = std::make_unique<common::ErrorRequest>(error);
+    auto response = std::make_unique<common::ErrorResponse>(error);
     auto sendError = sendResponse(ctx, std::move(response));
     if (sendError) {
       return "Error sending error info: " + *sendError;
@@ -277,7 +277,8 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
 
   auto mTimsi = mme.lock()->handleAttachRequest(req.getImsi(), req.getImei());
   if (!mTimsi) {
-    auto response = std::make_unique<common::ErrorRequest>("Connection failed");
+    auto response =
+        std::make_unique<common::ErrorResponse>("Connection failed");
     auto sendError = sendResponse(ctx, std::move(response));
     if (sendError) {
       return "Error sending error info: " + *sendError;
@@ -297,15 +298,16 @@ std::optional<std::string> SimtelBaseStation::handleMeasurementReport(
   bool connectedToCur = !curBs.expired() && curBs.lock()->getId() == id &&
                         ueConnected(ctx->getMTimsi());
   if (connectedToCur) {
-    auto response = std::make_unique<common::RrcReconfigurationKeepRequest>(
+    auto response = std::make_unique<common::RrcReconfigurationKeepResponse>(
         req.getImei(), id);
     auto sendError = sendResponse(ctx, std::move(response));
     if (sendError) {
       return "Error sending BS keep info: " + *sendError;
     }
   } else {
-    auto response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
-        *mTimsi, id);
+    auto response =
+        std::make_unique<common::RrcReconfigurationHandoverResponse>(*mTimsi,
+                                                                     id);
     auto sendError = sendResponse(ctx, std::move(response));
     if (sendError) {
       return "Error sending BS handover info: " + *sendError;
@@ -443,7 +445,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
         auto handleError = handleSmTransfer(ctx, *req, ueErrorMsg);
         if (handleError) {
           MessageHolder::instance().addErrorMsg(*handleError);
-          auto response = std::make_unique<common::SmDeliveryErrorRequest>(
+          auto response = std::make_unique<common::SmDeliveryErrorResponse>(
               req->getMTimsi(), req->getSmsId(), ueErrorMsg);
           auto sendError = sendResponse(ctx, std::move(response));
           if (sendError) {
@@ -537,7 +539,7 @@ bool SimtelBaseStation::handleMtForwardSm(const common::imsi_t &mTimsi,
   return ue->fillBuf(smsText);
 }
 
-std::expected<common::SmDeliveryRequest, std::string>
+std::expected<common::SmDeliveryResponse, std::string>
 SimtelBaseStation::prepareSmDelivery(const common::imsi_t &mTimsi,
                                      unsigned int smsId,
                                      const common::imsi_t &msisdn) {
@@ -552,7 +554,7 @@ SimtelBaseStation::prepareSmDelivery(const common::imsi_t &mTimsi,
   }
 
   std::string smsText = common::BinarySerializer::strFromBinary(buf);
-  auto response = common::SmDeliveryRequest{mTimsi, smsId, msisdn, smsText};
+  auto response = common::SmDeliveryResponse{mTimsi, smsId, msisdn, smsText};
 
   MessageHolder::instance().addMsg(
       createLogMsg("prepared response: " + response.toStr()));
@@ -596,14 +598,14 @@ void SimtelBaseStation::sendSmDelivery(const common::imsi_t &mTimsi,
   }
 
   sendResponse(mTimsi,
-               std::make_unique<common::SmDeliveryRequest>(*preparedReq));
+               std::make_unique<common::SmDeliveryResponse>(*preparedReq));
 }
 
 std::optional<std::string>
 SimtelBaseStation::sendSmDeliveryReport(const common::imsi_t &mTimsi,
                                         unsigned int smsId) {
-  auto reportReq =
-      std::make_unique<common::SmDeliveryReportRequest>(mTimsi, smsId);
+  auto response =
+      std::make_unique<common::SmDeliveryReportResponse>(mTimsi, smsId);
 
   auto ue = findUe(mTimsi);
   if (!ue) {
@@ -612,14 +614,14 @@ SimtelBaseStation::sendSmDeliveryReport(const common::imsi_t &mTimsi,
 
   std::lock_guard lock(*ue->getSendMtx().get());
 
-  return sendResponse(mTimsi, std::move(reportReq));
+  return sendResponse(mTimsi, std::move(response));
 }
 
 std::optional<std::string>
 SimtelBaseStation::sendSmDeliveryError(const common::imsi_t &mTimsi,
                                        unsigned int smsId,
                                        const std::string &description) {
-  auto errorReq = std::make_unique<common::SmDeliveryErrorRequest>(
+  auto response = std::make_unique<common::SmDeliveryErrorResponse>(
       mTimsi, smsId, description);
 
   auto ue = findUe(mTimsi);
@@ -629,6 +631,6 @@ SimtelBaseStation::sendSmDeliveryError(const common::imsi_t &mTimsi,
 
   std::lock_guard lock(*ue->getSendMtx().get());
 
-  return sendResponse(mTimsi, std::move(errorReq));
+  return sendResponse(mTimsi, std::move(response));
 }
 } // namespace server

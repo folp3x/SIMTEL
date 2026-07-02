@@ -1,24 +1,24 @@
-#include "rrc_reconfiguration_handover_request.h"
+#include "rrc_reconfiguration_handover_response.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
 namespace common {
-RrcReconfigurationHandoverRequest::RrcReconfigurationHandoverRequest(
+RrcReconfigurationHandoverResponse::RrcReconfigurationHandoverResponse(
     const imsi_t &mTimsi_, unsigned int bsId_)
     : mTimsi(mTimsi_), bsId(bsId_) {}
 
-RequestType RrcReconfigurationHandoverRequest::getType() const {
+RequestType RrcReconfigurationHandoverResponse::getType() const {
   return RequestType::Rrc_Reconfiguration_Handover;
 }
 
-nlohmann::json RrcReconfigurationHandoverRequest::toJson() const {
+nlohmann::json RrcReconfigurationHandoverResponse::toJson() const {
   return nlohmann::json{{"mTimsi", mTimsi}, {"bsId", bsId}};
 }
 
 std::optional<std::string>
-RrcReconfigurationHandoverRequest::fromJsonStr(const std::string &jsonStr) {
+RrcReconfigurationHandoverResponse::fromJsonStr(const std::string &jsonStr) {
   auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
   if (!parsedMTimsi) {
     return parsedMTimsi.error();
@@ -35,7 +35,7 @@ RrcReconfigurationHandoverRequest::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string>
-RrcReconfigurationHandoverRequest::toBinary() const {
+RrcReconfigurationHandoverResponse::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
     return std::unexpected("IMSI serialize error");
@@ -49,7 +49,7 @@ RrcReconfigurationHandoverRequest::toBinary() const {
 }
 
 std::optional<std::string>
-RrcReconfigurationHandoverRequest::fromBinary(const binary_t &binary) {
+RrcReconfigurationHandoverResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
   auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
@@ -75,7 +75,9 @@ RrcReconfigurationHandoverRequest::fromBinary(const binary_t &binary) {
   return std::nullopt;
 }
 
-imsi_t RrcReconfigurationHandoverRequest::getMTimsi() const { return mTimsi; }
+imsi_t RrcReconfigurationHandoverResponse::getMTimsi() const { return mTimsi; }
 
-unsigned int RrcReconfigurationHandoverRequest::getBsId() const { return bsId; }
+unsigned int RrcReconfigurationHandoverResponse::getBsId() const {
+  return bsId;
+}
 } // namespace common

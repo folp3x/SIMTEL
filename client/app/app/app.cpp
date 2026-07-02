@@ -10,13 +10,13 @@
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
-#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
-#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
-#include "common/core/request/sm_delivery_error_request/sm_delivery_error_request.h"
-#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
-#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
+#include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
+#include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+#include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
+#include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
+#include "common/core/response/sm_delivery_response/sm_delivery_response.h"
 
 namespace client {
 void App::sigintHandler(int signal) {
@@ -57,7 +57,7 @@ void App::handleLocationUpdate() {
 
 void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
   if (auto *handoverResponse =
-          dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
+          dynamic_cast<common::RrcReconfigurationHandoverResponse *>(
               response.get())) {
     common::imsi_t newMTimsi = handoverResponse->getMTimsi();
     bool updated = ctx.setMTimsi(newMTimsi);
@@ -72,7 +72,7 @@ void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
       }
     }
   } else if (auto *keepResponse =
-                 dynamic_cast<common::RrcReconfigurationKeepRequest *>(
+                 dynamic_cast<common::RrcReconfigurationKeepResponse *>(
                      response.get())) {
     addMsg("BS not changed");
   }
@@ -382,7 +382,7 @@ void App::addErrorMsg(const std::string &content) {
 
 void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
   if (auto *deliveryResponse =
-          dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
+          dynamic_cast<common::SmDeliveryResponse *>(response.get())) {
     if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
       addErrorMsg("Unknown m-timsi in delivery response: " +
                   deliveryResponse->getMTimsi());
@@ -414,7 +414,7 @@ void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
     addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
                              deliveryResponse->getSmsId());
   } else if (auto *errorResponse =
-                 dynamic_cast<common::SmDeliveryErrorRequest *>(
+                 dynamic_cast<common::SmDeliveryErrorResponse *>(
                      response.get())) {
     setSentSmsStatus(errorResponse->getSmsId(), SmsStatus::NOT_DELIVERED);
     std::string description = errorResponse->getDescription();
@@ -422,7 +422,7 @@ void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
       addErrorMsg("SMS not delivered: " + description);
     }
   } else if (auto *reportResponse =
-                 dynamic_cast<common::SmDeliveryReportRequest *>(
+                 dynamic_cast<common::SmDeliveryReportResponse *>(
                      response.get())) {
     setSentSmsStatus(reportResponse->getSmsId(), SmsStatus::DELIVERED);
   }

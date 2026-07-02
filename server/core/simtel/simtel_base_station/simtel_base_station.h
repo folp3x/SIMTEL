@@ -4,8 +4,8 @@
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
-#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
+#include "common/core/response/sm_delivery_response/sm_delivery_response.h"
 #include "common/network/protocol/protocol.h"
 #include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
@@ -68,7 +68,7 @@ private:
   bool handleMtForwardSm(const common::imsi_t &mTimsi,
                          const common::binary_t &smsText);
 
-  std::expected<common::SmDeliveryRequest, std::string>
+  std::expected<common::SmDeliveryResponse, std::string>
   prepareSmDelivery(const common::imsi_t &mTimsi, unsigned int smsId,
                     const common::imsi_t &msisdn);
 

@@ -1,19 +1,19 @@
-#include "error_request.h"
+#include "error_response.h"
 
 #include "common/network/json_deserializer/json_deserializer.h"
 
 namespace common {
-ErrorRequest::ErrorRequest(const std::string &description_)
+ErrorResponse::ErrorResponse(const std::string &description_)
     : description(description_) {}
 
-RequestType ErrorRequest::getType() const { return RequestType::Error; }
+RequestType ErrorResponse::getType() const { return RequestType::Error; }
 
-nlohmann::json ErrorRequest::toJson() const {
+nlohmann::json ErrorResponse::toJson() const {
   return nlohmann::json{{"description", description}};
 }
 
 std::optional<std::string>
-ErrorRequest::fromJsonStr(const std::string &jsonStr) {
+ErrorResponse::fromJsonStr(const std::string &jsonStr) {
   auto parsedDescription =
       JsonDeserializer::strFromJsonStr(jsonStr, "description");
   if (!parsedDescription) {
@@ -24,15 +24,15 @@ ErrorRequest::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> ErrorRequest::toBinary() const {
+std::expected<binary_t, std::string> ErrorResponse::toBinary() const {
   return BinarySerializer::strToBinary(description);
 }
 
-std::optional<std::string> ErrorRequest::fromBinary(const binary_t &binary) {
+std::optional<std::string> ErrorResponse::fromBinary(const binary_t &binary) {
   description = BinarySerializer::strFromBinary(binary);
 
   return std::nullopt;
 }
 
-std::string ErrorRequest::getDescription() const { return description; }
+std::string ErrorResponse::getDescription() const { return description; }
 } // namespace common

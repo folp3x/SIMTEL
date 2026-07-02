@@ -1,16 +1,16 @@
 #include "ue_exchange.h"
 
-#include "common/core/request/attach_accept_request/attach_accept_request.h"
-#include "common/core/request/error_request/error_request.h"
-#include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
-#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
-#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
-#include "common/core/request/sm_delivery_error_request/sm_delivery_error_request.h"
-#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
-#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
+#include "common/core/response/attach_accept_response/attach_accept_response.h"
+#include "common/core/response/error_response/error_response.h"
+#include "common/core/response/measurement_control_response/measurement_control_response.h"
+#include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
+#include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+#include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
+#include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
+#include "common/core/response/sm_delivery_response/sm_delivery_response.h"
 
 namespace client {
 std::optional<std::string>
@@ -141,10 +141,10 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
     return std::unexpected("Error setting receive timout");
   }
 
-  common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
+  common::MeasurementControlResponse bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
-    auto signalResponse = receiveResponse<common::MeasurementControlRequest>();
+    auto signalResponse = receiveResponse<common::MeasurementControlResponse>();
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.getSignal() == 0) {
@@ -182,29 +182,29 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
   switch (responseType) {
   case common::RequestType::Rrc_Reconfiguration_Keep: {
     auto receivedResponse =
-        parseFromBytes<common::RrcReconfigurationKeepRequest>(*data);
+        parseFromBytes<common::RrcReconfigurationKeepResponse>(*data);
     if (!receivedResponse) {
       return std::unexpected(receivedResponse.error());
     }
     newBsId = receivedResponse->getBsId();
-    response = std::make_unique<common::RrcReconfigurationKeepRequest>(
+    response = std::make_unique<common::RrcReconfigurationKeepResponse>(
         *receivedResponse);
     break;
   }
   case common::RequestType::Rrc_Reconfiguration_Handover: {
     auto receivedResponse =
-        parseFromBytes<common::RrcReconfigurationHandoverRequest>(*data);
+        parseFromBytes<common::RrcReconfigurationHandoverResponse>(*data);
     if (!receivedResponse) {
       return std::unexpected(receivedResponse.error());
     }
     newBsId = receivedResponse->getBsId();
     newMTimsi = receivedResponse->getMTimsi();
-    response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
+    response = std::make_unique<common::RrcReconfigurationHandoverResponse>(
         *receivedResponse);
     break;
   }
   case common::RequestType::Error: {
-    auto error = parseFromBytes<common::ErrorRequest>(*data);
+    auto error = parseFromBytes<common::ErrorResponse>(*data);
     return std::unexpected(error ? error->getDescription() : error.error());
   }
   default:
@@ -226,7 +226,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
                            *configureCompleteSendError);
   }
 
-  auto acceptResponse = receiveResponse<common::AttachAcceptRequest>();
+  auto acceptResponse = receiveResponse<common::AttachAcceptResponse>();
   if (!acceptResponse) {
     return std::unexpected("Failed to receive accept response - " +
                            acceptResponse.error());
@@ -277,42 +277,42 @@ void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
       switch (responseType) {
       case common::RequestType::SM_Delivery: {
         auto receivedResponse =
-            parseFromBytes<common::SmDeliveryRequest>(*data);
+            parseFromBytes<common::SmDeliveryResponse>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
         }
 
         response =
-            std::make_unique<common::SmDeliveryRequest>(*receivedResponse);
+            std::make_unique<common::SmDeliveryResponse>(*receivedResponse);
         break;
       }
       case common::RequestType::SM_Delivery_Report: {
         auto receivedResponse =
-            parseFromBytes<common::SmDeliveryReportRequest>(*data);
+            parseFromBytes<common::SmDeliveryReportResponse>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
         }
 
-        response = std::make_unique<common::SmDeliveryReportRequest>(
+        response = std::make_unique<common::SmDeliveryReportResponse>(
             *receivedResponse);
         break;
       }
       case common::RequestType::SM_Delivery_Error: {
         auto receivedResponse =
-            parseFromBytes<common::SmDeliveryErrorRequest>(*data);
+            parseFromBytes<common::SmDeliveryErrorResponse>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
         }
 
-        response =
-            std::make_unique<common::SmDeliveryErrorRequest>(*receivedResponse);
+        response = std::make_unique<common::SmDeliveryErrorResponse>(
+            *receivedResponse);
         break;
       }
       case common::RequestType::Error: {
-        auto receivedResponse = parseFromBytes<common::ErrorRequest>(*data);
+        auto receivedResponse = parseFromBytes<common::ErrorResponse>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
         } else {
