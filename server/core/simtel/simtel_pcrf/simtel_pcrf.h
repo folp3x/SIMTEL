@@ -14,6 +14,8 @@ private:
 
   std::string createLogMsg(const std::string &content) const;
 
+  std::optional<BalanceInfo> findByImsi(const common::imsi_t &imsi) const;
+
 public:
   SimtelPcrf(
       double smsPriceRub_,
@@ -24,5 +26,7 @@ public:
   bool reserveMoneyForSms(const common::imsi_t &imsi);
   bool returnReservedMoney(const common::imsi_t &imsi);
   bool deductReservedMoney(const common::imsi_t &imsi);
+
+  std::optional<double> getBalance(const common::imsi_t &imsi);
 };
 } // namespace server

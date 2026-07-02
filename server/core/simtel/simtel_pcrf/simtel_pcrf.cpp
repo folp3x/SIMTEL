@@ -1,11 +1,20 @@
 #include "simtel_pcrf.h"
 
-#include "common/utils/str/str.h"
 #include "server/app/message_holder/message_holder.h"
 
 namespace server {
 std::string SimtelPcrf::createLogMsg(const std::string &content) const {
   return "PCRF: " + content;
+}
+
+std::optional<BalanceInfo>
+SimtelPcrf::findByImsi(const common::imsi_t &imsi) const {
+  auto it = balanceInfo.find(imsi);
+  if (it == balanceInfo.end()) {
+    return std::nullopt;
+  }
+
+  return it->second;
 }
 
 SimtelPcrf::SimtelPcrf(
@@ -15,16 +24,15 @@ SimtelPcrf::SimtelPcrf(
 
 std::optional<bool>
 SimtelPcrf::hasEnoughBalanceForSms(const common::imsi_t &imsi) {
-  auto it = balanceInfo.find(imsi);
-  if (it == balanceInfo.end()) {
-    return std::nullopt;
+  auto info = findByImsi(imsi);
+  if (!info) {
+    return false;
   }
 
-  double balance = it->second.balanceRub;
+  double balance = info->balanceRub;
 
   MessageHolder::instance().addMsg(
-      createLogMsg("Balance of imsi=" + imsi +
-                   " checked: " + common::toStr(balance) + "rub"));
+      createLogMsg("checked balance: " + info->toStr()));
 
   return balance >= smsPriceRub;
 }
@@ -38,6 +46,9 @@ bool SimtelPcrf::reserveMoneyForSms(const common::imsi_t &imsi) {
   it->second.reservedRub = smsPriceRub;
   it->second.balanceRub -= smsPriceRub;
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("reserved balance: " + it->second.toStr()));
+
   return true;
 }
 
@@ -50,6 +61,9 @@ bool SimtelPcrf::returnReservedMoney(const common::imsi_t &imsi) {
   it->second.balanceRub += it->second.reservedRub;
   it->second.reservedRub = 0;
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("returned reserved money: " + it->second.toStr()));
+
   return true;
 }
 
@@ -61,6 +75,18 @@ bool SimtelPcrf::deductReservedMoney(const common::imsi_t &imsi) {
 
   it->second.reservedRub = 0;
 
+  MessageHolder::instance().addMsg(
+      createLogMsg("deducted reserved money: " + it->second.toStr()));
+
   return true;
+}
+
+std::optional<double> SimtelPcrf::getBalance(const common::imsi_t &imsi) {
+  auto info = findByImsi(imsi);
+  if (!info) {
+    return std::nullopt;
+  }
+
+  return info->balanceRub;
 }
 } // namespace server

@@ -251,6 +251,11 @@ SimtelMme::handleSmSubmit(const common::imsi_t &mtimsi_s, unsigned int smsId,
     return "UE not known by PCRF";
   }
 
+  auto reserved = pcrf->reserveMoneyForSms(*imsi_s);
+  if (!reserved) {
+    return "UE not known by PCRF";
+  }
+
   bool hasBalance = *hasBalanceValue;
   if (!hasBalance) {
     ueErrorMsg = "Not enough balance";
@@ -371,6 +376,11 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
     return;
   }
 
+  auto deducted = pcrf->deductReservedMoney(*imsi_s);
+  if (!deducted) {
+    MessageHolder::instance().addErrorMsg("ue not known by PCRF");
+  }
+
   if (senderMmeId == id) {
     trySendReport(smsId, *imsi_s);
   } else {
@@ -477,6 +487,17 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
   smsc.lock()->removeSms(smsId, mtimsi_s);
 
   if (!delivered) {
+    auto imsi_s = findImsiInVlr(mtimsi_s);
+    if (!imsi_s) {
+      MessageHolder::instance().addErrorMsg("ue not known by MME");
+      return;
+    }
+
+    auto returned = pcrf->returnReservedMoney(*imsi_s);
+    if (!returned) {
+      MessageHolder::instance().addErrorMsg("ue not known by PCRF");
+    }
+
     sendSmDeliveryError(mtimsi_s, smsId);
   }
 }
