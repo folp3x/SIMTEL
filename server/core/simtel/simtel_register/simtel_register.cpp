@@ -57,6 +57,22 @@ SimtelRegister::getImsiByMsisdn(const common::imsi_t &msisdn,
   }
 }
 
+std::expected<common::msisdn_t, std::string>
+SimtelRegister::getMsisdnByImsi(const common::imsi_t &imsi) {
+  try {
+    auto records = hlrStorage.get_all<HlrRecord>(
+        sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
+
+    if (records.empty()) {
+      return std::unexpected("HLR record not found for IMSI: " + imsi);
+    }
+
+    return records[0].msisdn;
+  } catch (const std::exception &e) {
+    return std::unexpected("HLR error: " + std::string(e.what()));
+  }
+}
+
 std::expected<unsigned int, std::string>
 SimtelRegister::getMmeIdByImsi(const common::imsi_t &imsi) {
   try {

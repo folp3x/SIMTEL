@@ -7,6 +7,7 @@
 #include "client/core/ue/ue_state/ue_state.h"
 #include "client/network/socket/socket.h"
 #include "common/core/request/request/request.h"
+#include "common/core/request/ussd_code_request/ussd_code_request.h"
 
 namespace client {
 class UeExchange {
@@ -23,6 +24,7 @@ private:
   static constexpr unsigned int RECEIVE_FROM_BS_SLEEP_MSEC = 1000;
   static constexpr unsigned int RECEIVE_FROM_BS_TIMEOUT_MSEC = 100;
   static constexpr unsigned int RECEIVE_SIGNAL_TIMEOUT_MSEC = 2000;
+  static constexpr unsigned int RECEIVE_USSD_TIMEOUT_MSEC = 1000;
 
   bool running = true;
 
@@ -51,11 +53,11 @@ private:
   std::expected<common::binary_t, std::string>
   receiveResponseData(common::RequestType &type) const;
 
-public:
-  explicit UeExchange(const common::NetworkAddress &serverAddr_);
-
   std::expected<std::unique_ptr<common::Request>, std::string>
   handleLocationUpdate(RequestInfo info);
+
+public:
+  explicit UeExchange(const common::NetworkAddress &serverAddr_);
 
   void sendRequests();
 
@@ -72,6 +74,9 @@ public:
   void stop();
 
   void receiveFromBsInBackground(const CallbackType &callback);
+
+  std::expected<std::unique_ptr<common::Request>, std::string>
+  sendUssd(const UeState &state, std::unique_ptr<common::UssdCodeRequest> req);
 };
 } // namespace client
 

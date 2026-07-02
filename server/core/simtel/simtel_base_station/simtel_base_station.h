@@ -1,13 +1,16 @@
 #pragma once
 
 #include "common/core/location/location/location.h"
+
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
+
 #include "common/core/response/sm_delivery_response/sm_delivery_response.h"
 #include "common/network/protocol/protocol.h"
 #include "server/app/config/bs_config/bs_config/bs_config.h"
+
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 #include "server/core/ttl_manager/ttl_manager.h"
@@ -87,6 +90,9 @@ private:
 
   void handleUeRequests(std::shared_ptr<SimtelUeContext> ctx);
 
+  std::shared_ptr<SimtelUeContext> copyUe(const common::imsi_t &mTimsi);
+  bool removeUe(const common::imsi_t &mTimsi);
+
 public:
   SimtelBaseStation(const BsConfig &config, std::weak_ptr<SimtelMme> mme_);
 
@@ -102,9 +108,6 @@ public:
 
   void addUe(std::shared_ptr<SimtelUeContext> ctx);
 
-  std::shared_ptr<SimtelUeContext> copyUe(const common::imsi_t &mTimsi);
-  bool removeUe(const common::imsi_t &mTimsi);
-
   void sendSmDelivery(const common::imsi_t &mTimsi, unsigned int smsId,
                       const common::imsi_t &msisdn,
                       const common::binary_t &smsText);
@@ -115,6 +118,12 @@ public:
   std::optional<std::string>
   sendSmDeliveryError(const common::imsi_t &mTimsi, unsigned int smsId,
                       const std::string &description);
+
+  std::optional<std::string> sendUssdBalance(const common::imsi_t &mTimsi,
+                                             double balance);
+
+  std::optional<std::string> sendUssdMsisdn(const common::imsi_t &mTimsi,
+                                            const common::msisdn_t &msisdn);
 };
 } // namespace server
 

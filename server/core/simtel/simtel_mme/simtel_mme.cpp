@@ -1,7 +1,7 @@
 #include "simtel_mme.h"
 
+#include "common/core/ussd/ussd_code.h"
 #include "common/network/binary_serializer/binary_serializer.h"
-#include "common/utils/str/str.h"
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
@@ -391,6 +391,58 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
     }
 
     senderMme->trySendReport(smsId, *imsi_s);
+  }
+}
+
+std::optional<std::string> SimtelMme::handleUssd(const common::imsi_t &mTimsi,
+                                                 uint8_t code) {
+  MessageHolder::instance().addMsg(
+      createLogMsg("received USSD: " + std::to_string(code)));
+
+  auto ussd = common::ussdCodeFromNum(code);
+  if (!ussd) {
+    return "Unknown command";
+  }
+
+  auto ueInfo = vlr.findByMTimsi(mTimsi);
+  if (!ueInfo) {
+    return "Unknown UE";
+  }
+
+  auto bs = ueInfo->bs;
+  if (!bs) {
+    return "UE BS not found";
+  }
+
+  switch (*ussd) {
+  case common::UssdCode::GET_BALANCE: {
+    auto balance = pcrf->getBalance(ueInfo->imsi);
+    if (!balance) {
+      return "UE not known by PCRF";
+    }
+
+    auto error = bs->sendUssdBalance(mTimsi, *balance);
+    if (error) {
+      MessageHolder::instance().addErrorMsg(*error);
+    }
+
+    return std::nullopt;
+  }
+  case common::UssdCode::GET_PHONE_NUMBER: {
+    auto msisdn = reg->getMsisdnByImsi(ueInfo->imsi);
+    if (!msisdn) {
+      return "MSISDN not found in HLR";
+    }
+
+    auto error = bs->sendUssdMsisdn(mTimsi, *msisdn);
+    if (error) {
+      MessageHolder::instance().addErrorMsg(*error);
+    }
+
+    return std::nullopt;
+  }
+  default:
+    return "Unknown command";
   }
 }
 

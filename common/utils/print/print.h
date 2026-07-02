@@ -1,10 +1,12 @@
 #pragma once
 
 #include <chrono>
+
 #include <iomanip>
 #include <iostream>
-#include <rang.hpp>
 #include <sstream>
+
+#include <rang.hpp>
 
 #include "common/constants.h"
 

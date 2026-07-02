@@ -3,6 +3,9 @@
 #include "common/network/json_deserializer/json_deserializer.h"
 
 namespace common {
+UssdMsisdnResponse::UssdMsisdnResponse(const msisdn_t &msisdn_)
+    : msisdn(msisdn_) {}
+
 RequestType UssdMsisdnResponse::getType() const {
   return RequestType::UssdMsisdn;
 }

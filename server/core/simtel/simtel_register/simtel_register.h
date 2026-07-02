@@ -25,6 +25,9 @@ public:
   std::expected<common::imsi_t, std::string>
   getImsiByMsisdn(const common::imsi_t &msisdn, unsigned int &mmeId);
 
+  std::expected<common::msisdn_t, std::string>
+  getMsisdnByImsi(const common::imsi_t &imsi);
+
   std::expected<unsigned int, std::string>
   getMmeIdByImsi(const common::imsi_t &imsi);
 

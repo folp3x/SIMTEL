@@ -4,7 +4,6 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <unordered_map>
 
 #include "server/app/config/smsc_config/smsc_config.h"
 #include "server/core/simtel/sms_uid/sms_uid.h"

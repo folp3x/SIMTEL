@@ -38,7 +38,7 @@ std::expected<binary_t, std::string>
 SmDeliveryReportResponse::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("m-imsi serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
 
   auto binSmsId = BinarySerializer::toBinary(smsId);

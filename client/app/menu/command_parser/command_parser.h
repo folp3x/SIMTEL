@@ -8,6 +8,7 @@
 #include "client/app/menu/menu_item/menu_item_sent/menu_item_sent.h"
 #include "client/app/menu/menu_item/menu_item_ussd/menu_item_ussd.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+
 #include "common/utils/str/str.h"
 
 namespace client {

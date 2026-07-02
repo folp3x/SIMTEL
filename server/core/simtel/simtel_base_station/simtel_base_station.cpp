@@ -1,13 +1,21 @@
 #include "simtel_base_station.h"
 
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
+#include "common/core/request/ussd_code_request/ussd_code_request.h"
+
 #include "common/core/response/attach_accept_response/attach_accept_response.h"
 #include "common/core/response/error_response/error_response.h"
 #include "common/core/response/measurement_control_response/measurement_control_response.h"
+
 #include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
 #include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+
 #include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
 #include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
+
+#include "common/core/response/ussd_balance_response/ussd_balance_response.h"
+#include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
+
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
@@ -447,6 +455,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
           MessageHolder::instance().addErrorMsg(*handleError);
           auto response = std::make_unique<common::SmDeliveryErrorResponse>(
               req->getMTimsi(), req->getSmsId(), ueErrorMsg);
+
+          std::lock_guard lock(*ctx->getSendMtx().get());
           auto sendError = sendResponse(ctx, std::move(response));
           if (sendError) {
             MessageHolder::instance().addErrorMsg("Error sending error info: " +
@@ -473,6 +483,35 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
         mme.lock()->handleSmDeliveryAck(req->getMsisdn(), req->getSmsId(),
                                         req->getMTimsi());
+
+        break;
+      }
+      case common::RequestType::UssdCode: {
+        common::Protocol protocol;
+        auto req = parseFromBytes<common::UssdCodeRequest>(data, protocol);
+        ctx->clearBuf();
+        if (!req) {
+          MessageHolder::instance().addErrorMsg(req.error());
+          continue;
+        }
+
+        MessageHolder::instance().addMsg(
+            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
+            common::MenuMessageType::INFO);
+
+        ctx->setProtocol(protocol);
+
+        auto error = mme.lock()->handleUssd(req->getMTimsi(), req->getCode());
+        if (error) {
+          auto response = std::make_unique<common::ErrorResponse>(*error);
+
+          std::lock_guard lock(*ctx->getSendMtx().get());
+          auto sendError = sendResponse(ctx, std::move(response));
+          if (sendError) {
+            MessageHolder::instance().addErrorMsg("Error sending error info: " +
+                                                  *sendError);
+          }
+        }
 
         break;
       }
@@ -623,6 +662,36 @@ SimtelBaseStation::sendSmDeliveryError(const common::imsi_t &mTimsi,
                                        const std::string &description) {
   auto response = std::make_unique<common::SmDeliveryErrorResponse>(
       mTimsi, smsId, description);
+
+  auto ue = findUe(mTimsi);
+  if (!ue) {
+    return "UE not connected to BS";
+  }
+
+  std::lock_guard lock(*ue->getSendMtx().get());
+
+  return sendResponse(mTimsi, std::move(response));
+}
+
+std::optional<std::string>
+SimtelBaseStation::sendUssdBalance(const common::imsi_t &mTimsi,
+                                   double balance) {
+  auto response = std::make_unique<common::UssdBalanceResponse>(balance);
+
+  auto ue = findUe(mTimsi);
+  if (!ue) {
+    return "UE not connected to BS";
+  }
+
+  std::lock_guard lock(*ue->getSendMtx().get());
+
+  return sendResponse(mTimsi, std::move(response));
+}
+
+std::optional<std::string>
+SimtelBaseStation::sendUssdMsisdn(const common::imsi_t &mTimsi,
+                                  const common::msisdn_t &msisdn) {
+  auto response = std::make_unique<common::UssdMsisdnResponse>(msisdn);
 
   auto ue = findUe(mTimsi);
   if (!ue) {

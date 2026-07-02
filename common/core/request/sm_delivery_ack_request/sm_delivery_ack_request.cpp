@@ -45,7 +45,7 @@ SmDeliveryAckRequest::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string> SmDeliveryAckRequest::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("IMSI serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
   auto binSmsId = BinarySerializer::toBinary(smsId);
   if (!binSmsId) {

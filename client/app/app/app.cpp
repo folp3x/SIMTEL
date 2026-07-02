@@ -7,16 +7,23 @@
 #include "client/app/menu/command_info/command_info.h"
 #include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
+
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
+
 #include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
 #include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+
 #include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
 #include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
 #include "common/core/response/sm_delivery_response/sm_delivery_response.h"
+
+#include "common/core/response/ussd_balance_response/ussd_balance_response.h"
+#include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
 
 namespace client {
 void App::sigintHandler(int signal) {
@@ -164,7 +171,7 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
   if (!cmd.getContent().empty()) {
     smsContent = cmd.getContent();
   } else {
-    smsContent = menu.getMessageContent();
+    smsContent = menu.getSmsContent();
     if (smsContent.empty()) {
       addErrorMsg("SMS content cant be empty");
     } else {
@@ -257,8 +264,29 @@ void App::executeSentCommand() const {
   }
 }
 
-void App::executeUssdCodeCommand(const MenuItemUssdCode &cmd) const {
-  std::cout << cmd.getName() << " " << cmd.getCode() << std::endl;
+void App::executeUssdCodeCommand(const MenuItemUssdCode &cmd) {
+  menu.showMessage({"Sending USSD..."});
+
+  auto req =
+      std::make_unique<common::UssdCodeRequest>(ctx.getMTimsi(), cmd.getCode());
+  auto response = exchange.sendUssd(ctx.getState(), std::move(req));
+
+  if (!response) {
+    menu.showError("Error: " + response.error());
+    return;
+  }
+
+  if (auto *balanceResponse =
+          dynamic_cast<common::UssdBalanceResponse *>(response->get())) {
+    menu.showMessage(
+        {"Balance: " + common::toStr(balanceResponse->getBalance(), 2, true) +
+         " rub"});
+  } else if (auto *msisdnResponse =
+                 dynamic_cast<common::UssdMsisdnResponse *>(response->get())) {
+    menu.showMessage({"Phone number: " + msisdnResponse->getMsisdn()});
+  }
+
+  menu.showMessage({""});
 }
 
 void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
@@ -312,8 +340,6 @@ void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
     menu.showUssdInfo(ussdInfo);
   } else if (auto *ussdCodeCmd = dynamic_cast<MenuItemUssdCode *>(cmd.get())) {
     executeUssdCodeCommand(*ussdCodeCmd);
-  } else {
-    menu.showError("Unexpected command");
   }
 }
 

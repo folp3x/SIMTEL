@@ -38,7 +38,7 @@ std::expected<binary_t, std::string>
 RrcReconfigurationHandoverResponse::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("IMSI serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
   auto binBsId = BinarySerializer::toBinary(bsId);
   if (!binBsId) {

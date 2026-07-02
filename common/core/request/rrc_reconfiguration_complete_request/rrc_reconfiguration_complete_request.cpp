@@ -30,7 +30,7 @@ std::expected<binary_t, std::string>
 RrcReconfigurationCompleteRequest::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("m-TIMSI serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
 
   return *binMTimsi;

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <algorithm>
-#include <expected>
-#include <nlohmann/json.hpp>
 #include <ranges>
+
+#include <expected>
 #include <stdexcept>
+
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 

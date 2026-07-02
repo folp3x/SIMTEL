@@ -2,7 +2,9 @@
 
 #include <expected>
 #include <optional>
+
 #include <stdexcept>
+
 #include <string>
 #include <vector>
 
@@ -16,7 +18,8 @@ std::string imsiToStr(uint64_t imsi);
 
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<unsigned int> precision_ = 4);
+std::string toStr(T num, std::optional<unsigned int> precision_ = 4,
+                  bool fixed = false);
 
 // итератор указывающий на числовой элемент контейнера
 // решение найдено здесь:

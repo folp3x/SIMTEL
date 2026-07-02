@@ -19,7 +19,7 @@ rang::fg Menu::getSmsStatusColor(SmsStatus status) const {
   }
 }
 
-std::string Menu::getMessageContent() const {
+std::string Menu::getSmsContent() const {
   std::string content;
   std::string line;
   std::cout << "Write content (empty line means end of sms):" << std::endl;

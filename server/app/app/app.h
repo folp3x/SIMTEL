@@ -1,10 +1,13 @@
 #pragma once
 
 #include "common/network/network_address/network_address.h"
+
 #include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/app/config/config/config.h"
 #include "server/app/config/epc_config/epc_config/epc_config.h"
+
 #include "server/app/menu/menu/menu.h"
+
 #include "server/core/simtel/simtel_listener/simtel_listener.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
 #include "server/core/simtel/simtel_pcrf/simtel_pcrf.h"

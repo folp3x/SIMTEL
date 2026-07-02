@@ -11,8 +11,9 @@ struct BalanceInfo {
   double reservedRub = 0;
 
   std::string toStr() const {
-    return "[imsi=" + imsi + ", balance = " + common::toStr(balanceRub, 2) +
-           " rub, reserved = " + common::toStr(reservedRub, 2) + " rub]";
+    return "[imsi=" + imsi +
+           ", balance = " + common::toStr(balanceRub, 2, true) +
+           " rub, reserved = " + common::toStr(reservedRub, 2, true) + " rub]";
   }
 };
 } // namespace server

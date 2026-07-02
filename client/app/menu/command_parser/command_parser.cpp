@@ -5,6 +5,7 @@
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "client/app/menu/menu_item/menu_item_ussd_code/menu_item_ussd_code.h"
+
 #include "client/validator/validator.h"
 #include "common/network/protocol/protocol.h"
 #include "common/validator/validator.h"

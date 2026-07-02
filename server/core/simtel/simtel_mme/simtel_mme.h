@@ -5,6 +5,7 @@
 
 #include "common/types.h"
 #include "server/app/config/mme_config/mme_config.h"
+
 #include "server/core/simtel/simtel_pcrf/simtel_pcrf.h"
 #include "server/core/simtel/simtel_register/simtel_register.h"
 #include "server/core/simtel/simtel_smsc/simtel_smsc.h"
@@ -101,5 +102,8 @@ public:
 
   void handleSmDeliveryAck(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            const common::imsi_t &mtimsi_d);
+
+  std::optional<std::string> handleUssd(const common::imsi_t &mTimsi,
+                                        uint8_t code);
 };
 } // namespace server

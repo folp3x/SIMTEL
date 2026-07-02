@@ -9,7 +9,7 @@ private:
 
 public:
   UssdMsisdnResponse() = default;
-  UssdMsisdnResponse(const msisdn_t &msisdn_);
+  explicit UssdMsisdnResponse(const msisdn_t &msisdn_);
 
   virtual RequestType getType() const override;
 

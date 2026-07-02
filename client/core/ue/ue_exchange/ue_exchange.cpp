@@ -3,14 +3,20 @@
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
+
 #include "common/core/response/attach_accept_response/attach_accept_response.h"
 #include "common/core/response/error_response/error_response.h"
 #include "common/core/response/measurement_control_response/measurement_control_response.h"
+
 #include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
 #include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+
 #include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
 #include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
 #include "common/core/response/sm_delivery_response/sm_delivery_response.h"
+
+#include "common/core/response/ussd_balance_response/ussd_balance_response.h"
+#include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
 
 namespace client {
 std::optional<std::string>
@@ -138,7 +144,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
 
   bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
   if (!set) {
-    return std::unexpected("Error setting receive timout");
+    return std::unexpected("Error setting receive timeout");
   }
 
   common::MeasurementControlResponse bestSignalResponse{"", 0, 0};
@@ -266,12 +272,10 @@ void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
 
       common::RequestType responseType;
       auto data = receiveResponseData(responseType);
+      lock.unlock();
       if (!data) {
-        lock.unlock();
         continue;
       }
-
-      lock.unlock();
 
       std::unique_ptr<common::Request> response;
       switch (responseType) {
@@ -328,6 +332,61 @@ void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
 
       callback(std::move(response), "");
     }
+  }
+}
+
+std::expected<std::unique_ptr<common::Request>, std::string>
+UeExchange::sendUssd(const UeState &state,
+                     std::unique_ptr<common::UssdCodeRequest> req) {
+  curProtocol = state.protocol;
+
+  std::unique_lock lock(receiveMtx);
+
+  auto sendError = sendRequest(std::move(req));
+  if (sendError) {
+    return std::unexpected("Failed to send ussd - " + *sendError);
+  }
+
+  bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
+  if (!set) {
+    return std::unexpected("Error setting receive timeout");
+  }
+
+  common::RequestType responseType;
+  auto data = receiveResponseData(responseType);
+  lock.unlock();
+  if (!data) {
+    return std::unexpected("Unable to process command");
+  }
+
+  switch (responseType) {
+  case common::RequestType::UssdBalance: {
+    auto receivedResponse = parseFromBytes<common::UssdBalanceResponse>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    }
+
+    return std::make_unique<common::UssdBalanceResponse>(*receivedResponse);
+  }
+  case common::RequestType::UssdMsisdn: {
+    auto receivedResponse = parseFromBytes<common::UssdMsisdnResponse>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    }
+
+    return std::make_unique<common::UssdMsisdnResponse>(*receivedResponse);
+  }
+  case common::RequestType::Error: {
+    auto receivedResponse = parseFromBytes<common::ErrorResponse>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    } else {
+      return std::unexpected(receivedResponse->getDescription());
+    }
+  }
+  default:
+    return std::unexpected("Unexpected response received from BS: " +
+                           common::requestTypeToStr(responseType));
   }
 }
 } // namespace client
