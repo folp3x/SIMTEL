@@ -112,4 +112,10 @@ void Menu::showReceivedSms(const Sms &sms) const {
 void Menu::showError(const std::string &error) const {
   showMessage({error, common::MenuMessageType::ERR});
 }
+
+void Menu::showUssdInfo(const std::vector<UssdInfo> &info) const {
+  for (const auto &ussd : info) {
+    std::cout << ussd.code << " - " << ussd.description << std::endl;
+  }
+}
 } // namespace client

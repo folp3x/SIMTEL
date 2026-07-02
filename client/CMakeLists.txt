@@ -20,6 +20,7 @@ set(SOURCES_LIST
 	"core/ue/ue_context/ue_context.cpp"
 	"core/ue/ue_exchange/ue_exchange.cpp"
 	"app/menu/menu_item/menu_item_exit/menu_item_exit.cpp"
+	"app/menu/menu_item/menu_item_ussd/menu_item_ussd.cpp"
 )
 
 set(CLIENT_LIBRARIES_LIST

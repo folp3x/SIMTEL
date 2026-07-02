@@ -304,6 +304,8 @@ void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
     executeReceivedCommand();
   } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
     executeDialogCommand(*dialogCmd);
+  } else if (auto *dialogCmd = dynamic_cast<MenuItemUssd *>(cmd.get())) {
+    menu.showUssdInfo(ussdInfo);
   }
 }
 
