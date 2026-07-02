@@ -229,12 +229,13 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   }
 
   auto configureCompleteError = chosenBs->handleConfigureComplete(ctx);
-  if (configureCompleteError) {
-    return *configureCompleteError;
-  }
 
   if (handover && prevBs) {
     prevBs->removeUe(ctx->getMTimsi());
+  }
+
+  if (configureCompleteError) {
+    return *configureCompleteError;
   }
 
   return std::nullopt;

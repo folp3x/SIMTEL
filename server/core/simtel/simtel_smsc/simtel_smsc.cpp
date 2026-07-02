@@ -107,8 +107,10 @@ SimtelSmsc::isDelivered(unsigned int smsId,
   return it->second.delivered->load();
 }
 
-bool SimtelSmsc::markDelivered(unsigned int smsId,
-                               const common::imsi_t &mtimsi_s) {
+bool SimtelSmsc::handleMtForwardSmAck(unsigned int smsId,
+                                      const common::imsi_t &mtimsi_s) {
+  MessageHolder::instance().addMsg(createLogMsg("received MtForwardSmAck"));
+
   std::lock_guard lock(contextMtx);
   auto it = context.find({mtimsi_s, smsId});
   if (it == context.end()) {

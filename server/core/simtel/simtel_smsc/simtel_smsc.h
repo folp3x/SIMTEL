@@ -54,7 +54,7 @@ public:
 
   std::optional<bool> isDelivered(unsigned int smsId,
                                   const common::imsi_t &mtimsi_s) const;
-  bool markDelivered(unsigned int smsId, const common::imsi_t &mtimsi_s);
+  bool handleMtForwardSmAck(unsigned int smsId, const common::imsi_t &mtimsi_s);
 
   std::shared_ptr<TtlManager> getTtlManager(unsigned int smsId,
                                             const common::imsi_t &mtimsi_s);

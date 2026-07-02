@@ -67,7 +67,7 @@ void SimtelMme::trySendReport(unsigned int smsId,
     return;
   }
 
-  smsc.lock()->markDelivered(smsId, *mtimsi_s);
+  smsc.lock()->handleMtForwardSmAck(smsId, *mtimsi_s);
 
   auto ttlManager = smsc.lock()->getTtlManager(smsId, *mtimsi_s);
   if (!ttlManager) {
