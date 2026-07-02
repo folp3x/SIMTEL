@@ -22,7 +22,7 @@ protected:
 public:
   virtual ~CommandParser() = default;
 
-  std::unique_ptr<MenuItem> parseCommand(const std::string &str,
-                                         std::string &extraMsg) const;
+  virtual std::unique_ptr<MenuItem> parseCommand(const std::string &str,
+                                                 std::string &extraMsg) const;
 };
 } // namespace common

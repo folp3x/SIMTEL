@@ -2,21 +2,28 @@
 
 #include <csignal>
 #include <iostream>
-#include <spdlog/fmt/fmt.h>
 #include <thread>
 
 #include "client/app/menu/command_info/command_info.h"
 #include "client/app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signals/signal_handler/signal_handler.h"
-#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
-#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
+
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
-#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
-#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"
+
+#include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
+#include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+
+#include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
+#include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
+#include "common/core/response/sm_delivery_response/sm_delivery_response.h"
+
+#include "common/core/response/ussd_balance_response/ussd_balance_response.h"
+#include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
 
 namespace client {
 void App::sigintHandler(int signal) {
@@ -27,7 +34,7 @@ void App::sigintHandler(int signal) {
   }
 }
 
-void App::addSms(const common::Sms &sms) {
+void App::addSms(const Sms &sms) {
   std::lock_guard lock(smsListMtx);
   smsList.push_back(sms);
 }
@@ -57,36 +64,34 @@ void App::handleLocationUpdate() {
 
 void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
   if (auto *handoverResponse =
-          dynamic_cast<common::RrcReconfigurationHandoverRequest *>(
+          dynamic_cast<common::RrcReconfigurationHandoverResponse *>(
               response.get())) {
     common::imsi_t newMTimsi = handoverResponse->getMTimsi();
     bool updated = ctx.setMTimsi(newMTimsi);
     if (updated) {
-      addMsg("BS changed. m-timsi set: " + ctx.getMTimsi());
+      addMsg("Connected. m-timsi set: " + ctx.getMTimsi());
     } else {
       if (ctx.getMTimsi() != newMTimsi) {
-        addErrorMsg("BS changed. New m-timsi received, but it is already "
+        addErrorMsg("Connected. New m-timsi received, but it is already "
                     "assigned");
       } else {
-        addMsg("BS changed. m-timsi not updated: " + ctx.getMTimsi());
+        addMsg("Confirmed m-timsi: " + ctx.getMTimsi());
       }
     }
   } else if (auto *keepResponse =
-                 dynamic_cast<common::RrcReconfigurationKeepRequest *>(
+                 dynamic_cast<common::RrcReconfigurationKeepResponse *>(
                      response.get())) {
     addMsg("BS not changed");
   }
 }
 
-void App::handleActiveCommand(const MenuItemActive &cmd) {
-  logCommandProcess(cmd.getName(), fmt::format("active={}", cmd.getActive()));
-
+void App::executeActiveCommand(const MenuItemActive &cmd) {
   bool newActive = cmd.getActive();
   bool stateChanged = newActive != ctx.isInActive();
   if (stateChanged) {
-    auto updateError = exchange.updateConnection(newActive);
-    if (updateError) {
-      addErrorMsg("Error updating connection: " + *updateError);
+    auto error = exchange.updateConnection(newActive);
+    if (error) {
+      addErrorMsg("Error updating connection: " + *error);
       return;
     }
 
@@ -100,11 +105,8 @@ void App::handleActiveCommand(const MenuItemActive &cmd) {
                            stateChanged));
 }
 
-void App::handleMoveCommand(const MenuItemMove<> &cmd) {
+void App::executeMoveCommand(const MenuItemMove<> &cmd) {
   auto coords = cmd.getCoords();
-  logCommandProcess(
-      cmd.getName(),
-      fmt::format("coords={}", common::toStr(coords.begin(), coords.end())));
 
   bool locationChanged = !ctx.getLocation().coordsEqual(coords);
   try {
@@ -126,9 +128,8 @@ void App::handleMoveCommand(const MenuItemMove<> &cmd) {
   }
 }
 
-void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
+void App::executeProtocolCommand(const MenuItemProtocol &cmd) {
   std::string protocolStr = cmd.getProtocol();
-  logCommandProcess(cmd.getName(), fmt::format("protocol={}", protocolStr));
 
   auto parsedProtocol = common::protocolFromStr(protocolStr);
   if (!parsedProtocol) {
@@ -147,9 +148,9 @@ void App::handleProtocolCommand(const MenuItemProtocol &cmd) {
                            protocolChanged));
 }
 
-void App::handleSmsCommand(const MenuItemSMS &cmd) {
+void App::executeSmsCommand(const MenuItemSMS &cmd) {
   if (!exchange.hasSignal()) {
-    addErrorMsg("No signal. Cant send SMS");
+    addErrorMsg("No signal");
     return;
   }
 
@@ -162,13 +163,15 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
     }
 
     targetMsisdn = std::move(*foundMsisdn);
+  } else {
+    targetMsisdn = cmd.getMsisdn();
   }
 
   std::string smsContent = "";
   if (!cmd.getContent().empty()) {
     smsContent = cmd.getContent();
   } else {
-    smsContent = menu.getMessageContent();
+    smsContent = menu.getSmsContent();
     if (smsContent.empty()) {
       addErrorMsg("SMS content cant be empty");
     } else {
@@ -189,26 +192,24 @@ void App::handleSmsCommand(const MenuItemSMS &cmd) {
                           addErrorMsg("Error: " + error);
                         } else {
                           addSentSms(targetMsisdn, smsContent, smsId);
-                          addMsg("SMS sent to " + targetMsisdn +
-                                 " (id=" + std::to_string(smsId) + ")");
+                          addMsg("SMS sent to " + targetMsisdn);
                         }
                       });
 }
 
 void App::addSentSms(const common::msisdn_t &targetMsisdn,
                      const std::string &smsContent, unsigned int smsId) {
-  common::Sms sms{smsId,
-                  std::chrono::time_point_cast<std::chrono::seconds>(
-                      std::chrono::system_clock::now()),
-                  {},
-                  "",
-                  targetMsisdn,
-                  smsContent,
-                  false};
+  Sms sms{smsId,
+          std::chrono::time_point_cast<std::chrono::seconds>(
+              std::chrono::system_clock::now()),
+          {},
+          "",
+          targetMsisdn,
+          smsContent};
   addSms(sms);
 }
 
-void App::handleDialogCommand(const MenuItemDialog &cmd) const {
+void App::executeDialogCommand(const MenuItemDialog &cmd) const {
   bool showed = false;
   for (const auto &sms : smsList) {
     if (sms.receiver == cmd.getMsisdn()) {
@@ -217,17 +218,19 @@ void App::handleDialogCommand(const MenuItemDialog &cmd) const {
       showed = true;
     } else if (sms.sender == cmd.getMsisdn()) {
       menu.showMenuHeaderLine();
-      menu.showSentSms(sms);
+      menu.showSentSms(sms, true);
       showed = true;
     }
   }
 
   if (!showed) {
     menu.showError("No dialog");
+  } else {
+    menu.showMenuHeaderLine();
   }
 }
 
-void App::handleReceivedCommand() const {
+void App::executeReceivedCommand() const {
   bool showed = false;
   for (const auto &sms : smsList) {
     if (sms.receiver.empty()) {
@@ -239,10 +242,12 @@ void App::handleReceivedCommand() const {
 
   if (!showed) {
     menu.showError("No received sms");
+  } else {
+    menu.showMenuHeaderLine();
   }
 }
 
-void App::handleSentCommand() const {
+void App::executeSentCommand() const {
   bool showed = false;
   for (const auto &sms : smsList) {
     if (!sms.receiver.empty()) {
@@ -254,7 +259,34 @@ void App::handleSentCommand() const {
 
   if (!showed) {
     menu.showError("No sent sms");
+  } else {
+    menu.showMenuHeaderLine();
   }
+}
+
+void App::executeUssdCodeCommand(const MenuItemUssdCode &cmd) {
+  menu.showMessage({"Sending USSD..."});
+
+  auto req =
+      std::make_unique<common::UssdCodeRequest>(ctx.getMTimsi(), cmd.getCode());
+  auto response = exchange.sendUssd(ctx.getState(), std::move(req));
+
+  if (!response) {
+    menu.showError("Error: " + response.error());
+    return;
+  }
+
+  if (auto *balanceResponse =
+          dynamic_cast<common::UssdBalanceResponse *>(response->get())) {
+    menu.showMessage(
+        {"Balance: " + common::toStr(balanceResponse->getBalance(), 2, true) +
+         " rub"});
+  } else if (auto *msisdnResponse =
+                 dynamic_cast<common::UssdMsisdnResponse *>(response->get())) {
+    menu.showMessage({"Phone number: " + msisdnResponse->getMsisdn()});
+  }
+
+  menu.showMessage({""});
 }
 
 void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
@@ -273,10 +305,6 @@ void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
 void App::exitApp() {
   exchange.stop();
 
-  if (common::Logger::isInitialized()) {
-    common::Logger::instance().getInner()->flush();
-  }
-
   std::cout << "Exiting app..." << std::endl;
 }
 
@@ -288,42 +316,30 @@ unsigned int App::generateSmsId() {
   return curSmsId;
 }
 
-void App::handleCommand(const std::unique_ptr<common::MenuItem> &cmd,
-                        bool &exit) {
-  std::string cmdNameUpper = common::uppercased(cmd->getName());
-  bool isCorrectCommand = true;
-
-  // выполнение команды в засимости от ее типа
+void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
+                         bool &exit) {
   if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Received invalid command: {}", invalidCmd->getError());
     addErrorMsg("Error! " + invalidCmd->getError());
-    isCorrectCommand = false;
   } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
-    logCommandProcess(cmdNameUpper);
     exit = true;
   } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
-    handleActiveCommand(*activeCmd);
+    executeActiveCommand(*activeCmd);
   } else if (auto *moveCmd = dynamic_cast<MenuItemMove<> *>(cmd.get())) {
-    handleMoveCommand(*moveCmd);
+    executeMoveCommand(*moveCmd);
   } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
-    handleProtocolCommand(*protocolCmd);
+    executeProtocolCommand(*protocolCmd);
   } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
-    handleSmsCommand(*smsCmd);
-  } else if (auto *sentCmd = dynamic_cast<MenuItemSent *>(cmd.get())) {
-    handleSentCommand();
-  } else if (auto *receivedCmd = dynamic_cast<MenuItemReceived *>(cmd.get())) {
-    handleReceivedCommand();
+    executeSmsCommand(*smsCmd);
+  } else if (dynamic_cast<MenuItemSent *>(cmd.get())) {
+    executeSentCommand();
+  } else if (dynamic_cast<MenuItemReceived *>(cmd.get())) {
+    executeReceivedCommand();
   } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
-    handleDialogCommand(*dialogCmd);
-  } else if (auto *emptyCmd =
-                 dynamic_cast<common::MenuItemEmpty *>(cmd.get())) {
-    return;
-  }
-
-  if (isCorrectCommand) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Finished command {}", cmdNameUpper);
+    executeDialogCommand(*dialogCmd);
+  } else if (dynamic_cast<MenuItemUssd *>(cmd.get())) {
+    menu.showUssdInfo(ussdInfo);
+  } else if (auto *ussdCodeCmd = dynamic_cast<MenuItemUssdCode *>(cmd.get())) {
+    executeUssdCodeCommand(*ussdCodeCmd);
   }
 }
 
@@ -344,23 +360,23 @@ App::App(const UeContext &ctx_,
 
 void App::run() {
   messages = {};
-  isRunning = true;
+  running = true;
 
-  std::jthread requestsHandler{[this]() { exchange.handleRequests(); }};
+  std::jthread requestsSender{[this]() { exchange.sendRequests(); }};
 
-  std::jthread smsInfoReceiver{[this]() {
-    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
-                                   const std::string &error) {
-      if (!error.empty()) {
-        addErrorMsg("Error: " + error);
-      } else {
-        handleSmsInfoResponse(std::move(response));
-      }
-    });
+  std::jthread backgroundReceiver{[this]() {
+    exchange.receiveFromBsInBackground(
+        [this](std::unique_ptr<common::Request> response,
+               const std::string &error) {
+          if (!error.empty()) {
+            addErrorMsg("Error: " + error);
+          } else {
+            handleBackgroundResponse(std::move(response));
+          }
+        });
   }};
 
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
-  while (isRunning) {
+  while (running) {
     menu.showMenuHeaderLine();
     menu.showStatus(ctx.isInActive(), ctx.getImsi(), ctx.getProtocol());
     menu.showMenuHeaderLine();
@@ -378,36 +394,17 @@ void App::run() {
     }
 
     bool exit = false;
-    handleCommand(cmd, exit);
-
-    {
-      std::lock_guard lock(messagesMtx);
-      menu.showMessages(messages);
-    }
+    executeCommand(cmd, exit);
+    showMessages();
 
     if (exit) {
-      isRunning = false;
+      running = false;
     } else {
       std::cout << std::endl;
     }
   }
 
   exitApp();
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
-}
-
-void App::logCommandProcess(std::string_view commandName,
-                            std::string_view argsStr) const {
-  std::string nameUpper = common::uppercased(commandName);
-  if (!argsStr.empty()) {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Processing command {} with args: {}", nameUpper,
-                       argsStr);
-  } else {
-    SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                       "Processing command {}", nameUpper);
-  }
 }
 
 void App::addMsg(const std::string &content, common::MenuMessageType type) {
@@ -419,52 +416,66 @@ void App::addErrorMsg(const std::string &content) {
   addMsg(content, common::MenuMessageType::ERR);
 }
 
-void App::handleSmsInfoResponse(std::unique_ptr<common::Request> response) {
+void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
   if (auto *deliveryResponse =
-          dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
+          dynamic_cast<common::SmDeliveryResponse *>(response.get())) {
     if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
       addErrorMsg("Unknown m-timsi in delivery response: " +
                   deliveryResponse->getMTimsi());
       return;
     }
 
-    bool isDuplicate = false;
+    bool duplicate = false;
     for (const auto &sms : smsList) {
       if (sms.id == deliveryResponse->getSmsId() &&
           sms.sender == deliveryResponse->getMsisdn()) {
-        isDuplicate = true;
+        duplicate = true;
         break;
       }
     }
 
-    if (!isDuplicate) {
-      addMsg("SMS received from " + deliveryResponse->getMsisdn() +
-             " (id=" + std::to_string(deliveryResponse->getSmsId()) + ")");
+    if (!duplicate) {
+      addMsg("SMS received from " + deliveryResponse->getMsisdn());
 
-      common::Sms sms{deliveryResponse->getSmsId(),
-                      {},
-                      std::chrono::time_point_cast<std::chrono::seconds>(
-                          std::chrono::system_clock::now()),
-                      deliveryResponse->getMsisdn(),
-                      "",
-                      deliveryResponse->getText(),
-                      true};
-
+      Sms sms{deliveryResponse->getSmsId(),
+              {},
+              std::chrono::time_point_cast<std::chrono::seconds>(
+                  std::chrono::system_clock::now()),
+              deliveryResponse->getMsisdn(),
+              "",
+              deliveryResponse->getText()};
       addSms(sms);
     }
 
     addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
                              deliveryResponse->getSmsId());
-  } else if (auto *reportResponse =
-                 dynamic_cast<common::SmDeliveryReportRequest *>(
+  } else if (auto *errorResponse =
+                 dynamic_cast<common::SmDeliveryErrorResponse *>(
                      response.get())) {
-    std::lock_guard lock(smsListMtx);
-    for (int i = 0; i < smsList.size(); ++i) {
-      if (smsList[i].id == reportResponse->getSmsId() &&
-          smsList[i].sender.empty()) {
-        smsList[i].delivered = true;
-        break;
-      }
+    setSentSmsStatus(errorResponse->getSmsId(), SmsStatus::NOT_DELIVERED);
+    std::string description = errorResponse->getDescription();
+    if (!description.empty()) {
+      addErrorMsg("SMS not delivered: " + description);
+    }
+  } else if (auto *reportResponse =
+                 dynamic_cast<common::SmDeliveryReportResponse *>(
+                     response.get())) {
+    setSentSmsStatus(reportResponse->getSmsId(), SmsStatus::DELIVERED);
+  }
+}
+
+void App::showMessages() {
+  std::lock_guard lock(messagesMtx);
+  menu.showMessages(messages);
+}
+
+void App::setSentSmsStatus(unsigned int smsId, SmsStatus status) {
+  std::lock_guard lock(smsListMtx);
+
+  for (int i = 0; i < smsList.size(); ++i) {
+    if (smsList[i].id == smsId && smsList[i].sender.empty()) {
+      smsList[i].status = status;
+      return;
     }
   }
 }

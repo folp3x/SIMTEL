@@ -15,5 +15,5 @@ void MenuItemDialog::setSpeedDialNum(char speedDialNum_) {
   speedDialNum = speedDialNum_;
 }
 
-size_t MenuItemDialog::getArgsCount() { return 2; }
+size_t MenuItemDialog::getArgsCount() { return 1; }
 } // namespace client

@@ -8,7 +8,7 @@
 
 namespace common {
 // парсит IP, возвращает его в хостовом порядке байт
-std::expected<uint64_t, std::string> parseIP(const std::string &str) {
+std::expected<uint64_t, std::string> parseIp(const std::string &str) {
   in_addr tempAddr{};
   if (inet_pton(PF_INET, str.c_str(), &(tempAddr)) != 1) {
     return std::unexpected("IP address parse error");
@@ -16,7 +16,7 @@ std::expected<uint64_t, std::string> parseIP(const std::string &str) {
 
   uint32_t ip = tempAddr.s_addr;
 
-  std::string validationInfo = Validator::isCorrectIP(ip);
+  std::string validationInfo = Validator::isCorrectIp(ip);
   if (validationInfo.empty()) {
     return ntohl(ip);
   }
@@ -29,7 +29,7 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
 
   if (portParseResult) {
     float port = *portParseResult;
-    if (port != floor(port)) {
+    if (port != std::floor(port)) {
       return std::unexpected("Port must be integer");
     }
 

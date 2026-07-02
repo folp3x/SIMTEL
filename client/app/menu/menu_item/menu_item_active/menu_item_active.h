@@ -7,17 +7,13 @@ class MenuItemActive : public common::MenuItem {
 private:
   const bool active = false;
 
-  void logConstructor(const std::string &constructorType, bool active) const;
-
 public:
   explicit MenuItemActive(bool active_);
-
-  MenuItemActive(const MenuItemActive &other);
-  MenuItemActive(MenuItemActive &&other) noexcept;
 
   virtual std::string_view getName() const override;
 
   bool getActive() const;
+
   static size_t getArgsCount();
 };
 } // namespace client

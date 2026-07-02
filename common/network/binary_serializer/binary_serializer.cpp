@@ -7,8 +7,8 @@ namespace common {
 binary_t BinarySerializer::strToBinary(const std::string &binary) {
   binary_t result;
   result.reserve(binary.size());
-  for (char c : binary) {
-    result.push_back(static_cast<std::byte>(c));
+  for (auto byte : binary) {
+    result.push_back(static_cast<std::byte>(byte));
   }
   return result;
 }
@@ -16,8 +16,8 @@ binary_t BinarySerializer::strToBinary(const std::string &binary) {
 std::string BinarySerializer::strFromBinary(const binary_t &binary) {
   std::string result;
   result.reserve(binary.size());
-  for (std::byte b : binary) {
-    result.push_back(static_cast<char>(b));
+  for (std::byte byte : binary) {
+    result.push_back(static_cast<char>(byte));
   }
   return result;
 }
@@ -42,7 +42,7 @@ std::optional<imei_t> BinarySerializer::imeiFromBinary(const binary_t &binary) {
     imei = std::string(lenDiff, '0') + imei;
   }
 
-  if (!Validator::isCorrectIMEI(imei).empty()) {
+  if (!Validator::isCorrectImei(imei).empty()) {
     return std::nullopt;
   }
 
@@ -64,7 +64,7 @@ std::optional<imsi_t> BinarySerializer::imsiFromBinary(const binary_t &binary) {
   }
 
   imsi_t imsi = imsiToStr(*deserialized);
-  if (!Validator::isCorrectIMSI(imsi).empty()) {
+  if (!Validator::isCorrectImsi(imsi).empty()) {
     return std::nullopt;
   }
 

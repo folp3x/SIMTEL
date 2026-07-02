@@ -16,29 +16,29 @@ void App::sigintHandler(int signal) {
 }
 
 void App::exitApp() {
-  isRunning = false;
+  running = false;
   listener.stop();
-
-  if (common::Logger::isInitialized()) {
-    common::Logger::instance().getInner()->flush();
-  }
 
   std::cout << "Exiting app..." << std::endl;
 }
 
 App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
-         const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
+         const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig,
+         const PcrfConfig &pcrfConfig)
     : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec,
                                               TTL_WARNING_PERIOD_SEC)),
       listener(addr, maxUeThreadsCount),
-      hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath)),
-      smsc(std::make_unique<SimtelSmsc>(smscConfig)) {
+      reg(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath,
+                                           epcConfig.eirSqliteFilePath)),
+      smsc(std::make_unique<SimtelSmsc>(smscConfig)),
+      pcrf(std::make_shared<SimtelPcrf>(pcrfConfig.smsPriceRub,
+                                        pcrfConfig.balanceInfo)) {
   listener.setTtlManager(ttlManager);
 
   for (const auto &config : mmeConfigs) {
-    mmeList.insert(
-        {config.id, std::make_shared<SimtelMme>(config, hlr, smsc.get())});
+    mmeList.emplace(config.id,
+                    std::make_shared<SimtelMme>(config, reg, smsc, pcrf));
   }
 
   for (auto &[id, mme] : mmeList) {
@@ -55,36 +55,39 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
       throw std::runtime_error("Unknown MME id in BS config");
     }
 
-    auto bs = std::make_shared<SimtelBaseStation>(config, it->second.get());
+    auto bs = std::make_shared<SimtelBaseStation>(config, it->second);
     it->second->addBs(bs);
     SimtelBaseStation::addBs(bs);
   }
 
-  if (!hlr->hasData()) {
-    hlr->insertData();
+  if (!reg->hasHlrData()) {
+    reg->insertHlrData();
   }
+
+  if (!reg->hasEirData()) {
+    reg->insertEirData();
+  }
+
+  reg->logRecords();
 
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
 }
 
 void App::run() {
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App started");
-
-  isRunning = true;
+  running = true;
 
   menu.showStatus();
 
-  ttlManager->update();
-  ttlManager->setActive(true);
+  ttlManager->start();
 
   std::jthread connectionHandler{[this]() {
     listener.acceptConnections([](std::shared_ptr<SimtelUeContext> ctx) {
-      SimtelBaseStation::handleConnectionRequest(ctx);
+      SimtelBaseStation::handleConnection(ctx);
     });
   }};
 
-  while (isRunning) {
+  while (running) {
     while (true) {
       auto msg = MessageHolder::instance().takeMsg();
       if (msg) {
@@ -107,11 +110,10 @@ void App::run() {
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS * 10));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(MENU_SLEEP_MSEC * 10));
   }
 
   exitApp();
-
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(), "App exited");
 }
 } // namespace server

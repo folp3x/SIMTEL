@@ -10,7 +10,6 @@ namespace common {
 const std::string Validator::MSISDN_FORMAT_STR =
     "8" + std::string(MSISDN_LENGTH, MSISDN_ANY_DIGIT);
 
-// проверяет что путь является путем к файлу JSON
 bool Validator::isCorrectJsonPath(std::string_view filePath) {
   size_t jsonExtLen = std::strlen(".json");
   return (filePath.size() < jsonExtLen) ||
@@ -68,8 +67,8 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
   return "";
 }
 
-// проверяет коррекность IPv4. ip должен иметь хостовой порядок байт
-std::string Validator::isCorrectIP(uint32_t ip) {
+// проверяет коррекность IPv4. IP должен иметь хостовой порядок байт
+std::string Validator::isCorrectIp(uint32_t ip) {
   uint8_t lowByte = ip & 0xFF;
   if (lowByte < MIN_IP_LOW_BYTE || lowByte > MAX_IP_LOW_BYTE) {
     return "IP low byte must be from " + std::to_string(MIN_IP_LOW_BYTE) +
@@ -79,7 +78,7 @@ std::string Validator::isCorrectIP(uint32_t ip) {
 }
 
 std::string Validator::isCorrectIpStr(const std::string &ipStr) {
-  auto parseResult = parseIP(ipStr);
+  auto parseResult = parseIp(ipStr);
   if (parseResult) {
     return "";
   }
@@ -102,31 +101,31 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
   return parseResult.error();
 }
 
-std::string Validator::isCorrectIMEI(const imei_t &imei) {
+std::string Validator::isCorrectImei(const imei_t &imei) {
   return isCorrectDigitStr(imei, MIN_IMEI_LENGTH, MAX_IMEI_LENGTH, "IMEI");
 }
 
-std::string Validator::isCorrectIMSI(const imsi_t &imsi) {
+std::string Validator::isCorrectImsi(const imsi_t &imsi) {
   return isCorrectDigitStr(imsi, MIN_IMSI_LENGTH, MAX_IMSI_LENGTH, "IMSI");
 }
 
 std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
-  bool isCorrect = true;
+  bool correct = true;
 
   if (msisdn.length() != MSISDN_LENGTH) {
-    isCorrect = false;
+    correct = false;
   } else {
     for (int i = 0; i < msisdn.length(); ++i) {
       char formatCh = MSISDN_FORMAT_STR[i];
-      if (isdigit(formatCh) && msisdn[i] != formatCh ||
-          formatCh == MSISDN_ANY_DIGIT && !isdigit(msisdn[i])) {
-        isCorrect = false;
+      if (std::isdigit(formatCh) && msisdn[i] != formatCh ||
+          formatCh == MSISDN_ANY_DIGIT && !std::isdigit(msisdn[i])) {
+        correct = false;
         break;
       }
     }
   }
 
-  return isCorrect ? "" : "MSISDN must have format: " + MSISDN_FORMAT_STR;
+  return correct ? "" : "MSISDN must have format: " + MSISDN_FORMAT_STR;
 }
 
 std::string

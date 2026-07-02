@@ -2,6 +2,7 @@
   "port": 60000,
   "bsFilePath": "./data/config/nodes.json",
   "epcFilePath": "./data/config/epc.json",
+
   "mmeConfigs": [
     {
       "id": 1,
@@ -12,10 +13,30 @@
       "maxVlrSize": 20
     }
   ],
+
   "smscConfig": {
-    "smsTtl_ms": 30000,
-    "cdrAccessParams": {
-      "jsonFilePath": "./data/cdr.json"
-    }
+    "smsTtl_ms": 30000
+  },
+
+  "pcrfConfig": {
+    "smsPrice_rub": 2,
+    "balanceInfo": [
+      {
+        "imsi": "200000000000000",
+        "balance_rub": 60
+      },
+      {
+        "imsi": "400000000000000",
+        "balance_rub": 8
+      },
+      {
+        "imsi": "600000000000000",
+        "balance_rub": 10
+      },
+      {
+        "imsi": "800000000000000",
+        "balance_rub": 0
+      }
+    ]
   }
 }

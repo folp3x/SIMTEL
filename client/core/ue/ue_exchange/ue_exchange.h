@@ -1,11 +1,13 @@
 #pragma once
 
+#include <condition_variable>
 #include <functional>
 #include <queue>
 
 #include "client/core/ue/ue_state/ue_state.h"
 #include "client/network/socket/socket.h"
 #include "common/core/request/request/request.h"
+#include "common/core/request/ussd_code_request/ussd_code_request.h"
 
 namespace client {
 class UeExchange {
@@ -19,9 +21,10 @@ private:
     CallbackType callback{};
   };
 
-  static constexpr unsigned int SMS_INFO_SLEEP_MS = 1000;
-  static constexpr unsigned int RECEIVE_SMS_INFO_TIMEOUT_MSEC = 100;
+  static constexpr unsigned int RECEIVE_FROM_BS_SLEEP_MSEC = 1000;
+  static constexpr unsigned int RECEIVE_FROM_BS_TIMEOUT_MSEC = 100;
   static constexpr unsigned int RECEIVE_SIGNAL_TIMEOUT_MSEC = 2000;
+  static constexpr unsigned int RECEIVE_USSD_TIMEOUT_MSEC = 1000;
 
   bool running = true;
 
@@ -50,13 +53,13 @@ private:
   std::expected<common::binary_t, std::string>
   receiveResponseData(common::RequestType &type) const;
 
-public:
-  explicit UeExchange(const common::NetworkAddress &serverAddr_);
-
   std::expected<std::unique_ptr<common::Request>, std::string>
   handleLocationUpdate(RequestInfo info);
 
-  void handleRequests();
+public:
+  explicit UeExchange(const common::NetworkAddress &serverAddr_);
+
+  void sendRequests();
 
   void addRequest(const UeState &state, std::unique_ptr<common::Request> req,
                   const CallbackType &callback);
@@ -70,7 +73,10 @@ public:
 
   void stop();
 
-  void receiveSmsInfo(const CallbackType &callback);
+  void receiveFromBsInBackground(const CallbackType &callback);
+
+  std::expected<std::unique_ptr<common::Request>, std::string>
+  sendUssd(const UeState &state, std::unique_ptr<common::UssdCodeRequest> req);
 };
 } // namespace client
 

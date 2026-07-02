@@ -27,5 +27,7 @@ public:
   size_t getSize() const;
 
   std::optional<VlrRecord> findByMTimsi(const common::imsi_t &mTimsi) const;
+
+  std::optional<VlrRecord> findByImsi(const common::imsi_t &imsi) const;
 };
 } // namespace server

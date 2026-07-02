@@ -21,11 +21,11 @@ private:
 public:
   TtlManager(unsigned int timeoutSec, unsigned int warningPeriod_);
 
-  void update();
-
   bool isExpired() const;
 
-  void setActive(bool isActive);
+  void start();
+  void stop();
+
   bool isActive() const;
 
   std::optional<unsigned int> getWarningSec();

@@ -2,7 +2,9 @@
 
 #include <expected>
 #include <optional>
+
 #include <stdexcept>
+
 #include <string>
 #include <vector>
 
@@ -11,13 +13,13 @@ std::string lowercased(std::string_view str);
 std::string uppercased(std::string_view str);
 std::optional<bool> parseBool(std::string_view str);
 bool allDigits(std::string_view str);
-std::string ltrimmed(std::string_view str);
 std::vector<std::string> split(const std::string &str);
 std::string imsiToStr(uint64_t imsi);
 
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<unsigned int> precision_ = 4);
+std::string toStr(T num, std::optional<unsigned int> precision_ = 4,
+                  bool fixed = false);
 
 // итератор указывающий на числовой элемент контейнера
 // решение найдено здесь:

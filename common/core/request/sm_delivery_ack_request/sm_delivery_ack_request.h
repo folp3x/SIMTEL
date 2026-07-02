@@ -12,7 +12,7 @@ private:
 public:
   SmDeliveryAckRequest() = default;
   SmDeliveryAckRequest(const imsi_t &mTimsi_, unsigned int smsId_,
-                       const common::msisdn_t &msisdn_);
+                       const msisdn_t &msisdn_);
 
   virtual RequestType getType() const override;
 

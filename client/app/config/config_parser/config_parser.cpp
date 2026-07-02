@@ -5,39 +5,37 @@
 
 namespace client {
 void ConfigParser::initImeiField() {
-  addParsedField<common::imei_t>(
+  addInfo(makeParsedField<common::imei_t>(
       "imei", [this](const common::imei_t &imei) { config.setImei(imei); },
-      common::Validator::isCorrectIMEI);
+      common::Validator::isCorrectImei));
 }
 
 void ConfigParser::initImsiField() {
-  addParsedField<common::imsi_t>(
+  addInfo(makeParsedField<common::imsi_t>(
       "imsi", [this](const common::imei_t &imsi) { config.setImsi(imsi); },
-      common::Validator::isCorrectIMSI);
+      common::Validator::isCorrectImsi));
 }
 
 void ConfigParser::initIpField() {
-  this->template addParsedField<std::string>(
-      "ip", [this](const std::string &ip) { config.setIP(ip); },
-      common::Validator::isCorrectIpStr);
+  addInfo(makeParsedField<std::string>(
+      "ip", [this](const std::string &ip) { config.setIp(ip); },
+      common::Validator::isCorrectIpStr));
 }
 
 void ConfigParser::initAddressBookFilePathField() {
-  this->template addParsedField<std::string>(
+  addInfo(makeParsedField<std::string>(
       "addressBookFilePath",
       [this](const std::string &filePath) {
         config.setAddressBookFilePath(filePath);
       },
       [](const std::string &filePath) {
         return common::Validator::jsonFilePathExists(filePath, "Address book");
-      });
+      }));
 }
 
 void ConfigParser::initLocField() {
-  this->template addParsedArray<float,
-                                common::constants::LOCATION_COORDS_COUNT>(
-      "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); },
-      nlohmann::json::value_t::number_float);
+  addInfo(makeParsedArray<float, common::constants::LOCATION_COORDS_COUNT>(
+      "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); }));
 }
 
 void ConfigParser::initFields() {

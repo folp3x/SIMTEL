@@ -18,9 +18,9 @@ bool SimtelUeContext::setMTimsi(const common::imsi_t &mTimsi_) {
   return false;
 }
 
-SimtelBaseStation *SimtelUeContext::getBs() const { return bs; }
+std::weak_ptr<SimtelBaseStation> SimtelUeContext::getBs() const { return bs; }
 
-void SimtelUeContext::setBs(SimtelBaseStation *bs_) { bs = bs_; }
+void SimtelUeContext::setBs(std::weak_ptr<SimtelBaseStation> bs_) { bs = bs_; }
 
 common::Protocol SimtelUeContext::getProtocol() const { return protocol; }
 
@@ -29,7 +29,7 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
 }
 
 common::binary_t SimtelUeContext::takeBuf() {
-  auto copy = buf;
+  common::binary_t copy = buf;
   buf.clear();
 
   return copy;
@@ -48,9 +48,8 @@ common::binary_t SimtelUeContext::copyBuf() const {
 }
 
 void SimtelUeContext::clearBuf() {
-  MessageHolder::instance().addMsg(toStr() + " buf cleared (" +
-                                   std::to_string(buf.size()) + " bytes)");
   buf.clear();
+  MessageHolder::instance().addMsg(toStr() + " buf cleared");
 }
 
 void SimtelUeContext::aquireBuf(size_t size) {
@@ -63,9 +62,9 @@ bool SimtelUeContext::fillBuf(const common::binary_t &data) {
   if (buf.size() != data.size()) {
     return false;
   }
+
   buf.assign(data.begin(), data.end());
-  MessageHolder::instance().addMsg(toStr() + " buf filled (" +
-                                   std::to_string(buf.size()) + " bytes)");
+  MessageHolder::instance().addMsg(toStr() + " buf filled");
   return true;
 }
 
@@ -100,5 +99,9 @@ bool SimtelUeContext::setReceiveTimeout(unsigned int timeoutMsec) {
 
 bool SimtelUeContext::removeReceiveTimeout() {
   return sock->removeReceiveTimeout();
+}
+
+std::shared_ptr<std::mutex> SimtelUeContext::getSendMtx() const {
+  return sendMtx;
 }
 } // namespace server

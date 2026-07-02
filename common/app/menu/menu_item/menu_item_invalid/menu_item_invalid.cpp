@@ -1,28 +1,9 @@
 #include "menu_item_invalid.h"
 
-#include "common/logging/logger/logger.h"
-
 namespace common {
 MenuItemInvalid::MenuItemInvalid(const std::string &error_) : error(error_) {}
 
 std::string_view MenuItemInvalid::getName() const { return ""; }
-
-MenuItemInvalid::MenuItemInvalid(const MenuItemInvalid &other)
-    : error(other.error) {
-  logConstructor("COPY", error);
-}
-
-MenuItemInvalid::MenuItemInvalid(MenuItemInvalid &&other) noexcept
-    : error(std::move(other.error)) {
-  logConstructor("MOVE", error);
-}
-
-void MenuItemInvalid::logConstructor(const std::string &constructorType,
-                                     const std::string &error) const {
-  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
-                      "client::MenuItemInvalid {} constructor called: error={}",
-                      constructorType, error);
-}
 
 std::string MenuItemInvalid::getError() const { return error; }
 } // namespace common

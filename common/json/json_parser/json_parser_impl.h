@@ -16,36 +16,47 @@ JsonParser<T>::parseFields(const nlohmann::json &json) {
 
 template <typename T>
 template <typename F>
-void JsonParser<T>::addParsedField(
+std::unique_ptr<JsonFieldInfo<F>> JsonParser<T>::makeParsedField(
     const std::string &name,
     const std::function<void(const F &)> &successCallback,
     const std::function<std::string(const F &)> &checkFn) {
-  auto info =
-      std::make_unique<JsonFieldInfo<F>>(name, successCallback, checkFn);
-  fieldsInfo.push_back(std::move(info));
+  return std::make_unique<JsonFieldInfo<F>>(name, successCallback, checkFn);
 }
 
 template <typename T>
 template <typename E, size_t S>
-void JsonParser<T>::addParsedArray(
+std::unique_ptr<JsonArrayInfo<E, S>> JsonParser<T>::makeParsedArray(
     const std::string &name,
     const std::function<void(const std::array<E, S> &)> &successCallback,
-    nlohmann::json::value_t elemType,
     const std::function<std::string(const std::array<E, S> &)> &checkFn) {
-  auto info = std::make_unique<JsonArrayInfo<E, S>>(name, successCallback,
-                                                    elemType, checkFn);
-  fieldsInfo.push_back(std::move(info));
+  return std::make_unique<JsonArrayInfo<E, S>>(name, successCallback, checkFn);
 }
 
 template <typename T>
 template <typename E>
-void JsonParser<T>::addParsedVector(
+std::unique_ptr<JsonVectorInfo<E>> JsonParser<T>::makeParsedVector(
     const std::string &name,
     const std::function<void(const std::vector<E> &)> &successCallback,
-    nlohmann::json::value_t elemType,
     const std::function<std::string(const std::vector<E> &)> &checkFn) {
-  auto info = std::make_unique<JsonVectorInfo<E>>(name, successCallback,
-                                                  elemType, checkFn);
+  return std::make_unique<JsonVectorInfo<E>>(name, successCallback, checkFn);
+}
+
+template <typename T>
+std::unique_ptr<JsonObjectInfo>
+JsonParser<T>::makeParsedObject(const std::string &name) {
+  return std::make_unique<JsonObjectInfo>(name);
+}
+
+template <typename T>
+std::unique_ptr<JsonObjectArrayInfo> JsonParser<T>::makeParsedObjectArray(
+    const std::string &name, std::unique_ptr<JsonObjectInfo> objectInfo,
+    const std::function<void()> &objectCallback) {
+  return std::make_unique<JsonObjectArrayInfo>(name, std::move(objectInfo),
+                                               objectCallback);
+}
+
+template <typename T>
+void JsonParser<T>::addInfo(std::unique_ptr<JsonBaseInfo> info) {
   fieldsInfo.push_back(std::move(info));
 }
 
@@ -54,7 +65,7 @@ std::optional<std::string>
 JsonParser<T>::parseField(const std::unique_ptr<JsonFieldInfo<T>> &fieldInfo,
                           const std::string &str) {
   try {
-    auto json = nlohmann::json::parse(str);
+    nlohmann::json json = nlohmann::json::parse(str);
     auto error = fieldInfo->parse(json);
     if (error) {
       return error;
@@ -86,19 +97,5 @@ JsonParser<T>::parse(const std::string &filePath) {
   } catch (const nlohmann::json::exception &e) {
     return std::unexpected("JSON parse error: " + std::string(e.what()));
   }
-}
-
-template <typename T>
-void JsonParser<T>::addParsedObject(std::unique_ptr<JsonObjectInfo> info) {
-  fieldsInfo.push_back(std::move(info));
-}
-
-template <typename T>
-void JsonParser<T>::addParsedObjectArray(
-    const std::string &name, JsonObjectInfo objectInfo,
-    const std::function<void()> &objectCallback) {
-  auto info = std::make_unique<JsonObjectArrayInfo>(name, std::move(objectInfo),
-                                                    objectCallback);
-  fieldsInfo.push_back(std::move(info));
 }
 } // namespace common

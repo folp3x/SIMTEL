@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "server/app/config/mme_config/mme_config.h"
+#include "server/app/config/pcrf_config/pcrf_config.h"
 #include "server/app/config/smsc_config/smsc_config.h"
 
 namespace server {
@@ -12,6 +13,7 @@ class Config : public common::Config {
 private:
   std::vector<MmeConfig> mmeConfigs{};
   SmscConfig smscConfig{};
+  PcrfConfig pcrfConfig{};
 
   std::string bsFilePath = "";
   std::string epcFilePath = "";
@@ -27,8 +29,10 @@ public:
   void addMmeConfig(const MmeConfig &config);
 
   SmscConfig getSmscConfig() const;
-
   void setSmscTtlMs(unsigned int smscTtlMs);
-  void setSmscCdrJsonFilePath(const std::string &smscCdrJsonFilePath);
+
+  PcrfConfig getPcrfConfig() const;
+  void setPcrfSmsPriceRub(double pcrfSmsPriceRub);
+  void addPcrfBalanceInfo(const BalanceInfo &info);
 };
 } // namespace server

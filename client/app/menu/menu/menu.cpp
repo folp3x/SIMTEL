@@ -2,16 +2,24 @@
 
 #include <iostream>
 
-#include "common/logging/logger/logger.h"
+#include "client/core/ue/ue_active/ue_active.h"
 #include "common/utils/print/print.h"
 
 namespace client {
-void Menu::logInput(const std::string &input) const {
-  SPDLOG_LOGGER_INFO(common::Logger::instance().getInner(),
-                     "Received input: {}", input);
+rang::fg Menu::getSmsStatusColor(SmsStatus status) const {
+  switch (status) {
+  case SmsStatus::PENDING:
+    return rang::fg::yellow;
+  case SmsStatus::DELIVERED:
+    return rang::fg::green;
+  case SmsStatus::NOT_DELIVERED:
+    return rang::fg::red;
+  default:
+    return rang::fg::reset;
+  }
 }
 
-std::string Menu::getMessageContent() const {
+std::string Menu::getSmsContent() const {
   std::string content;
   std::string line;
   std::cout << "Write content (empty line means end of sms):" << std::endl;
@@ -29,7 +37,6 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
                       common::Protocol protocol) const {
   std::cout << "IMSI: " << imsi;
 
-  // текущее состояние
   std::cout << ", state: ";
   std::string statusStr = ueActiveToStr(inActive);
   if (inActive) {
@@ -53,22 +60,52 @@ void Menu::showSignalInfo(const common::Location<> &location,
 }
 
 void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
-  std::cout << "Address book: " << std::endl;
-  for (const auto &[speedDialNum, msisdn] : book) {
-    std::cout << speedDialNum << " - " << msisdn << std::endl;
+  std::cout << "Address book: ";
+  if (book.empty()) {
+    std::cout << "empty" << std::endl;
+  } else {
+    std::cout << std::endl;
+    for (const auto &[speedDialNum, msisdn] : book) {
+      std::cout << speedDialNum << " - " << msisdn << std::endl;
+    }
   }
 }
 
-void Menu::showSentSms(const common::Sms &sms) const {
-  std::cout << "To " << sms.receiver << " ";
-  common::printTime(sms.timeSent, " ");
-  showSmsStatus(sms.delivered);
-  std::cout << sms.content << std::endl;
+void Menu::showSentSms(const Sms &sms, bool alignRight) const {
+  std::string leftHeaderPart =
+      "To " + sms.receiver + " at " + common::formatTime(sms.timeSent);
+  std::string statusStr = " " + smsStatusToStr(sms.status);
+  std::string headerEnding = ":";
+
+  size_t fullHeaderLength =
+      leftHeaderPart.size() + statusStr.size() + headerEnding.size();
+
+  size_t headerLeftPadding =
+      alignRight ? MENU_HEADER_LINE_LENGTH - fullHeaderLength : 0;
+  std::string headerLeftSpace = std::string(headerLeftPadding, ' ');
+
+  std::cout << headerLeftSpace << leftHeaderPart;
+  if (sms.status != SmsStatus::PENDING) {
+    common::printColored(statusStr, getSmsStatusColor(sms.status), "");
+  }
+  std::cout << headerEnding << std::endl;
+
+  if (!alignRight) {
+    std::cout << sms.content << std::endl;
+  } else {
+    std::istringstream stream(sms.content);
+    std::string curLine;
+
+    while (std::getline(stream, curLine)) {
+      std::cout << std::right << std::setw(MENU_HEADER_LINE_LENGTH) << curLine
+                << std::endl;
+    }
+  }
 }
 
-void Menu::showReceivedSms(const common::Sms &sms) const {
-  std::cout << "From " << sms.sender << " ";
-  common::printTime(sms.timeReceived);
+void Menu::showReceivedSms(const Sms &sms) const {
+  std::cout << "From " << sms.sender << " at ";
+  std::cout << common::formatTime(sms.timeReceived) << ":" << std::endl;
   std::cout << sms.content << std::endl;
 }
 
@@ -76,11 +113,10 @@ void Menu::showError(const std::string &error) const {
   showMessage({error, common::MenuMessageType::ERR});
 }
 
-void Menu::showSmsStatus(bool delivered) const {
-  if (delivered) {
-    common::printColored("delivered", rang::fg::green);
-  } else {
-    common::printColored("pending", rang::fg::yellow);
+void Menu::showUssdInfo(const std::vector<UssdInfo> &info) const {
+  for (const auto &ussd : info) {
+    std::cout << std::to_string(common::ussdCodeToNum(ussd.code)) << " - "
+              << ussd.description << std::endl;
   }
 }
 } // namespace client

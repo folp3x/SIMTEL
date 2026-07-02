@@ -1,7 +1,6 @@
 #include "sm_delivery_ack_request.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
@@ -46,7 +45,7 @@ SmDeliveryAckRequest::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string> SmDeliveryAckRequest::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("IMSI serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
   auto binSmsId = BinarySerializer::toBinary(smsId);
   if (!binSmsId) {

@@ -2,48 +2,43 @@
 
 #include <expected>
 #include <memory>
-#include <sqlite_orm/sqlite_orm.h>
 #include <string>
 
-#include "server/core/simtel/hlr_record/hlr_record.h"
+#include "server/core/simtel/eir_storage_helper/eir_storage_helper.h"
+#include "server/core/simtel/hlr_storage_helper/hlr_storage_helper.h"
 
 namespace server {
 class SimtelRegister {
 private:
-  using StorageType = decltype(sqlite_orm::make_storage(
-      "", sqlite_orm::make_table(
-              "hlr",
-              sqlite_orm::make_column("id", &HlrRecord::id,
-                                      sqlite_orm::primary_key()),
-              sqlite_orm::make_column("imsi", &HlrRecord::imsi,
-                                      sqlite_orm::unique()),
-              sqlite_orm::make_column("imei", &HlrRecord::imei,
-                                      sqlite_orm::unique()),
-              sqlite_orm::make_column("msisdn", &HlrRecord::msisdn,
-                                      sqlite_orm::unique()),
-              sqlite_orm::make_column("status", &HlrRecord::status),
-              sqlite_orm::make_column("mmeId", &HlrRecord::mmeId),
-              sqlite_orm::make_column("mTimsi", &HlrRecord::mTimsi))));
+  using HlrStorageType = decltype(HlrStorageHelper::create(""));
+  using EirStorageType = decltype(EirStorageHelper::create(""));
 
-  StorageType storage;
-
-  auto createStorage(const std::string &filePath);
+  HlrStorageType hlrStorage;
+  EirStorageType eirStorage;
 
   std::string createLogMsg(const std::string &content) const;
 
 public:
-  explicit SimtelRegister(const std::string &hlrSqliteFilePath);
+  SimtelRegister(const std::string &hlrSqliteFilePath,
+                 const std::string &eirSqliteFilePath);
 
   std::expected<common::imsi_t, std::string>
-  getImsiByMTimsi(const common::imsi_t &mTimsi,
-                  std::optional<unsigned int> &mmeId);
+  getImsiByMsisdn(const common::imsi_t &msisdn, unsigned int &mmeId);
 
-  void insertData();
-  bool hasData();
+  std::expected<common::msisdn_t, std::string>
+  getMsisdnByImsi(const common::imsi_t &imsi);
+
+  std::expected<unsigned int, std::string>
+  getMmeIdByImsi(const common::imsi_t &imsi);
+
+  void insertHlrData();
+  bool hasHlrData();
+
+  void insertEirData();
+  bool hasEirData();
 
   std::expected<HlrRecord, std::string>
-  handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei,
-                        const common::imsi_t &mTimsi);
+  handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei);
 
   std::expected<std::optional<unsigned int>, std::string>
   handleUpdateLocationRequest(const common::imsi_t &imsi, unsigned int mmeId);
@@ -53,5 +48,7 @@ public:
 
   std::expected<HlrRecord, std::string>
   handleRoutingInfoSmSender(const common::imsi_t &imsi);
+
+  void logRecords();
 };
 } // namespace server

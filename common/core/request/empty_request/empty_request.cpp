@@ -14,8 +14,7 @@ std::expected<binary_t, std::string> EmptyRequest::toBinary() const {
   return binary_t{};
 }
 
-std::optional<std::string>
-EmptyRequest::fromBinary(const common::binary_t &binary) {
+std::optional<std::string> EmptyRequest::fromBinary(const binary_t &binary) {
   return std::nullopt;
 }
 } // namespace common

@@ -3,7 +3,7 @@
 void ArgsSplitter::split(const std::string &argsStr) {
   std::string curArg = "";
   for (auto ch : argsStr) {
-    if (isspace(ch)) {
+    if (std::isspace(ch)) {
       if (!curArg.empty()) {
         argsValues.push_back(curArg);
         curArg.clear();
@@ -13,13 +13,12 @@ void ArgsSplitter::split(const std::string &argsStr) {
     }
   }
 
-  // добавление последнего аргумента
   if (!curArg.empty()) {
     argsValues.push_back(curArg);
   }
 
   for (const auto &val : argsValues) {
-    args.push_back(const_cast<char *>(val.c_str()));
+    args.push_back(val.c_str());
   }
 }
 
@@ -27,4 +26,4 @@ ArgsSplitter::ArgsSplitter(const std::string &argsStr) { split(argsStr); }
 
 int ArgsSplitter::argc() const { return args.size(); }
 
-char **ArgsSplitter::argv() const { return args.data(); }
+char **ArgsSplitter::argv() const { return const_cast<char **>(args.data()); }

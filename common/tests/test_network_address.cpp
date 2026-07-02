@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-class NetworkAddressTest : public ::testing::Test {
+class NetworkAddressTest : public testing::Test {
 protected:
   // 127.0.0.1
   static constexpr uint32_t TEST_IP = (1) | (127 << 3 * 8);
@@ -11,32 +11,32 @@ protected:
 
 TEST_F(NetworkAddressTest, Constructor_int_int) {
   common::NetworkAddress addr(TEST_IP, TEST_PORT);
-  EXPECT_EQ(addr.getIP(), TEST_IP);
+  EXPECT_EQ(addr.getIp(), TEST_IP);
   EXPECT_EQ(addr.getPort(), TEST_PORT);
 }
 
 TEST_F(NetworkAddressTest, Constructor_str_str) {
   common::NetworkAddress addr("127.0.0.1", "49152");
-  EXPECT_EQ(addr.getIP(), TEST_IP);
+  EXPECT_EQ(addr.getIp(), TEST_IP);
   EXPECT_EQ(addr.getPort(), TEST_PORT);
 }
 
 TEST_F(NetworkAddressTest, Constructor_strIP_intPort) {
   common::NetworkAddress addr("127.0.0.1", 49152);
-  EXPECT_EQ(addr.getIP(), TEST_IP);
+  EXPECT_EQ(addr.getIp(), TEST_IP);
   EXPECT_EQ(addr.getPort(), TEST_PORT);
 }
 
 TEST_F(NetworkAddressTest, Constructor_FullAddress) {
   common::NetworkAddress addr("127.0.0.1:49152");
-  EXPECT_EQ(addr.getIP(), TEST_IP);
+  EXPECT_EQ(addr.getIp(), TEST_IP);
   EXPECT_EQ(addr.getPort(), TEST_PORT);
 }
 
 TEST_F(NetworkAddressTest, FromStr_Correct) {
   common::NetworkAddress addr =
       common::NetworkAddress::fromStr("127.0.0.1:49152");
-  EXPECT_EQ(addr.getIP(), TEST_IP);
+  EXPECT_EQ(addr.getIp(), TEST_IP);
   EXPECT_EQ(addr.getPort(), TEST_PORT);
 }
 

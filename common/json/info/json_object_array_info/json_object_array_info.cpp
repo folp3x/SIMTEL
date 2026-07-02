@@ -4,7 +4,7 @@
 
 namespace common {
 JsonObjectArrayInfo::JsonObjectArrayInfo(
-    const std::string &name, JsonObjectInfo innerObject_,
+    const std::string &name, std::unique_ptr<JsonObjectInfo> innerObject_,
     const std::function<void()> &objectCallback_)
     : JsonBaseInfo(name), innerObject(std::move(innerObject_)),
       objectCallback(objectCallback_) {}
@@ -16,14 +16,14 @@ JsonObjectArrayInfo::parse(const nlohmann::json &json, bool finalParse) {
     return showedName + " is required";
   }
 
-  const auto &fieldJson = getFieldJson(json);
+  nlohmann::json fieldJson = getFieldJson(json);
   if (!hasJsonType(fieldJson, nlohmann::json::value_t::array)) {
     return showedName + " must have a type 'array'";
   }
 
   for (size_t i = 0; i < fieldJson.size(); ++i) {
-    auto elemJson = fieldJson[i];
-    auto error = innerObject.parse(elemJson);
+    nlohmann::json elemJson = fieldJson[i];
+    auto error = innerObject->parse(elemJson);
     if (error) {
       return error;
     }

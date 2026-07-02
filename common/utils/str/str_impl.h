@@ -3,7 +3,7 @@
 namespace common {
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<unsigned int> precision_) {
+std::string toStr(T num, std::optional<unsigned int> precision_, bool fixed) {
   if (!precision_) {
     return std::to_string(num);
   } else {
@@ -15,6 +15,10 @@ std::string toStr(T num, std::optional<unsigned int> precision_) {
     snprintf(buf.data(), size, formatStr.c_str(), num);
     // удаление лишнего \0
     buf.pop_back();
+
+    if (fixed) {
+      return buf;
+    }
 
     // удаление нулей в конце дробной части
     size_t lastNonZeroInd = buf.find_last_not_of('0');

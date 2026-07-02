@@ -1,20 +1,13 @@
 #include "app/app/app.h"
 #include "app/cli/cli_parser/cli_parser.h"
+
 #include "app/config/bs_config/bs_config_parser/bs_config_parser.h"
 #include "app/config/config_parser/config_parser.h"
 #include "app/config/epc_config/epc_config_parser/epc_config_parser.h"
-#include "common/logging/logger/logger.h"
 
 int main(int argc, char *argv[]) {
   try {
-    try {
-      common::Logger::init("Server logger", "./logs", "server",
-                           spdlog::level::debug);
-    } catch (const spdlog::spdlog_ex &e) {
-      std::cerr << "Logger initialization error: " << e.what() << std::endl;
-    }
-
-    auto cliParser = server::CLIParser::create("server");
+    auto cliParser = server::CliParser::create("server");
 
     std::string msg = "";
     bool helpCalled = false;
@@ -37,7 +30,6 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    // парсинг данных из конфигурационного файла
     auto configParser = server::ConfigParser::create();
     auto parsedConfig = configParser->parse(*filePath);
     if (!parsedConfig) {
@@ -46,7 +38,6 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    // переопределение опций из файла опциями командной строки
     config = cliParser->redefineConfig(*parsedConfig);
 
     auto bsConfigParser =
@@ -78,7 +69,8 @@ int main(int argc, char *argv[]) {
                     config.getMmeConfigs(),
                     config.getSmscConfig(),
                     *bsConfigs,
-                    *epcConfig};
+                    *epcConfig,
+                    config.getPcrfConfig()};
     app.run();
 
     return 0;

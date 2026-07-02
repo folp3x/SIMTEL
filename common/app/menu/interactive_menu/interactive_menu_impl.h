@@ -8,8 +8,6 @@ InteractiveMenu<T>::getCommand(std::string &extraMsg) const {
   std::cout << "> ";
   std::getline(std::cin, input, '\n');
 
-  logInput(input);
-
   return parser.parseCommand(input, extraMsg);
 }
 

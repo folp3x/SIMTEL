@@ -1,15 +1,22 @@
 #include "ue_exchange.h"
 
-#include "common/core/request/attach_accept_request/attach_accept_request.h"
-#include "common/core/request/error_request/error_request.h"
-#include "common/core/request/measurement_control_request/measurement_control_request.h"
 #include "common/core/request/measurement_report_request/measurement_report_request.h"
 #include "common/core/request/rrc_connection_request/rrc_connection_request.h"
 #include "common/core/request/rrc_reconfiguration_complete_request/rrc_reconfiguration_complete_request.h"
-#include "common/core/request/rrc_reconfiguration_handover_request/rrc_reconfiguration_handover_request.h"
-#include "common/core/request/rrc_reconfiguration_keep_request/rrc_reconfiguration_keep_request.h"
-#include "common/core/request/sm_delivery_report_request/sm_delivery_report_request.h"
-#include "common/core/request/sm_delivery_request/sm_delivery_request.h"
+
+#include "common/core/response/attach_accept_response/attach_accept_response.h"
+#include "common/core/response/error_response/error_response.h"
+#include "common/core/response/measurement_control_response/measurement_control_response.h"
+
+#include "common/core/response/rrc_reconfiguration_handover_response/rrc_reconfiguration_handover_response.h"
+#include "common/core/response/rrc_reconfiguration_keep_response/rrc_reconfiguration_keep_response.h"
+
+#include "common/core/response/sm_delivery_error_response/sm_delivery_error_response.h"
+#include "common/core/response/sm_delivery_report_response/sm_delivery_report_response.h"
+#include "common/core/response/sm_delivery_response/sm_delivery_response.h"
+
+#include "common/core/response/ussd_balance_response/ussd_balance_response.h"
+#include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
 
 namespace client {
 std::optional<std::string>
@@ -19,12 +26,12 @@ UeExchange::sendRequest(std::unique_ptr<common::Request> req) {
     return bytes.error();
   }
 
-  auto sendError = sock.sendMessage(*bytes);
-  if (!sendError) {
+  auto error = sock.sendMessage(*bytes);
+  if (!error) {
     return std::nullopt;
   }
 
-  return sendError->description;
+  return error->description;
 }
 
 std::expected<common::binary_t, std::string>
@@ -46,13 +53,14 @@ UeExchange::receiveResponseData(common::RequestType &type) const {
 UeExchange::UeExchange(const common::NetworkAddress &serverAddr_)
     : serverAddr(serverAddr_) {}
 
-void UeExchange::handleRequests() {
+void UeExchange::sendRequests() {
   while (running) {
     std::unique_lock lock(requestsMtx);
     requestsCv.wait(
         lock, [this] { return !requests.empty() && connected || !running; });
 
     if (!running) {
+      lock.unlock();
       break;
     }
 
@@ -70,23 +78,13 @@ void UeExchange::handleRequests() {
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
     case common::RequestType::Rrc_Connection: {
-      std::unique_ptr<common::Request> response;
-      std::string error = "";
-      {
-        std::lock_guard lock(receiveMtx);
-        auto result = handleLocationUpdate(std::move(info));
-        if (!result) {
-          error = result.error();
-        } else {
-          response = std::move(*result);
-        }
-      }
-
-      if (!error.empty()) {
+      std::lock_guard lock(receiveMtx);
+      auto response = handleLocationUpdate(std::move(info));
+      if (!response) {
         signalLevel = 0;
-        callback(nullptr, error);
+        callback(nullptr, response.error());
       } else {
-        callback(std::move(response), "");
+        callback(std::move(*response), "");
       }
 
       break;
@@ -146,13 +144,13 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
 
   bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
   if (!set) {
-    return std::unexpected("Error setting receive timout");
+    return std::unexpected("Error setting receive timeout");
   }
 
-  common::MeasurementControlRequest bestSignalResponse{"", 0, 0};
+  common::MeasurementControlResponse bestSignalResponse{"", 0, 0};
   bool bsLeft = true;
   while (bsLeft) {
-    auto signalResponse = receiveResponse<common::MeasurementControlRequest>();
+    auto signalResponse = receiveResponse<common::MeasurementControlResponse>();
     if (!signalResponse) {
       bsLeft = false;
       if (bestSignalResponse.getSignal() == 0) {
@@ -190,29 +188,29 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
   switch (responseType) {
   case common::RequestType::Rrc_Reconfiguration_Keep: {
     auto receivedResponse =
-        parseFromBytes<common::RrcReconfigurationKeepRequest>(*data);
+        parseFromBytes<common::RrcReconfigurationKeepResponse>(*data);
     if (!receivedResponse) {
       return std::unexpected(receivedResponse.error());
     }
     newBsId = receivedResponse->getBsId();
-    response = std::make_unique<common::RrcReconfigurationKeepRequest>(
+    response = std::make_unique<common::RrcReconfigurationKeepResponse>(
         *receivedResponse);
     break;
   }
   case common::RequestType::Rrc_Reconfiguration_Handover: {
     auto receivedResponse =
-        parseFromBytes<common::RrcReconfigurationHandoverRequest>(*data);
+        parseFromBytes<common::RrcReconfigurationHandoverResponse>(*data);
     if (!receivedResponse) {
       return std::unexpected(receivedResponse.error());
     }
     newBsId = receivedResponse->getBsId();
     newMTimsi = receivedResponse->getMTimsi();
-    response = std::make_unique<common::RrcReconfigurationHandoverRequest>(
+    response = std::make_unique<common::RrcReconfigurationHandoverResponse>(
         *receivedResponse);
     break;
   }
   case common::RequestType::Error: {
-    auto error = parseFromBytes<common::ErrorRequest>(*data);
+    auto error = parseFromBytes<common::ErrorResponse>(*data);
     return std::unexpected(error ? error->getDescription() : error.error());
   }
   default:
@@ -234,7 +232,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
                            *configureCompleteSendError);
   }
 
-  auto acceptResponse = receiveResponse<common::AttachAcceptRequest>();
+  auto acceptResponse = receiveResponse<common::AttachAcceptResponse>();
   if (!acceptResponse) {
     return std::unexpected("Failed to receive accept response - " +
                            acceptResponse.error());
@@ -259,73 +257,136 @@ void UeExchange::stop() {
   closeConnection();
 }
 
-void UeExchange::receiveSmsInfo(const CallbackType &callback) {
+void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
   while (running) {
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(SMS_INFO_SLEEP_MS));
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(RECEIVE_FROM_BS_SLEEP_MSEC));
 
-      common::RequestType responseType;
-
-      bool received = false;
-      common::binary_t data{};
-      {
-        std::lock_guard lock(receiveMtx);
-        bool set = sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
-        if (!set) {
-          received = false;
-        } else {
-          auto receivedData = receiveResponseData(responseType);
-
-          received = receivedData.has_value();
-          if (received) {
-            data = std::move(*receivedData);
-          }
-        }
+      std::unique_lock lock(receiveMtx);
+      bool set = sock.setReceiveTimeout(RECEIVE_FROM_BS_TIMEOUT_MSEC);
+      if (!set) {
+        lock.unlock();
+        continue;
       }
 
-      if (!received) {
+      common::RequestType responseType;
+      auto data = receiveResponseData(responseType);
+      lock.unlock();
+      if (!data) {
         continue;
       }
 
       std::unique_ptr<common::Request> response;
       switch (responseType) {
       case common::RequestType::SM_Delivery: {
-        auto receivedResponse = parseFromBytes<common::SmDeliveryRequest>(data);
+        auto receivedResponse =
+            parseFromBytes<common::SmDeliveryResponse>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
         }
 
         response =
-            std::make_unique<common::SmDeliveryRequest>(*receivedResponse);
+            std::make_unique<common::SmDeliveryResponse>(*receivedResponse);
         break;
       }
       case common::RequestType::SM_Delivery_Report: {
         auto receivedResponse =
-            parseFromBytes<common::SmDeliveryReportRequest>(data);
+            parseFromBytes<common::SmDeliveryReportResponse>(*data);
         if (!receivedResponse) {
           callback(nullptr, receivedResponse.error());
           continue;
         }
 
-        response = std::make_unique<common::SmDeliveryReportRequest>(
+        response = std::make_unique<common::SmDeliveryReportResponse>(
+            *receivedResponse);
+        break;
+      }
+      case common::RequestType::SM_Delivery_Error: {
+        auto receivedResponse =
+            parseFromBytes<common::SmDeliveryErrorResponse>(*data);
+        if (!receivedResponse) {
+          callback(nullptr, receivedResponse.error());
+          continue;
+        }
+
+        response = std::make_unique<common::SmDeliveryErrorResponse>(
             *receivedResponse);
         break;
       }
       case common::RequestType::Error: {
-        auto error = parseFromBytes<common::ErrorRequest>(data);
-        callback(nullptr, error ? error->getDescription() : error.error());
+        auto receivedResponse = parseFromBytes<common::ErrorResponse>(*data);
+        if (!receivedResponse) {
+          callback(nullptr, receivedResponse.error());
+        } else {
+          callback(nullptr, receivedResponse->getDescription());
+        }
         continue;
       }
       default:
-        callback(nullptr,
-                 "Unexpected request type received while receiving SMS info: " +
-                     common::requestTypeToStr(responseType));
+        callback(nullptr, "Unexpected response received from BS: " +
+                              common::requestTypeToStr(responseType));
         continue;
       }
 
       callback(std::move(response), "");
     }
+  }
+}
+
+std::expected<std::unique_ptr<common::Request>, std::string>
+UeExchange::sendUssd(const UeState &state,
+                     std::unique_ptr<common::UssdCodeRequest> req) {
+  curProtocol = state.protocol;
+
+  std::unique_lock lock(receiveMtx);
+
+  auto sendError = sendRequest(std::move(req));
+  if (sendError) {
+    return std::unexpected("Failed to send ussd - " + *sendError);
+  }
+
+  bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
+  if (!set) {
+    return std::unexpected("Error setting receive timeout");
+  }
+
+  common::RequestType responseType;
+  auto data = receiveResponseData(responseType);
+  lock.unlock();
+  if (!data) {
+    return std::unexpected("Unable to process command");
+  }
+
+  switch (responseType) {
+  case common::RequestType::UssdBalance: {
+    auto receivedResponse = parseFromBytes<common::UssdBalanceResponse>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    }
+
+    return std::make_unique<common::UssdBalanceResponse>(*receivedResponse);
+  }
+  case common::RequestType::UssdMsisdn: {
+    auto receivedResponse = parseFromBytes<common::UssdMsisdnResponse>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    }
+
+    return std::make_unique<common::UssdMsisdnResponse>(*receivedResponse);
+  }
+  case common::RequestType::Error: {
+    auto receivedResponse = parseFromBytes<common::ErrorResponse>(*data);
+    if (!receivedResponse) {
+      return std::unexpected(receivedResponse.error());
+    } else {
+      return std::unexpected(receivedResponse->getDescription());
+    }
+  }
+  default:
+    return std::unexpected("Unexpected response received from BS: " +
+                           common::requestTypeToStr(responseType));
   }
 }
 } // namespace client

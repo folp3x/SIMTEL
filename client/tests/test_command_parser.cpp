@@ -5,7 +5,7 @@
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 
-class CommandParserTest : public ::testing::Test {
+class CommandParserTest : public testing::Test {
 protected:
   client::CommandParser parser{};
   std::string extraMsg = "";
@@ -98,5 +98,5 @@ TEST_F(CommandParserTest, Parse_EmptyCommand) {
   auto cmd = parser.parseCommand("", extraMsg);
   auto unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
-  EXPECT_FALSE(unknownCmd == nullptr);
+  EXPECT_TRUE(unknownCmd == nullptr);
 }

@@ -8,7 +8,6 @@
 #include "common/validator/validator.h"
 
 namespace common {
-// базовый класс для парсинга конфигурации из JSON
 template <std::derived_from<Config> T>
 class ConfigParser : public JsonParser<T> {
 protected:

@@ -9,7 +9,7 @@ std::string lowercased(std::string_view str) {
   std::string result{};
   result.resize(str.size());
   std::transform(str.begin(), str.end(), result.begin(),
-                 [](char c) { return std::tolower(c); });
+                 [](char ch) { return std::tolower(ch); });
   return result;
 }
 
@@ -17,7 +17,7 @@ std::string uppercased(std::string_view str) {
   std::string result{};
   result.resize(str.size());
   std::transform(str.begin(), str.end(), result.begin(),
-                 [](char c) { return std::toupper(c); });
+                 [](char ch) { return std::toupper(ch); });
   return result;
 }
 
@@ -36,20 +36,12 @@ bool allDigits(std::string_view str) {
   return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-// возвращает строку с убранными слева непечатными символами
-std::string ltrimmed(std::string_view str) {
-  auto it = std::find_if(str.begin(), str.end(), isprint);
-
-  return std::string(it, str.end());
-}
-
 std::vector<std::string> split(const std::string &str) {
   std::vector<std::string> tokens = {};
   std::string curToken = "";
   for (auto ch : str) {
-    if (isspace(ch)) {
+    if (std::isspace(ch)) {
       if (!curToken.empty()) {
-        // если найден очередной токен
         tokens.push_back(curToken);
         curToken.clear();
       }
@@ -58,7 +50,6 @@ std::vector<std::string> split(const std::string &str) {
     }
   }
 
-  // добавление последнего токена
   if (!curToken.empty()) {
     tokens.push_back(curToken);
   }

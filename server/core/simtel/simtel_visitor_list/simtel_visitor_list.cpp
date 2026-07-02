@@ -5,15 +5,15 @@
 
 namespace server {
 std::string SimtelVisitorList::createLogMsg(const std::string &content) const {
-  return "VLR of MME_" + std::to_string(mmeId) + ": " + content;
+  return "MME_" + std::to_string(mmeId) + "_VLR: " + content;
 }
 
 SimtelVisitorList::SimtelVisitorList(unsigned int mmeId_) : mmeId(mmeId_) {}
 
 void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
-      createLogMsg("set record: " + record.toStr()));
-  records.insert({record.mTimsi, record});
+      createLogMsg("added record: " + record.toStr()));
+  records.emplace(record.mTimsi, record);
 }
 
 void SimtelVisitorList::removeRecord(const common::imsi_t &mTimsi) {
@@ -31,11 +31,11 @@ bool SimtelVisitorList::changePath(const common::imsi_t &mTimsi,
     return false;
   }
 
-  MessageHolder::instance().addMsg(createLogMsg("changed path of m-timsi " +
-                                                mTimsi + " to BS_" +
-                                                std::to_string(bs->getId())));
-
   it->second.bs = bs;
+
+  MessageHolder::instance().addMsg(
+      createLogMsg("changed path: " + it->second.toStr()));
+
   return true;
 }
 
@@ -48,6 +48,17 @@ SimtelVisitorList::findByMTimsi(const common::imsi_t &mTimsi) const {
     return std::nullopt;
   }
   return it->second;
+}
+
+std::optional<VlrRecord>
+SimtelVisitorList::findByImsi(const common::imsi_t &imsi) const {
+  for (const auto &[mTimsi, record] : records) {
+    if (record.imsi == imsi) {
+      return record;
+    }
+  }
+
+  return std::nullopt;
 }
 
 } // namespace server

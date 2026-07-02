@@ -6,7 +6,10 @@
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_received/menu_item_received.h"
 #include "client/app/menu/menu_item/menu_item_sent/menu_item_sent.h"
+#include "client/app/menu/menu_item/menu_item_ussd/menu_item_ussd.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
+
+#include "common/utils/str/str.h"
 
 namespace client {
 class CommandParser : public common::CommandParser {
@@ -19,7 +22,8 @@ private:
       {"sms", parseSmsArgs},
       {"sent", parseWithoutArgs<MenuItemSent>},
       {"received", parseWithoutArgs<MenuItemReceived>},
-      {"dialog", parseDialogArgs}};
+      {"dialog", parseDialogArgs},
+      {"ussd", parseWithoutArgs<MenuItemUssd>}};
 
   virtual CommandParser::ArgsParsersMap getArgsParsers() const override;
 
@@ -46,6 +50,14 @@ private:
 
   static std::unique_ptr<common::MenuItem>
   parseActiveArgs(const std::vector<std::string> &args, std::string &extraMsg);
+
+  static std::unique_ptr<common::MenuItem>
+  parseUssdCodeArgs(const std::vector<std::string> &args,
+                    std::string &extraMsg);
+
+public:
+  virtual std::unique_ptr<common::MenuItem>
+  parseCommand(const std::string &str, std::string &extraMsg) const override;
 };
 } // namespace client
 

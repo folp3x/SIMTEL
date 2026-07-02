@@ -38,7 +38,7 @@ std::optional<std::string> JsonFieldInfo<T>::parse(const nlohmann::json &json,
     return showedName + " is required";
   }
 
-  const auto &fieldJson = getFieldJson(json);
+  nlohmann::json fieldJson = getFieldJson(json);
   if (!hasJsonType(fieldJson, type)) {
     return showedName + " must have a type '" + jsonTypeToStr(type) + "'";
   }

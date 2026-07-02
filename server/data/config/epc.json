@@ -1,7 +1,5 @@
 {
     "ttl_sec": 120,
     "hlrAccessParams": {"sqliteFilePath": "./data/storage/hlr.db"},
-    "cdrAccessParams": {
-      "jsonFilePath": "./data/cdr.json"
-    }
+    "eirAccessParams": {"sqliteFilePath": "./data/storage/eir.db"}
 }

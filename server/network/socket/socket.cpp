@@ -53,7 +53,7 @@ Socket::acceptConnection() const {
 std::string Socket::getAddrStr() const {
   char buf[INET_ADDRSTRLEN];
 
-  if (inet_ntop(AF_INET, &sockAddr.sin_addr, buf, INET_ADDRSTRLEN) == nullptr) {
+  if (!inet_ntop(AF_INET, &sockAddr.sin_addr, buf, INET_ADDRSTRLEN)) {
     return "invalid addr";
   }
 

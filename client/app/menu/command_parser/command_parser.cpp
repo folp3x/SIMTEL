@@ -4,6 +4,8 @@
 #include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+#include "client/app/menu/menu_item/menu_item_ussd_code/menu_item_ussd_code.h"
+
 #include "client/validator/validator.h"
 #include "common/network/protocol/protocol.h"
 #include "common/validator/validator.h"
@@ -32,15 +34,65 @@ CommandParser::parseActiveArgs(const std::vector<std::string> &args,
 
   std::string isActiveStr = args[0];
 
-  auto isActive = common::parseBool(isActiveStr);
-  if (isActive) {
+  auto isActiveValue = common::parseBool(isActiveStr);
+  if (isActiveValue) {
     if (args.size() > MenuItemActive::getArgsCount()) {
       extraMsg = "Extra arguments ignored";
     }
-    return std::make_unique<MenuItemActive>(*isActive);
+    return std::make_unique<MenuItemActive>(*isActiveValue);
   }
 
   return std::make_unique<common::MenuItemInvalid>("Invalid argument");
+}
+
+std::unique_ptr<common::MenuItem>
+CommandParser::parseUssdCodeArgs(const std::vector<std::string> &args,
+                                 std::string &extraMsg) {
+  if (args.empty()) {
+    return std::make_unique<common::MenuItemInvalid>("Missing command");
+  }
+
+  std::string command = args[0];
+
+  size_t minLength =
+      constants::USSD_PREFIX_LENGTH + 1 + constants::USSD_POSTFIX_LENGTH;
+  if (command.size() < minLength) {
+    return std::make_unique<common::MenuItemInvalid>("Missing argument");
+  }
+
+  size_t lastCodeChInd = command.size() - 1 - constants::USSD_POSTFIX_LENGTH;
+  std::string codeStr =
+      command.substr(constants::USSD_PREFIX_LENGTH, lastCodeChInd);
+
+  auto code = common::fromString<unsigned int>(codeStr);
+  if (code) {
+    return std::make_unique<MenuItemUssdCode>(*code);
+  }
+
+  return std::make_unique<common::MenuItemInvalid>("Invalid argument");
+}
+
+std::unique_ptr<common::MenuItem>
+CommandParser::parseCommand(const std::string &str,
+                            std::string &extraMsg) const {
+  auto cmd = common::CommandParser::parseCommand(str, extraMsg);
+  if (dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
+    std::vector<std::string> tokens = common::split(common::lowercased(str));
+
+    if (tokens.empty()) {
+      return cmd;
+    }
+
+    std::string command = tokens[0];
+
+    size_t lastChInd = command.size() - 1;
+    if (command[0] == constants::USSD_PREFIX &&
+        command[lastChInd] == constants::USSD_POSTFIX) {
+      return parseUssdCodeArgs(tokens, extraMsg);
+    }
+  }
+
+  return cmd;
 }
 
 std::unique_ptr<common::MenuItem>

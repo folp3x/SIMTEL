@@ -1,6 +1,5 @@
 #include "rrc_reconfiguration_complete_request.h"
 
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 
 namespace common {
@@ -31,7 +30,7 @@ std::expected<binary_t, std::string>
 RrcReconfigurationCompleteRequest::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("m-TIMSI serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
 
   return *binMTimsi;

@@ -5,15 +5,15 @@
 namespace server {
 void EpcConfigParser::initFields() {
   initTtlField();
-  initCdrAccessParamsField();
   initHlrAccessParamsField();
+  initEirAccessParamsField();
 }
 
 std::expected<EpcConfig, std::string>
 EpcConfigParser::parseJson(const nlohmann::json &json) {
   config = {};
 
-  auto error = this->parseFields(json);
+  auto error = parseFields(json);
   if (error) {
     return std::unexpected(*error);
   }
@@ -22,32 +22,27 @@ EpcConfigParser::parseJson(const nlohmann::json &json) {
 }
 
 void EpcConfigParser::initTtlField() {
-  addParsedField<unsigned int>(
+  addInfo(makeParsedField<unsigned int>(
       "ttl_sec", [this](unsigned int ttl) { config.ttlSec = ttl; },
-      [](unsigned int ttl) { return (ttl > 0) ? "" : "TTL cant be 0"; });
+      [](unsigned int ttl) { return (ttl > 0) ? "" : "TTL cant be 0"; }));
 }
 
 void EpcConfigParser::initHlrAccessParamsField() {
-  auto hlrAccessParamsObj =
-      std::make_unique<common::JsonObjectInfo>("hlrAccessParams");
-  hlrAccessParamsObj->addInner(
-      std::make_unique<common::JsonFieldInfo<std::string>>(
-          "sqliteFilePath", [this](const std::string &path) {
-            config.hlrSqliteFilePath = path;
-          }));
+  auto hlrAccessParamsObj = makeParsedObject("hlrAccessParams");
+  hlrAccessParamsObj->addInner(makeParsedField<std::string>(
+      "sqliteFilePath",
+      [this](const std::string &path) { config.hlrSqliteFilePath = path; }));
 
-  addParsedObject(std::move(hlrAccessParamsObj));
+  addInfo(std::move(hlrAccessParamsObj));
 }
 
-void EpcConfigParser::initCdrAccessParamsField() {
-  auto cdrAccessParamsObj =
-      std::make_unique<common::JsonObjectInfo>("cdrAccessParams");
-  cdrAccessParamsObj->addInner(
-      std::make_unique<common::JsonFieldInfo<std::string>>(
-          "jsonFilePath",
-          [this](const std::string &path) { config.cdrJsonFilePath = path; }));
+void EpcConfigParser::initEirAccessParamsField() {
+  auto eirAccessParamsObj = makeParsedObject("eirAccessParams");
+  eirAccessParamsObj->addInner(makeParsedField<std::string>(
+      "sqliteFilePath",
+      [this](const std::string &path) { config.eirSqliteFilePath = path; }));
 
-  addParsedObject(std::move(cdrAccessParamsObj));
+  addInfo(std::move(eirAccessParamsObj));
 }
 
 std::unique_ptr<EpcConfigParser> EpcConfigParser::create() {

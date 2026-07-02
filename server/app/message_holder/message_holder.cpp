@@ -3,8 +3,10 @@
 namespace server {
 void MessageHolder::addMsg(const std::string &content,
                            common::MenuMessageType type) {
-  std::lock_guard lock(messagesMtx);
-  messages.push({content, type});
+  {
+    std::lock_guard lock(messagesMtx);
+    messages.push({content, type});
+  }
   messagesCv.notify_one();
 }
 
@@ -14,6 +16,7 @@ void MessageHolder::addErrorMsg(const std::string &content) {
 
 std::optional<common::MenuMessage> MessageHolder::takeMsg() {
   std::lock_guard lock(messagesMtx);
+
   if (messages.empty()) {
     return std::nullopt;
   }

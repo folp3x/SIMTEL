@@ -1,7 +1,6 @@
 #include "sm_transfer_request.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
@@ -67,8 +66,9 @@ SmTransferRequest::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string> SmTransferRequest::toBinary() const {
   auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
   if (!binMTimsi) {
-    return std::unexpected("IMSI serialize error");
+    return std::unexpected("m-timsi serialize error");
   }
+
   auto binSmsId = BinarySerializer::toBinary(smsId);
   if (!binSmsId) {
     return std::unexpected("SMS id serialize error");

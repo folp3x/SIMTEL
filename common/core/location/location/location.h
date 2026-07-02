@@ -1,15 +1,16 @@
 #pragma once
 
 #include <algorithm>
-#include <expected>
-#include <nlohmann/json.hpp>
 #include <ranges>
+
+#include <expected>
 #include <stdexcept>
+
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
 #include "common/json/json_parser/json_parser.h"
-#include "common/logging/logger/logger.h"
 #include "common/network/binary_serializer/binary_serializer.h"
 #include "common/types.h"
 #include "common/utils/str/str.h"
@@ -26,10 +27,6 @@ private:
 public:
   Location() = default;
   explicit Location(const coords_t<T, S> &coords_);
-  Location(const Location &other);
-  Location &operator=(const Location &other);
-  Location(Location &&other) noexcept;
-  Location &operator=(Location &&other) noexcept;
 
   static std::expected<Location, std::string>
   fromJsonStr(const std::string &str);

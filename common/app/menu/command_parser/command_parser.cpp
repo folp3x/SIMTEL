@@ -9,7 +9,7 @@ namespace common {
 std::unique_ptr<MenuItem>
 CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
-  std::vector<std::string> tokens = split(lowercased(ltrimmed(str)));
+  std::vector<std::string> tokens = split(lowercased(str));
 
   if (tokens.empty()) {
     return std::make_unique<MenuItemEmpty>();

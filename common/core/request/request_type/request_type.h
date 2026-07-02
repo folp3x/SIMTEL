@@ -18,7 +18,11 @@ enum class RequestType : uint8_t {
   SM_Transfer,
   SM_Delivery,
   SM_Delivery_Report,
-  SM_Delivery_Ack
+  SM_Delivery_Ack,
+  SM_Delivery_Error,
+  UssdCode,
+  UssdBalance,
+  UssdMsisdn
 };
 
 std::expected<RequestType, std::string> parseRequestType(const binary_t &bytes);

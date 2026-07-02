@@ -3,12 +3,11 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 
-#include "common/logging/logger/logger.h"
 #include "common/utils/network/network.h"
 
 namespace common {
-void NetworkAddress::setIP(const std::string &ipStr) {
-  auto parseResult = parseIP(ipStr);
+void NetworkAddress::setIp(const std::string &ipStr) {
+  auto parseResult = parseIp(ipStr);
   if (!parseResult) {
     throw std::invalid_argument(parseResult.error());
   }
@@ -31,52 +30,13 @@ NetworkAddress::NetworkAddress(const std::string &fullAddress)
 
 NetworkAddress::NetworkAddress(const std::string &ipAddress,
                                const std::string &port_) {
-  setIP(ipAddress);
+  setIp(ipAddress);
   setPort(port_);
 }
 
 NetworkAddress::NetworkAddress(const std::string &ipAddress, int port_) {
-  setIP(ipAddress);
+  setIp(ipAddress);
   port = port_;
-}
-
-NetworkAddress::NetworkAddress(const NetworkAddress &other)
-    : ip(other.ip), port(other.port) {
-  logOperation("COPY constructor", ip, port);
-}
-
-NetworkAddress &NetworkAddress::operator=(const NetworkAddress &other) {
-  if (&other != this) {
-    this->ip = other.ip;
-    this->port = other.port;
-  }
-
-  logOperation("COPY operator", ip, port);
-
-  return *this;
-}
-
-NetworkAddress::NetworkAddress(NetworkAddress &&other) noexcept
-    : ip(other.ip), port(other.port) {
-  logOperation("MOVE constructor", ip, port);
-}
-
-NetworkAddress &NetworkAddress::operator=(NetworkAddress &&other) noexcept {
-  if (&other != this) {
-    this->ip = other.ip;
-    this->port = other.port;
-  }
-
-  logOperation("MOVE operator", ip, port);
-
-  return *this;
-}
-
-void NetworkAddress::logOperation(const std::string &operationName, uint32_t ip,
-                                  uint16_t port) const {
-  SPDLOG_LOGGER_DEBUG(Logger::instance().getInner(),
-                      "common::NetworkAddress {} called: ip={:#x}, port={}",
-                      operationName, ip, port);
 }
 
 std::string NetworkAddress::toStr() const {
@@ -100,7 +60,7 @@ NetworkAddress NetworkAddress::fromStr(const std::string &fullAddress) {
   return NetworkAddress{ipAddress, port};
 }
 
-uint32_t NetworkAddress::getIP() const { return ip; }
+uint32_t NetworkAddress::getIp() const { return ip; }
 
 uint16_t NetworkAddress::getPort() const { return port; }
 } // namespace common

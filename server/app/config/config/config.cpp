@@ -21,11 +21,17 @@ void Config::addMmeConfig(const MmeConfig &config) {
 
 SmscConfig Config::getSmscConfig() const { return smscConfig; }
 
+PcrfConfig Config::getPcrfConfig() const { return pcrfConfig; }
+
 void Config::setSmscTtlMs(unsigned int smscTtlMs) {
   smscConfig.smsTtlMs = smscTtlMs;
 }
 
-void Config::setSmscCdrJsonFilePath(const std::string &smscCdrJsonFilePath) {
-  smscConfig.cdrJsonFilePath = smscCdrJsonFilePath;
+void Config::setPcrfSmsPriceRub(double pcrfSmsPriceRub) {
+  pcrfConfig.smsPriceRub = pcrfSmsPriceRub;
+}
+
+void Config::addPcrfBalanceInfo(const BalanceInfo &info) {
+  pcrfConfig.balanceInfo.emplace(info.imsi, info);
 }
 } // namespace server

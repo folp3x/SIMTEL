@@ -12,45 +12,40 @@
 #include "common/json/info/json_vector_info/json_vector_info.h"
 
 namespace common {
-// абстрактный класс для парсинга данных из JSON
 template <typename T> class JsonParser {
 private:
   std::vector<std::unique_ptr<JsonBaseInfo>> fieldsInfo = {};
 
 protected:
   template <typename F>
-  void addParsedField(
+  static std::unique_ptr<JsonFieldInfo<F>> makeParsedField(
       const std::string &name,
       const std::function<void(const F &)> &successCallback,
       const std::function<std::string(const F &)> &checkFn = nullptr);
 
   template <typename E, size_t S>
-  void addParsedArray(
+  static std::unique_ptr<JsonArrayInfo<E, S>> makeParsedArray(
       const std::string &name,
       const std::function<void(const std::array<E, S> &)> &successCallback,
-      nlohmann::json::value_t elemType,
       const std::function<std::string(const std::array<E, S> &)> &checkFn =
           nullptr);
 
   template <typename E>
-  void addParsedVector(
+  static std::unique_ptr<JsonVectorInfo<E>> makeParsedVector(
       const std::string &name,
       const std::function<void(const std::vector<E> &)> &successCallback,
-      nlohmann::json::value_t elemType,
       const std::function<std::string(const std::vector<E> &)> &checkFn =
           nullptr);
 
-  template <typename E>
-  void addParsedList(
-      const std::string &name,
-      const std::function<void(const std::vector<E> &)> &elemCallback,
-      const std::function<std::string(const std::vector<E> &)> &checkFn =
-          nullptr);
+  static std::unique_ptr<JsonObjectInfo>
+  makeParsedObject(const std::string &name);
 
-  void addParsedObject(std::unique_ptr<JsonObjectInfo> info);
+  static std::unique_ptr<JsonObjectArrayInfo>
+  makeParsedObjectArray(const std::string &name,
+                        std::unique_ptr<JsonObjectInfo> objectInfo,
+                        const std::function<void()> &objectCallback);
 
-  void addParsedObjectArray(const std::string &name, JsonObjectInfo objectInfo,
-                            const std::function<void()> &objectCallback);
+  void addInfo(std::unique_ptr<JsonBaseInfo> info);
 
   virtual void initFields() = 0;
 
