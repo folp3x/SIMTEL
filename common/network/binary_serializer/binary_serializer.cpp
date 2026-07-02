@@ -7,8 +7,8 @@ namespace common {
 binary_t BinarySerializer::strToBinary(const std::string &binary) {
   binary_t result;
   result.reserve(binary.size());
-  for (char c : binary) {
-    result.push_back(static_cast<std::byte>(c));
+  for (auto byte : binary) {
+    result.push_back(static_cast<std::byte>(byte));
   }
   return result;
 }
@@ -16,8 +16,8 @@ binary_t BinarySerializer::strToBinary(const std::string &binary) {
 std::string BinarySerializer::strFromBinary(const binary_t &binary) {
   std::string result;
   result.reserve(binary.size());
-  for (std::byte b : binary) {
-    result.push_back(static_cast<char>(b));
+  for (std::byte byte : binary) {
+    result.push_back(static_cast<char>(byte));
   }
   return result;
 }

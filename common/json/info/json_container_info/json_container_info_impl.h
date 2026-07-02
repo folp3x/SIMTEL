@@ -19,7 +19,7 @@ JsonContainerInfo<Container>::parse(const nlohmann::json &json,
 
   std::string nameQuoted = this->getName(true);
 
-  const auto &fieldJson = this->getFieldJson(json);
+  nlohmann::json fieldJson = this->getFieldJson(json);
   auto field = parseContainer(fieldJson);
   if (!field) {
     return nameQuoted + ": " + field.error();

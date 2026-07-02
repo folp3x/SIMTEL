@@ -4,7 +4,7 @@
 
 namespace client {
 void AddressBookParser::initFields() {
-  addParsedVector<common::msisdn_t>(
+  addInfo(makeParsedVector<common::msisdn_t>(
       "", [this](const std::vector<common::msisdn_t> &subscribers) {
         for (int i = 0; i < subscribers.size(); ++i) {
           if (i >= constants::MAX_ADDRESS_BOOK_SIZE) {
@@ -15,7 +15,7 @@ void AddressBookParser::initFields() {
                                        : constants::EMPTY_SPEED_DIAL_NUM;
           records[speedDialNum] = subscribers[i];
         }
-      });
+      }));
 }
 
 std::unique_ptr<AddressBookParser> AddressBookParser::create() {
@@ -28,7 +28,7 @@ std::expected<std::map<char, common::msisdn_t>, std::string>
 AddressBookParser::parseJson(const nlohmann::json &json) {
   records.clear();
 
-  auto error = this->parseFields(json);
+  auto error = parseFields(json);
   if (error) {
     return std::unexpected(*error);
   }

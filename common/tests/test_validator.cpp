@@ -5,7 +5,7 @@
 
 #include "test_utils/temp_file/temp_file.h"
 
-class ValidatorTest : public ::testing::Test {
+class ValidatorTest : public testing::Test {
 protected:
   static constexpr int MIN_IMEI_LENGTH = 1;
   static constexpr int MAX_IMEI_LENGTH = 15;

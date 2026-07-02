@@ -117,8 +117,8 @@ std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
   } else {
     for (int i = 0; i < msisdn.length(); ++i) {
       char formatCh = MSISDN_FORMAT_STR[i];
-      if (isdigit(formatCh) && msisdn[i] != formatCh ||
-          formatCh == MSISDN_ANY_DIGIT && !isdigit(msisdn[i])) {
+      if (std::isdigit(formatCh) && msisdn[i] != formatCh ||
+          formatCh == MSISDN_ANY_DIGIT && !std::isdigit(msisdn[i])) {
         correct = false;
         break;
       }

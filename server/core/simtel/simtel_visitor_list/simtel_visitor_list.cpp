@@ -13,7 +13,7 @@ SimtelVisitorList::SimtelVisitorList(unsigned int mmeId_) : mmeId(mmeId_) {}
 void SimtelVisitorList::setRecord(const VlrRecord &record) {
   MessageHolder::instance().addMsg(
       createLogMsg("added record: " + record.toStr()));
-  records.insert({record.mTimsi, record});
+  records.emplace(record.mTimsi, record);
 }
 
 void SimtelVisitorList::removeRecord(const common::imsi_t &mTimsi) {

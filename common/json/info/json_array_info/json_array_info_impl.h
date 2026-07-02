@@ -14,13 +14,13 @@ JsonArrayInfo<T, S>::parseContainer(const nlohmann::json &fieldJson) {
   std::array<T, S> field{};
 
   for (size_t i = 0; i < S; ++i) {
-    auto elemJson = fieldJson[i];
-    auto elemType = this->template recognizeType<T>();
+    nlohmann::json elemJson = fieldJson[i];
+    nlohmann::json elemType = this->template recognizeType<T>();
     if (!(hasJsonType(elemJson, elemType))) {
       return std::unexpected("elements must have a type: '" +
                              jsonTypeToStr(elemType) + "'");
     }
-    field[i] = elemJson.template get<T>();
+    field[i] = elemJson.get<T>();
   }
 
   return field;

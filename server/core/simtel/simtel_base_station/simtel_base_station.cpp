@@ -91,12 +91,12 @@ float SimtelBaseStation::calculateDistance(
   auto it1 = bsCoords.begin();
   auto it2 = ueCoords.begin();
   while (it1 != bsCoords.end() || it2 != ueCoords.end()) {
-    dist += pow(*it1 - *it2, 2);
+    dist += std::pow(*it1 - *it2, 2);
     ++it1;
     ++it2;
   }
 
-  return sqrt(dist);
+  return std::sqrt(dist);
 }
 
 std::shared_ptr<SimtelUeContext>
@@ -532,7 +532,7 @@ SimtelBaseStation::prepareSmDelivery(const common::imsi_t &mTimsi,
     return std::unexpected("UE with such m-timsi not connected");
   }
 
-  auto buf = ue->takeBuf();
+  common::binary_t buf = ue->takeBuf();
   if (buf.empty()) {
     return std::unexpected("No SMS text in buf");
   }

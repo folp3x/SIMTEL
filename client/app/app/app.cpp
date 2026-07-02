@@ -62,13 +62,13 @@ void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
     common::imsi_t newMTimsi = handoverResponse->getMTimsi();
     bool updated = ctx.setMTimsi(newMTimsi);
     if (updated) {
-      addMsg("BS changed. m-timsi set: " + ctx.getMTimsi());
+      addMsg("Connected. m-timsi set: " + ctx.getMTimsi());
     } else {
       if (ctx.getMTimsi() != newMTimsi) {
-        addErrorMsg("BS changed. New m-timsi received, but it is already "
+        addErrorMsg("Connected. New m-timsi received, but it is already "
                     "assigned");
       } else {
-        addMsg("BS changed. m-timsi not updated: " + ctx.getMTimsi());
+        addMsg("Confirmed m-timsi: " + ctx.getMTimsi());
       }
     }
   } else if (auto *keepResponse =
@@ -328,15 +328,16 @@ void App::run() {
 
   std::jthread requestsSender{[this]() { exchange.sendRequests(); }};
 
-  std::jthread smsInfoReceiver{[this]() {
-    exchange.receiveSmsInfo([this](std::unique_ptr<common::Request> response,
-                                   const std::string &error) {
-      if (!error.empty()) {
-        addErrorMsg("Error: " + error);
-      } else {
-        handleSmsStatusResponse(std::move(response));
-      }
-    });
+  std::jthread backgroundReceiver{[this]() {
+    exchange.receiveFromBsInBackground(
+        [this](std::unique_ptr<common::Request> response,
+               const std::string &error) {
+          if (!error.empty()) {
+            addErrorMsg("Error: " + error);
+          } else {
+            handleBackgroundResponse(std::move(response));
+          }
+        });
   }};
 
   while (running) {
@@ -379,7 +380,7 @@ void App::addErrorMsg(const std::string &content) {
   addMsg(content, common::MenuMessageType::ERR);
 }
 
-void App::handleSmsStatusResponse(std::unique_ptr<common::Request> response) {
+void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
   if (auto *deliveryResponse =
           dynamic_cast<common::SmDeliveryRequest *>(response.get())) {
     if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {

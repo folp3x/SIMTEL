@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
                     config.getMmeConfigs(),
                     config.getSmscConfig(),
                     *bsConfigs,
-                    *epcConfig};
+                    *epcConfig,
+                    config.getPcrfConfig()};
     app.run();
 
     return 0;

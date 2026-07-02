@@ -9,10 +9,12 @@ Request::msgFromReqBytes(const binary_t &binary, Protocol &protocol) const {
   if (!msg) {
     return msg;
   }
+
   auto parsedProtocol = protocolFromNetworkId(msg->header.protocol);
   if (!parsedProtocol) {
     return std::unexpected("Unknown protocol");
   }
+
   protocol = *parsedProtocol;
   auto reqType = static_cast<RequestType>(msg->header.reqType);
   if (reqType != getType()) {

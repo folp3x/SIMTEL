@@ -29,7 +29,7 @@ void SimtelUeContext::setProtocol(common::Protocol protocol_) {
 }
 
 common::binary_t SimtelUeContext::takeBuf() {
-  auto copy = buf;
+  common::binary_t copy = buf;
   buf.clear();
 
   return copy;

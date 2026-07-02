@@ -20,8 +20,8 @@ private:
     CallbackType callback{};
   };
 
-  static constexpr unsigned int SMS_INFO_SLEEP_MS = 1000;
-  static constexpr unsigned int RECEIVE_SMS_INFO_TIMEOUT_MSEC = 100;
+  static constexpr unsigned int RECEIVE_FROM_BS_SLEEP_MSEC = 1000;
+  static constexpr unsigned int RECEIVE_FROM_BS_TIMEOUT_MSEC = 100;
   static constexpr unsigned int RECEIVE_SIGNAL_TIMEOUT_MSEC = 2000;
 
   bool running = true;
@@ -71,7 +71,7 @@ public:
 
   void stop();
 
-  void receiveSmsInfo(const CallbackType &callback);
+  void receiveFromBsInBackground(const CallbackType &callback);
 };
 } // namespace client
 

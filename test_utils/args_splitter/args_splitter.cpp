@@ -3,7 +3,7 @@
 void ArgsSplitter::split(const std::string &argsStr) {
   std::string curArg = "";
   for (auto ch : argsStr) {
-    if (isspace(ch)) {
+    if (std::isspace(ch)) {
       if (!curArg.empty()) {
         argsValues.push_back(curArg);
         curArg.clear();

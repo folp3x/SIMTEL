@@ -5,7 +5,7 @@
 
 #include "test_utils/temp_file/temp_file.h"
 
-class ConfigParserTest : public ::testing::Test {
+class ConfigParserTest : public testing::Test {
 protected:
   std::unique_ptr<client::ConfigParser> parser = client::ConfigParser::create();
 

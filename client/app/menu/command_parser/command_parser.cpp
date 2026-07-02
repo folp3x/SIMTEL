@@ -32,12 +32,12 @@ CommandParser::parseActiveArgs(const std::vector<std::string> &args,
 
   std::string isActiveStr = args[0];
 
-  auto isActive = common::parseBool(isActiveStr);
-  if (isActive) {
+  auto isActiveValue = common::parseBool(isActiveStr);
+  if (isActiveValue) {
     if (args.size() > MenuItemActive::getArgsCount()) {
       extraMsg = "Extra arguments ignored";
     }
-    return std::make_unique<MenuItemActive>(*isActive);
+    return std::make_unique<MenuItemActive>(*isActiveValue);
   }
 
   return std::make_unique<common::MenuItemInvalid>("Invalid argument");

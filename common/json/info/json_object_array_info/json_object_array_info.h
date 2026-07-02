@@ -6,11 +6,12 @@ namespace common {
 // класс с информацией для парсинга JSON-массива однотипных объектов
 class JsonObjectArrayInfo : public JsonBaseInfo {
 private:
-  JsonObjectInfo innerObject;
+  std::unique_ptr<JsonObjectInfo> innerObject;
   const std::function<void()> objectCallback;
 
 public:
-  JsonObjectArrayInfo(const std::string &name, JsonObjectInfo innerObject,
+  JsonObjectArrayInfo(const std::string &name,
+                      std::unique_ptr<JsonObjectInfo> innerObject_,
                       const std::function<void()> &objectCallback_);
 
   virtual std::optional<std::string> parse(const nlohmann::json &json,

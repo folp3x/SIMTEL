@@ -76,7 +76,7 @@ private:
 
   void addErrorMsg(const std::string &content);
 
-  void handleSmsStatusResponse(std::unique_ptr<common::Request> response);
+  void handleBackgroundResponse(std::unique_ptr<common::Request> response);
 
   void showMessages();
 

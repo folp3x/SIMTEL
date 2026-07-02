@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-class NetworkAddressTest : public ::testing::Test {
+class NetworkAddressTest : public testing::Test {
 protected:
   // 127.0.0.1
   static constexpr uint32_t TEST_IP = (1) | (127 << 3 * 8);

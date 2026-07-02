@@ -251,13 +251,14 @@ void UeExchange::stop() {
   closeConnection();
 }
 
-void UeExchange::receiveSmsInfo(const CallbackType &callback) {
+void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
   while (running) {
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(SMS_INFO_SLEEP_MS));
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(RECEIVE_FROM_BS_SLEEP_MSEC));
 
       std::unique_lock lock(receiveMtx);
-      bool set = sock.setReceiveTimeout(RECEIVE_SMS_INFO_TIMEOUT_MSEC);
+      bool set = sock.setReceiveTimeout(RECEIVE_FROM_BS_TIMEOUT_MSEC);
       if (!set) {
         lock.unlock();
         continue;
@@ -320,9 +321,8 @@ void UeExchange::receiveSmsInfo(const CallbackType &callback) {
         continue;
       }
       default:
-        callback(nullptr,
-                 "Unexpected response received while receiving SMS status: " +
-                     common::requestTypeToStr(responseType));
+        callback(nullptr, "Unexpected response received from BS: " +
+                              common::requestTypeToStr(responseType));
         continue;
       }
 

@@ -6,7 +6,7 @@
 #include "test_utils/args_splitter/args_splitter.h"
 #include "test_utils/temp_file/temp_file.h"
 
-class CliParserTest : public ::testing::Test {
+class CliParserTest : public testing::Test {
 protected:
   std::unique_ptr<client::CliParser> parser = client::CliParser::create();
 
@@ -72,7 +72,7 @@ TEST_F(CliParserTest, Parse_ConfigInvalidArg) {
   bool parsed =
       parser->parse(splitter.argc(), splitter.argv(), msg, helpCalled);
 
-  auto result = parser->getConfigFilePath();
+  parser->getConfigFilePath();
 
   EXPECT_FALSE(parsed);
   EXPECT_FALSE(msg.empty());

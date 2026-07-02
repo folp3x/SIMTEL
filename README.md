@@ -221,7 +221,7 @@ cd build/client
 
 > Enter
 
-BS changed. m-timsi set: 000000000000001
+Connected. m-timsi set: 000000000000001
 
 # клиент 2
 > active 1
@@ -230,7 +230,7 @@ BS changed. m-timsi set: 000000000000001
 
 > Enter
 
-BS changed. m-timsi set: 000000000000002
+Connected. m-timsi set: 000000000000002
 
 # клиент 1
 
@@ -281,7 +281,7 @@ SMS sent to 89990000002
 
 > Enter
 
-BS changed. m-timsi not updated: 000000000000002
+Connected. m-timsi not updated: 000000000000002
 SMS received from 89990000001
 
 # клиент 1

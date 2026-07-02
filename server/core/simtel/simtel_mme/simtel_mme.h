@@ -5,6 +5,7 @@
 
 #include "common/types.h"
 #include "server/app/config/mme_config/mme_config.h"
+#include "server/core/simtel/simtel_pcrf/simtel_pcrf.h"
 #include "server/core/simtel/simtel_register/simtel_register.h"
 #include "server/core/simtel/simtel_smsc/simtel_smsc.h"
 #include "server/core/simtel/simtel_visitor_list/simtel_visitor_list.h"
@@ -13,8 +14,8 @@ namespace server {
 class SimtelMme {
 private:
   static constexpr uint64_t MAX_MTIMSI = 999'999'999'999'999;
-  static constexpr unsigned int SEND_SMS_SLEEP_MS = 1000;
-  static constexpr unsigned int SEND_REPORT_SLEEP_MS = 1000;
+  static constexpr unsigned int SEND_SMS_SLEEP_MSEC = 1000;
+  static constexpr unsigned int SEND_REPORT_SLEEP_MSEC = 1000;
 
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;
@@ -23,12 +24,14 @@ private:
 
   SimtelVisitorList vlr;
 
-  std::shared_ptr<SimtelRegister> hlr;
+  std::shared_ptr<SimtelRegister> reg;
   std::weak_ptr<SimtelSmsc> smsc;
   std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
 
   std::unordered_map<unsigned int, std::shared_ptr<SimtelMme>> otherMme{};
+
+  std::shared_ptr<SimtelPcrf> pcrf;
 
   static common::imsi_t generateMTimsi();
 
@@ -63,8 +66,8 @@ private:
   void trySendReport(unsigned int smsId, const common::imsi_t &imsi_s);
 
 public:
-  SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> hlr_,
-            std::weak_ptr<SimtelSmsc> smsc_);
+  SimtelMme(const MmeConfig &config, std::shared_ptr<SimtelRegister> reg_,
+            std::weak_ptr<SimtelSmsc> smsc_, std::shared_ptr<SimtelPcrf> pcrf_);
 
   void addOtherMme(std::shared_ptr<SimtelMme> mme);
 

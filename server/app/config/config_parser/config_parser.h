@@ -8,6 +8,7 @@ class ConfigParser : public common::ConfigParser<Config> {
 private:
   MmeConfig curMmeConfig{};
   SmscConfig smscConfig{};
+  BalanceInfo curBalanceInfo{};
 
   ConfigParser() = default;
 
@@ -15,6 +16,7 @@ private:
   void initEpcFilePathField();
   void initSmscConfigField();
   void initMmeConfigsField();
+  void initPcrfConfigField();
 
   virtual void initFields() override;
 

@@ -5,7 +5,7 @@
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 
-class CommandParserTest : public ::testing::Test {
+class CommandParserTest : public testing::Test {
 protected:
   client::CommandParser parser{};
   std::string extraMsg = "";

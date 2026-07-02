@@ -24,17 +24,21 @@ void App::exitApp() {
 
 App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
-         const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig)
+         const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig,
+         const PcrfConfig &pcrfConfig)
     : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec,
                                               TTL_WARNING_PERIOD_SEC)),
       listener(addr, maxUeThreadsCount),
-      hlr(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath,
+      reg(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath,
                                            epcConfig.eirSqliteFilePath)),
-      smsc(std::make_unique<SimtelSmsc>(smscConfig)) {
+      smsc(std::make_unique<SimtelSmsc>(smscConfig)),
+      pcrf(std::make_shared<SimtelPcrf>(pcrfConfig.smsPriceRub,
+                                        pcrfConfig.balanceInfo)) {
   listener.setTtlManager(ttlManager);
 
   for (const auto &config : mmeConfigs) {
-    mmeList.insert({config.id, std::make_shared<SimtelMme>(config, hlr, smsc)});
+    mmeList.emplace(config.id,
+                    std::make_shared<SimtelMme>(config, reg, smsc, pcrf));
   }
 
   for (auto &[id, mme] : mmeList) {
@@ -56,15 +60,15 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
     SimtelBaseStation::addBs(bs);
   }
 
-  if (!hlr->hasHlrData()) {
-    hlr->insertHlrData();
+  if (!reg->hasHlrData()) {
+    reg->insertHlrData();
   }
 
-  if (!hlr->hasEirData()) {
-    hlr->insertEirData();
+  if (!reg->hasEirData()) {
+    reg->insertEirData();
   }
 
-  hlr->logRecords();
+  reg->logRecords();
 
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });
@@ -106,7 +110,8 @@ void App::run() {
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(MENU_SLEEP_MS * 10));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(MENU_SLEEP_MSEC * 10));
   }
 
   exitApp();

@@ -9,10 +9,11 @@ namespace server {
 uint64_t SimtelMme::curMTimsi = 0;
 
 SimtelMme::SimtelMme(const MmeConfig &config,
-                     std::shared_ptr<SimtelRegister> hlr_,
-                     std::weak_ptr<SimtelSmsc> smsc_)
-    : id(config.id), maxVlrSize(config.maxVlrSize), hlr(hlr_), smsc(smsc_),
-      vlr(id) {}
+                     std::shared_ptr<SimtelRegister> reg_,
+                     std::weak_ptr<SimtelSmsc> smsc_,
+                     std::shared_ptr<SimtelPcrf> pcrf_)
+    : id(config.id), maxVlrSize(config.maxVlrSize), reg(reg_), smsc(smsc_),
+      pcrf(pcrf_), vlr(id) {}
 
 std::optional<common::imsi_t>
 SimtelMme::findImsiInOther(const common::imsi_t &mTimsi,
@@ -94,7 +95,7 @@ void SimtelMme::trySendReport(unsigned int smsId,
     MessageHolder::instance().addMsg(
         createLogMsg("trying to send SM_Delivery_Report"));
 
-    auto senderMmeId = hlr->getMmeIdByImsi(imsi_s);
+    auto senderMmeId = reg->getMmeIdByImsi(imsi_s);
     if (!senderMmeId) {
       continue;
     }
@@ -112,16 +113,16 @@ void SimtelMme::trySendReport(unsigned int smsId,
     }
 
     std::this_thread::sleep_for(
-        std::chrono::milliseconds(SEND_REPORT_SLEEP_MS));
+        std::chrono::milliseconds(SEND_REPORT_SLEEP_MSEC));
   }
 }
 
 void SimtelMme::addOtherMme(std::shared_ptr<SimtelMme> mme) {
-  otherMme.insert({mme->getId(), mme});
+  otherMme.emplace(mme->getId(), mme);
 }
 
 void SimtelMme::addBs(std::shared_ptr<SimtelBaseStation> bs) {
-  baseStations.insert({bs->getId(), bs});
+  baseStations.emplace(bs->getId(), bs);
 }
 
 unsigned int SimtelMme::getId() const { return id; }
@@ -159,12 +160,12 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
         createLogMsg("received imsi is m-timsi, real imsi is " + realImsi));
 
     if (mmeId != id) {
-      auto hlrRecord = hlr->handleAuthInfoRequest(realImsi, imei);
-      if (!hlrRecord) {
-        return std::unexpected(hlrRecord.error());
+      auto regRecord = reg->handleAuthInfoRequest(realImsi, imei);
+      if (!regRecord) {
+        return std::unexpected(regRecord.error());
       }
 
-      vlr.setRecord({mTimsi, realImsi, imei, hlrRecord->msisdn, nullptr});
+      vlr.setRecord({mTimsi, realImsi, imei, regRecord->msisdn});
     }
 
     return mTimsi;
@@ -181,12 +182,12 @@ SimtelMme::handleAttachRequest(const common::imsi_t &imsi,
     MessageHolder::instance().addMsg(
         createLogMsg("generated m-timsi: " + mTimsi));
 
-    auto hlrRecord = hlr->handleAuthInfoRequest(imsi, imei);
-    if (!hlrRecord) {
-      return std::unexpected(hlrRecord.error());
+    auto regRecord = reg->handleAuthInfoRequest(imsi, imei);
+    if (!regRecord) {
+      return std::unexpected(regRecord.error());
     }
 
-    vlr.setRecord({mTimsi, imsi, imei, hlrRecord->msisdn, nullptr});
+    vlr.setRecord({mTimsi, imsi, imei, regRecord->msisdn});
 
     return mTimsi;
   }
@@ -213,7 +214,7 @@ SimtelMme::handleAuthResponse(const common::imsi_t &mTimsi, unsigned int bsId) {
     return "UE not known by MME";
   }
 
-  auto result = hlr->handleUpdateLocationRequest(*realImsi, id);
+  auto result = reg->handleUpdateLocationRequest(*realImsi, id);
   if (!result) {
     return result.error();
   }
@@ -260,9 +261,10 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("request to HLR: Routing_Info_SM(msisdn=" + msisdn_d) + ")");
+      createLogMsg("request to HLR/EIR: Routing_Info_SM(msisdn=" + msisdn_d) +
+      ")");
 
-  auto senderRecord = hlr->handleRoutingInfoSmSender(*senderImsi);
+  auto senderRecord = reg->handleRoutingInfoSmSender(*senderImsi);
   if (!senderRecord) {
     return senderRecord.error();
   }
@@ -271,7 +273,7 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
     return "SMS cant be sent to same MSISDN";
   }
 
-  auto receiverRecord = hlr->handleRoutingInfoSmReceiver(msisdn_d);
+  auto receiverRecord = reg->handleRoutingInfoSmReceiver(msisdn_d);
   if (!receiverRecord) {
     return receiverRecord.error();
   }
@@ -338,7 +340,7 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
   MessageHolder::instance().addMsg(createLogMsg("received SmDeliveryAck"));
 
   unsigned int senderMmeId;
-  auto imsi_s = hlr->getImsiByMsisdn(msisdn_s, senderMmeId);
+  auto imsi_s = reg->getImsiByMsisdn(msisdn_s, senderMmeId);
   if (!imsi_s) {
     MessageHolder::instance().addErrorMsg("Sender record not found in HLR");
     return;
@@ -432,7 +434,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
     bs->sendSmDelivery(mtimsi_d, smsId, msisdn_s, binary);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MS));
+    std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MSEC));
 
     auto deliveredInfo = smsc.lock()->isDelivered(smsId, mtimsi_s);
     if (!deliveredInfo) {

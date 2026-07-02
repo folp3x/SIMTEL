@@ -2,9 +2,9 @@
 
 namespace common {
 template <std::derived_from<Config> T> void ConfigParser<T>::initPortField() {
-  this->template addParsedField<int>(
+  this->template addInfo(this->template makeParsedField<int>(
       "port", [this](int port) { config.setPort(port); },
-      Validator::isCorrectPort);
+      Validator::isCorrectPort));
 }
 
 template <std::derived_from<Config> T> void ConfigParser<T>::initFields() {

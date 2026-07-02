@@ -7,44 +7,71 @@
 
 namespace server {
 void ConfigParser::initBsFilePathField() {
-  addParsedField<std::string>(
+  addInfo(makeParsedField<std::string>(
       "bsFilePath",
       [this](const std::string &path) { config.setBsFilePath(path); },
       [](const std::string &path) {
         return common::Validator::jsonFilePathExists(path, "BS");
-      });
+      }));
 }
 
 void ConfigParser::initEpcFilePathField() {
-  addParsedField<std::string>(
+  addInfo(makeParsedField<std::string>(
       "epcFilePath",
       [this](const std::string &path) { config.setEpcFilePath(path); },
       [](const std::string &path) {
         return common::Validator::jsonFilePathExists(path, "EPC");
-      });
+      }));
 }
 
 void ConfigParser::initSmscConfigField() {
-  auto smscConfigObj = std::make_unique<common::JsonObjectInfo>("smscConfig");
-  smscConfigObj->addInner(std::make_unique<common::JsonFieldInfo<unsigned int>>(
+  auto smscConfigObj = makeParsedObject("smscConfig");
+  smscConfigObj->addInner(makeParsedField<unsigned int>(
       "smsTtl_ms", [this](unsigned int ttl) { config.setSmscTtlMs(ttl); },
       [](unsigned int ttl) { return (ttl > 0) ? "" : "SMS TTL cant be 0"; }));
 
-  addParsedObject(std::move(smscConfigObj));
+  addInfo(std::move(smscConfigObj));
 }
 
 void ConfigParser::initMmeConfigsField() {
-  common::JsonObjectInfo mmeConfigObj{""};
-  mmeConfigObj.addInner(std::make_unique<common::JsonFieldInfo<unsigned int>>(
+  auto mmeConfigObj = makeParsedObject("");
+  mmeConfigObj->addInner(makeParsedField<unsigned int>(
       "id", [this](unsigned int id) { curMmeConfig.id = id; }));
-  mmeConfigObj.addInner(std::make_unique<common::JsonFieldInfo<size_t>>(
+  mmeConfigObj->addInner(makeParsedField<size_t>(
       "maxVlrSize", [this](size_t size) { curMmeConfig.maxVlrSize = size; },
       [](size_t size) { return (size > 0) ? "" : "VLR size cant be 0"; }));
 
-  addParsedObjectArray("mmeConfigs", std::move(mmeConfigObj), [this]() {
-    config.addMmeConfig(curMmeConfig);
-    curMmeConfig = {};
-  });
+  addInfo(
+      makeParsedObjectArray("mmeConfigs", std::move(mmeConfigObj), [this]() {
+        config.addMmeConfig(curMmeConfig);
+        curMmeConfig = {};
+      }));
+}
+
+void ConfigParser::initPcrfConfigField() {
+  auto pcrfConfigObj = makeParsedObject("pcrfConfig");
+  pcrfConfigObj->addInner(makeParsedField<double>(
+      "smsPrice_rub",
+      [this](double price) { config.setPcrfSmsPriceRub(price); },
+      [](double price) { return (price > 0) ? "" : "SMS price must be > 0"; }));
+
+  auto balanceInfoObj = makeParsedObject("");
+  balanceInfoObj->addInner(makeParsedField<common::imsi_t>(
+      "imsi",
+      [this](const common::imsi_t &imsi) { curBalanceInfo.imsi = imsi; },
+      common::Validator::isCorrectImsi));
+  balanceInfoObj->addInner(
+      makeParsedField<double>("balance_rub", [this](double balance) {
+        curBalanceInfo.balance = balance;
+      }));
+
+  pcrfConfigObj->addInner(
+      makeParsedObjectArray("balanceInfo", std::move(balanceInfoObj), [this]() {
+        config.addPcrfBalanceInfo(curBalanceInfo);
+        curBalanceInfo = {};
+      }));
+
+  addInfo(std::move(pcrfConfigObj));
 }
 
 void ConfigParser::initFields() {
@@ -53,6 +80,7 @@ void ConfigParser::initFields() {
   initEpcFilePathField();
   initSmscConfigField();
   initMmeConfigsField();
+  initPcrfConfigField();
 }
 
 std::unique_ptr<ConfigParser> ConfigParser::create() {
