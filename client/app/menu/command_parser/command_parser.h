@@ -49,6 +49,14 @@ private:
 
   static std::unique_ptr<common::MenuItem>
   parseActiveArgs(const std::vector<std::string> &args, std::string &extraMsg);
+
+  static std::unique_ptr<common::MenuItem>
+  parseUssdCodeArgs(const std::vector<std::string> &args,
+                    std::string &extraMsg);
+
+public:
+  virtual std::unique_ptr<common::MenuItem>
+  parseCommand(const std::string &str, std::string &extraMsg) const override;
 };
 } // namespace client
 

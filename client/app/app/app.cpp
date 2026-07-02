@@ -257,6 +257,10 @@ void App::executeSentCommand() const {
   }
 }
 
+void App::executeUssdCodeCommand(const MenuItemUssdCode &cmd) const {
+  std::cout << cmd.getName() << " " << cmd.getCode() << std::endl;
+}
+
 void App::addDeliveryAckToExchange(const common::msisdn_t &msisdn,
                                    unsigned int smsId) {
   auto req = std::make_unique<common::SmDeliveryAckRequest>(ctx.getMTimsi(),
@@ -298,14 +302,18 @@ void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
     executeProtocolCommand(*protocolCmd);
   } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
     executeSmsCommand(*smsCmd);
-  } else if (auto *sentCmd = dynamic_cast<MenuItemSent *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemSent *>(cmd.get())) {
     executeSentCommand();
-  } else if (auto *receivedCmd = dynamic_cast<MenuItemReceived *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemReceived *>(cmd.get())) {
     executeReceivedCommand();
   } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
     executeDialogCommand(*dialogCmd);
-  } else if (auto *dialogCmd = dynamic_cast<MenuItemUssd *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemUssd *>(cmd.get())) {
     menu.showUssdInfo(ussdInfo);
+  } else if (auto *ussdCodeCmd = dynamic_cast<MenuItemUssdCode *>(cmd.get())) {
+    executeUssdCodeCommand(*ussdCodeCmd);
+  } else {
+    menu.showError("Unexpected command");
   }
 }
 

@@ -36,12 +36,6 @@ bool allDigits(std::string_view str) {
   return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
-std::string ltrimmed(std::string_view str) {
-  auto it = std::find_if(str.begin(), str.end(), ::isprint);
-
-  return std::string(it, str.end());
-}
-
 std::vector<std::string> split(const std::string &str) {
   std::vector<std::string> tokens = {};
   std::string curToken = "";

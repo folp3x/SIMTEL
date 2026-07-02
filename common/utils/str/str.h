@@ -11,7 +11,6 @@ std::string lowercased(std::string_view str);
 std::string uppercased(std::string_view str);
 std::optional<bool> parseBool(std::string_view str);
 bool allDigits(std::string_view str);
-std::string ltrimmed(std::string_view str);
 std::vector<std::string> split(const std::string &str);
 std::string imsiToStr(uint64_t imsi);
 

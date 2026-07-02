@@ -7,6 +7,7 @@
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
+#include "client/app/menu/menu_item/menu_item_ussd_code/menu_item_ussd_code.h"
 #include "client/core/sms/sms/sms.h"
 #include "client/core/ue/ue_active/ue_active.h"
 #include "client/core/ue/ue_context/ue_context.h"
@@ -64,6 +65,8 @@ private:
   void executeDialogCommand(const MenuItemDialog &cmd) const;
   void executeReceivedCommand() const;
   void executeSentCommand() const;
+
+  void executeUssdCodeCommand(const MenuItemUssdCode &cmd) const;
 
   void addDeliveryAckToExchange(const common::msisdn_t &msisdn,
                                 unsigned int smsId);
