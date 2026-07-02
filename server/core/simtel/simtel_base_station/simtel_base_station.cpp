@@ -67,9 +67,9 @@ SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
 
 std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
     std::shared_ptr<SimtelUeContext> ctx) const {
-  auto changePathError = mme.lock()->handleAuthResponse(ctx->getMTimsi(), id);
-  if (changePathError) {
-    return "Error changing path: " + *changePathError;
+  auto handleAuthError = mme.lock()->handleAuthResponse(ctx->getMTimsi(), id);
+  if (handleAuthError) {
+    return "Error changing path: " + *handleAuthError;
   }
 
   auto response = std::make_unique<common::AttachAcceptRequest>();
@@ -217,9 +217,10 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     return "Unknown m-timsi received: " + configureConfirm->getMTimsi();
   }
 
+  std::shared_ptr<SimtelBaseStation> prevBs = nullptr;
   if (handover) {
     if (auto ptr = ctx->getBs().lock()) {
-      ptr->removeUe(ctx->getMTimsi());
+      prevBs = ptr;
       ue->setBs(chosenBs);
       chosenBs->addUe(std::move(ue));
     } else {
@@ -227,7 +228,16 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     }
   }
 
-  return chosenBs->handleConfigureComplete(ctx);
+  auto configureCompleteError = chosenBs->handleConfigureComplete(ctx);
+  if (configureCompleteError) {
+    return *configureCompleteError;
+  }
+
+  if (handover && prevBs) {
+    prevBs->removeUe(ctx->getMTimsi());
+  }
+
+  return std::nullopt;
 }
 
 std::shared_ptr<SimtelBaseStation> SimtelBaseStation::findBs(unsigned int id) {
@@ -337,7 +347,7 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTimsi) {
   }
 
   MessageHolder::instance().addMsg(
-      createLogMsg("\n" + it->second->toStr() + " buffer removed "));
+      createLogMsg(it->second->toStr() + " buffer removed "));
 
   connectedUe.erase(it);
   return true;
