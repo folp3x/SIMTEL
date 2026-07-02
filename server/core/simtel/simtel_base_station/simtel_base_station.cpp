@@ -428,11 +428,12 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
         ctx->setProtocol(protocol);
 
-        auto handleError = handleSmTransfer(ctx, *req);
+        std::string ueErrorMsg = "";
+        auto handleError = handleSmTransfer(ctx, *req, ueErrorMsg);
         if (handleError) {
           MessageHolder::instance().addErrorMsg(*handleError);
           auto response = std::make_unique<common::SmDeliveryErrorRequest>(
-              req->getMTimsi(), req->getSmsId());
+              req->getMTimsi(), req->getSmsId(), ueErrorMsg);
           auto sendError = sendResponse(ctx, std::move(response));
           if (sendError) {
             MessageHolder::instance().addErrorMsg("Error sending error info: " +
@@ -472,14 +473,16 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
 std::optional<std::string>
 SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
-                                    const common::SmTransferRequest &req) {
+                                    const common::SmTransferRequest &req,
+                                    std::string &ueErrorMsg) {
   MessageHolder::instance().addMsg(
       createLogMsg("sent SM_Submit to MME (Sm_Transfer without text)"));
-  bool contextCreated =
-      mme.lock()->handleSmSubmit(req.getMTimsi(), req.getSmsId());
-  if (!contextCreated) {
+
+  auto ctxCreateError =
+      mme.lock()->handleSmSubmit(req.getMTimsi(), req.getSmsId(), ueErrorMsg);
+  if (ctxCreateError) {
     ctx->clearBuf();
-    return "SMSC cant create context for SMS";
+    return *ctxCreateError;
   }
 
   MessageHolder::instance().addMsg(
@@ -494,7 +497,7 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
   ctx->clearBuf();
 
   return mme.lock()->sendRoutingInfoSm(req.getMsisdn(), req.getSmsId(),
-                                       req.getMTimsi());
+                                       req.getMTimsi(), ueErrorMsg);
 }
 
 bool SimtelBaseStation::handleForwardSmReq(const common::imsi_t &mTimsi,
@@ -603,9 +606,10 @@ SimtelBaseStation::sendSmDeliveryReport(const common::imsi_t &mTimsi,
 
 std::optional<std::string>
 SimtelBaseStation::sendSmDeliveryError(const common::imsi_t &mTimsi,
-                                       unsigned int smsId) {
-  auto errorReq =
-      std::make_unique<common::SmDeliveryErrorRequest>(mTimsi, smsId);
+                                       unsigned int smsId,
+                                       const std::string &description) {
+  auto errorReq = std::make_unique<common::SmDeliveryErrorRequest>(
+      mTimsi, smsId, description);
 
   auto ue = findUe(mTimsi);
   if (!ue) {

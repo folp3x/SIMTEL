@@ -77,6 +77,7 @@ void SimtelRegister::insertHlrData() {
   hlrStorage.insert(HlrRecord{0, "200000000000000", "89990000001"});
   hlrStorage.insert(HlrRecord{0, "400000000000000", "89990000002"});
   hlrStorage.insert(HlrRecord{0, "600000000000000", "89990000003"});
+  hlrStorage.insert(HlrRecord{0, "800000000000000", "89990000004"});
 }
 
 bool SimtelRegister::hasHlrData() { return hlrStorage.count<HlrRecord>() != 0; }
@@ -88,6 +89,8 @@ void SimtelRegister::insertEirData() {
                               subscriberStatusToStr(SubscriberStatus::ACTIVE)});
   eirStorage.insert(EirRecord{0, "500000000000000",
                               subscriberStatusToStr(SubscriberStatus::BANNED)});
+  eirStorage.insert(EirRecord{0, "700000000000000",
+                              subscriberStatusToStr(SubscriberStatus::ACTIVE)});
 }
 
 bool SimtelRegister::hasEirData() { return eirStorage.count<EirRecord>() != 0; }

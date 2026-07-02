@@ -62,7 +62,7 @@ void ConfigParser::initPcrfConfigField() {
       common::Validator::isCorrectImsi));
   balanceInfoObj->addInner(
       makeParsedField<double>("balance_rub", [this](double balance) {
-        curBalanceInfo.balance = balance;
+        curBalanceInfo.balanceRub = balance;
       }));
 
   pcrfConfigObj->addInner(

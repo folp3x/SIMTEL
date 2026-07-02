@@ -238,10 +238,33 @@ std::shared_ptr<SimtelMme> SimtelMme::findOtherById(unsigned int id) const {
   return it->second;
 }
 
-bool SimtelMme::handleSmSubmit(const common::imsi_t &mtimsi_s,
-                               unsigned int smsId) {
+std::optional<std::string>
+SimtelMme::handleSmSubmit(const common::imsi_t &mtimsi_s, unsigned int smsId,
+                          std::string &ueErrorMsg) {
+  auto imsi_s = findImsiInVlr(mtimsi_s);
+  if (!imsi_s) {
+    return "UE not known by MME";
+  }
+
+  auto hasBalanceValue = pcrf->hasEnoughBalanceForSms(*imsi_s);
+  if (!hasBalanceValue) {
+    return "UE not known by PCRF";
+  }
+
+  bool hasBalance = *hasBalanceValue;
+  if (!hasBalance) {
+    ueErrorMsg = "Not enough balance";
+    return "Service not available for UE";
+  }
+
   MessageHolder::instance().addMsg(createLogMsg("sent SM_Submit to SMSC"));
-  return smsc.lock()->handleSmSubmit(mtimsi_s, smsId);
+
+  auto ctxCreated = smsc.lock()->handleSmSubmit(mtimsi_s, smsId);
+  if (!ctxCreated) {
+    return "Failed to create SMS context";
+  }
+
+  return std::nullopt;
 }
 
 bool SimtelMme::handleMoForwardSM(const common::imsi_t &mtimsi_s,
@@ -253,8 +276,8 @@ bool SimtelMme::handleMoForwardSM(const common::imsi_t &mtimsi_s,
 
 std::optional<std::string>
 SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
-                             unsigned int smsId,
-                             const common::imsi_t &mtimsi_s) {
+                             unsigned int smsId, const common::imsi_t &mtimsi_s,
+                             std::string &ueErrorMsg) {
   auto senderImsi = findImsiInVlr(mtimsi_s);
   if (!senderImsi) {
     return "Sender not known by MME";
@@ -286,19 +309,21 @@ SimtelMme::sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
     }
 
     return receiverMme->sendForwardSm(senderRecord->msisdn, smsId, mtimsi_s,
-                                      receiverRecord->imsi);
+                                      receiverRecord->imsi, ueErrorMsg);
   }
 
   return sendForwardSm(senderRecord->msisdn, smsId, mtimsi_s,
-                       receiverRecord->imsi);
+                       receiverRecord->imsi, ueErrorMsg);
 }
 
 std::optional<std::string>
 SimtelMme::sendForwardSm(const common::msisdn_t &msisdn_s, unsigned int smsId,
                          const common::imsi_t &mtimsi_s,
-                         const common::imsi_t &imsi_d) {
+                         const common::imsi_t &imsi_d,
+                         std::string &ueErrorMsg) {
   auto mtimsi_d = findMTimsiInVlr(imsi_d);
   if (!mtimsi_d) {
+    ueErrorMsg = "No subscriber with such MSISDN";
     return "Receiver not known by MME";
   }
 
@@ -389,7 +414,7 @@ void SimtelMme::sendSmDeliveryError(const common::msisdn_t &mtimsi_s,
 
   MessageHolder::instance().addMsg(createLogMsg("sending SmDeliveryError"));
 
-  auto error = senderBs->sendSmDeliveryError(mtimsi_s, smsId);
+  auto error = senderBs->sendSmDeliveryError(mtimsi_s, smsId, "");
   if (error) {
     MessageHolder::instance().addErrorMsg(*error);
   }

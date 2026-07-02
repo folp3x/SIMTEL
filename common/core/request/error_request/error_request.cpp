@@ -1,6 +1,5 @@
 #include "error_request.h"
 
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 
 namespace common {

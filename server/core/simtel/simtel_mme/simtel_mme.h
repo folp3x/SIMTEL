@@ -81,19 +81,23 @@ public:
   std::optional<std::string> handleAuthResponse(const common::imsi_t &mTimsi,
                                                 unsigned int bsId);
 
-  bool handleSmSubmit(const common::imsi_t &mtimsi_s, unsigned int smsId);
+  std::optional<std::string> handleSmSubmit(const common::imsi_t &mtimsi_s,
+                                            unsigned int smsId,
+                                            std::string &ueErrorMsg);
 
   bool handleMoForwardSM(const common::imsi_t &mtimsi_s, unsigned int smsId,
                          const std::string &smsText);
 
   std::optional<std::string> sendRoutingInfoSm(const common::msisdn_t &msisdn_d,
                                                unsigned int smsId,
-                                               const common::imsi_t &mtimsi_s);
+                                               const common::imsi_t &mtimsi_s,
+                                               std::string &ueErrorMsg);
 
   std::optional<std::string> sendForwardSm(const common::msisdn_t &msisdn_s,
                                            unsigned int smsId,
                                            const common::imsi_t &mtimsi_s,
-                                           const common::imsi_t &imsi_d);
+                                           const common::imsi_t &imsi_d,
+                                           std::string &ueErrorMsg);
 
   void handleSmDeliveryAck(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            const common::imsi_t &mtimsi_d);

@@ -1,7 +1,6 @@
 #include "rrc_reconfiguration_keep_request.h"
 
 #include "common/network/binary_iterator/binary_iterator.h"
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
@@ -50,7 +49,7 @@ RrcReconfigurationKeepRequest::toBinary() const {
 }
 
 std::optional<std::string>
-RrcReconfigurationKeepRequest::fromBinary(const common::binary_t &binary) {
+RrcReconfigurationKeepRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
   auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);

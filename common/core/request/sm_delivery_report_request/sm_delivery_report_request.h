@@ -8,6 +8,9 @@ private:
   imsi_t mTimsi = "";
   unsigned int smsId = 0;
 
+protected:
+  size_t binaryBytesCount = constants::IMSI_BINARY_BYTES + sizeof(smsId);
+
 public:
   SmDeliveryReportRequest() = default;
   SmDeliveryReportRequest(const common::imsi_t &mTimsi_, unsigned int smsId_);

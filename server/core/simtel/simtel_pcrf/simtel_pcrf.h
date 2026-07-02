@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <unordered_map>
 
 #include "server/core/simtel/balance_info/balance_info.h"
@@ -17,5 +18,11 @@ public:
   SimtelPcrf(
       double smsPriceRub_,
       const std::unordered_map<common::imsi_t, BalanceInfo> &balanceInfo_);
+
+  std::optional<bool> hasEnoughBalanceForSms(const common::imsi_t &imsi);
+
+  bool reserveMoneyForSms(const common::imsi_t &imsi);
+  bool returnReservedMoney(const common::imsi_t &imsi);
+  bool deductReservedMoney(const common::imsi_t &imsi);
 };
 } // namespace server

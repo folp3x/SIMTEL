@@ -79,7 +79,8 @@ private:
 
   std::optional<std::string>
   handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
-                   const common::SmTransferRequest &req);
+                   const common::SmTransferRequest &req,
+                   std::string &ueErrorMsg);
 
   std::optional<std::string> sendResponse(const common::imsi_t &mTimsi,
                                           std::unique_ptr<common::Request> req);
@@ -111,8 +112,9 @@ public:
   std::optional<std::string> sendSmDeliveryReport(const common::imsi_t &mTimsi,
                                                   unsigned int smsId);
 
-  std::optional<std::string> sendSmDeliveryError(const common::imsi_t &mTimsi,
-                                                 unsigned int smsId);
+  std::optional<std::string>
+  sendSmDeliveryError(const common::imsi_t &mTimsi, unsigned int smsId,
+                      const std::string &description);
 };
 } // namespace server
 

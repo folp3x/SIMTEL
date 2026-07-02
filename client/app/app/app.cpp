@@ -417,6 +417,10 @@ void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
                  dynamic_cast<common::SmDeliveryErrorRequest *>(
                      response.get())) {
     setSentSmsStatus(errorResponse->getSmsId(), SmsStatus::NOT_DELIVERED);
+    std::string description = errorResponse->getDescription();
+    if (!description.empty()) {
+      addErrorMsg("SMS not delivered: " + description);
+    }
   } else if (auto *reportResponse =
                  dynamic_cast<common::SmDeliveryReportRequest *>(
                      response.get())) {

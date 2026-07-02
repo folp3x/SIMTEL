@@ -5,6 +5,7 @@
 namespace server {
 struct BalanceInfo {
   common::imsi_t imsi = "";
-  double balance = 0;
+  double balanceRub = 0;
+  double reservedRub = 0;
 };
 } // namespace server
