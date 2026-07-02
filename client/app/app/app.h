@@ -21,8 +21,9 @@ private:
 
   static constexpr unsigned int MAX_SMS_ID = 9999;
 
-  std::vector<UssdInfo> ussdInfo = {{105, "get balance"},
-                                    {201, "get phone number"}};
+  std::vector<UssdInfo> ussdInfo = {
+      {common::UssdCode::GET_BALANCE, "get balance"},
+      {common::UssdCode::GET_PHONE_NUMBER, "get phone number"}};
 
   unsigned int curSmsId = 0;
 

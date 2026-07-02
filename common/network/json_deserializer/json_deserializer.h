@@ -27,6 +27,12 @@ public:
   static std::expected<unsigned int, std::string>
   smsIdFromJsonStr(const std::string &str, const std::string &name);
 
+  static std::expected<uint8_t, std::string>
+  ussdCodeFromJsonStr(const std::string &str, const std::string &name);
+
+  static std::expected<double, std::string>
+  balanceFromJsonStr(const std::string &str, const std::string &name);
+
   static std::expected<std::string, std::string>
   strFromJsonStr(const std::string &str, const std::string &name);
 };

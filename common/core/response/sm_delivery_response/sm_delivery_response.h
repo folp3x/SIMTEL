@@ -7,7 +7,7 @@ class SmDeliveryResponse : public SmTransferRequest {
 public:
   SmDeliveryResponse() = default;
   SmDeliveryResponse(const imsi_t &mTimsi, unsigned int smsId,
-                     const common::msisdn_t &msisdn, const std::string &text);
+                     const msisdn_t &msisdn, const std::string &text);
 
   virtual RequestType getType() const override;
 };

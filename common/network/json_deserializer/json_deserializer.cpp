@@ -34,6 +34,18 @@ JsonDeserializer::smsIdFromJsonStr(const std::string &str,
   return deserializeValue<unsigned int>(name, str);
 }
 
+std::expected<uint8_t, std::string>
+JsonDeserializer::ussdCodeFromJsonStr(const std::string &str,
+                                      const std::string &name) {
+  return deserializeValue<uint8_t>(name, str);
+}
+
+std::expected<double, std::string>
+JsonDeserializer::balanceFromJsonStr(const std::string &str,
+                                     const std::string &name) {
+  return deserializeValue<double>(name, str);
+}
+
 std::expected<std::string, std::string>
 JsonDeserializer::strFromJsonStr(const std::string &str,
                                  const std::string &name) {

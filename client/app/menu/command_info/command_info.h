@@ -13,7 +13,7 @@ inline const auto &getCommandsInfo() {
       {"sent", {"sent <>", "show all sent sms"}},
       {"received", {"received <>", "show all received sms"}},
       {"dialog", {"dialog <msisdn|@speed_dial>", "show sms converstaion"}},
-      {"*", {"*code#", "send ussd command"}},
+      {"*#", {"*<code>#", "send ussd command"}},
       {"ussd", {"ussd <>", "show ussd codes"}}};
   return info;
 }

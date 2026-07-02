@@ -39,6 +39,9 @@ set(SOURCES_LIST
 	"core/response/sm_delivery_report_response/sm_delivery_report_response.cpp"
 	"core/request/sm_delivery_ack_request/sm_delivery_ack_request.cpp"
 	"core/response/sm_delivery_error_response/sm_delivery_error_response.cpp"
+	"core/request/ussd_request/ussd_request.cpp"
+	"core/response/ussd_balance_response/ussd_balance_response.cpp"
+	"core/response/ussd_msisdn_response/ussd_msisdn_response.cpp"
 )
 
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})

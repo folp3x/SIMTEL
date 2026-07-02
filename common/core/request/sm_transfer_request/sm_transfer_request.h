@@ -18,7 +18,7 @@ protected:
 public:
   SmTransferRequest() = default;
   SmTransferRequest(const imsi_t &mTimsi_, unsigned int smsId_,
-                    const common::msisdn_t &msisdn_, const std::string &text_);
+                    const msisdn_t &msisdn_, const std::string &text_);
 
   virtual std::string toStr() const override;
 

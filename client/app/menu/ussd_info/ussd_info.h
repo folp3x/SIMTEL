@@ -2,9 +2,11 @@
 
 #include <string>
 
+#include "common/core/ussd/ussd_code.h"
+
 namespace client {
 struct UssdInfo {
-  unsigned int code = 0;
+  common::UssdCode code = common::UssdCode::MAX_VALUE;
   std::string description = "";
 };
 } // namespace client

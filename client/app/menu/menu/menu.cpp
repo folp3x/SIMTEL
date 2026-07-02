@@ -115,7 +115,8 @@ void Menu::showError(const std::string &error) const {
 
 void Menu::showUssdInfo(const std::vector<UssdInfo> &info) const {
   for (const auto &ussd : info) {
-    std::cout << ussd.code << " - " << ussd.description << std::endl;
+    std::cout << std::to_string(common::ussdCodeToNum(ussd.code)) << " - "
+              << ussd.description << std::endl;
   }
 }
 } // namespace client
