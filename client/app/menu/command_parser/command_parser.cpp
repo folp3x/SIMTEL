@@ -77,13 +77,13 @@ CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
   auto cmd = common::CommandParser::parseCommand(str, extraMsg);
   if (dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    std::vector<std::string> tokens = common::split(common::lowercased(str));
+    std::vector<std::string> tokens = common::split(str);
 
     if (tokens.empty()) {
       return cmd;
     }
 
-    std::string command = tokens[0];
+    std::string command = common::lowercased(tokens[0]);
 
     size_t lastChInd = command.size() - 1;
     if (command[0] == constants::USSD_PREFIX &&
