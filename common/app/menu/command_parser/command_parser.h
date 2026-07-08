@@ -11,9 +11,10 @@ class CommandParser {
 protected:
   using Args = std::vector<std::string>;
 
-  // парсер, принимающий вектор аргументов и out-параметр для доп. сообщения
-  using ArgParser =
-      std::function<std::unique_ptr<MenuItem>(const Args &, std::string &)>;
+  // парсер, принимающий изначальную строку, вектор аргументов и out-параметр
+  // для доп. сообщения
+  using ArgParser = std::function<std::unique_ptr<MenuItem>(
+      const std::string &, const Args &, std::string &)>;
 
   using ArgsParsersMap = std::unordered_map<std::string, ArgParser>;
 

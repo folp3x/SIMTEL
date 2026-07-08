@@ -65,4 +65,53 @@ std::string imsiToStr(uint64_t imsi) {
   }
   return str;
 }
+
+std::string firstWord(const std::string &str) {
+  std::string curToken = "";
+  for (auto ch : str) {
+    if (std::isspace(ch)) {
+      if (!curToken.empty()) {
+        return curToken;
+      }
+    } else {
+      curToken += ch;
+    }
+  }
+
+  return curToken;
+}
+
+std::string ignoreWords(const std::string &str, size_t count) {
+  if (count == 0) {
+    return str;
+  }
+
+  size_t i = 0;
+  size_t len = str.size();
+  size_t wordCount = 0;
+
+  while (wordCount < count) {
+    while (i < len && std::isspace(str[i])) {
+      i++;
+    }
+    if (i >= len) {
+      break;
+    }
+
+    while (i < len && !std::isspace(str[i])) {
+      i++;
+    }
+    wordCount++;
+  }
+
+  while (i < len && std::isspace(str[i])) {
+    i++;
+  }
+
+  if (i >= len) {
+    return "";
+  }
+
+  return str.substr(i);
+}
 } // namespace common

@@ -17,7 +17,5 @@ struct UeState {
   UeState(const common::imsi_t &imsi_, const common::imei_t &imei_,
           const common::Location<> location_)
       : imsi(imsi_), imei(imei_), mTimsi(imsi), location(location_) {}
-
-  common::imsi_t getCurImsi() { return mTimsi.empty() ? imsi : mTimsi; }
 };
 } // namespace client

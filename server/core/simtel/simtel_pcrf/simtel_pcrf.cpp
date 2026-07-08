@@ -43,7 +43,7 @@ bool SimtelPcrf::reserveMoneyForSms(const common::imsi_t &imsi) {
     return false;
   }
 
-  it->second.reservedRub = smsPriceRub;
+  it->second.reservedRub += smsPriceRub;
   it->second.balanceRub -= smsPriceRub;
 
   MessageHolder::instance().addMsg(
@@ -58,8 +58,8 @@ bool SimtelPcrf::returnReservedMoney(const common::imsi_t &imsi) {
     return false;
   }
 
-  it->second.balanceRub += it->second.reservedRub;
-  it->second.reservedRub = 0;
+  it->second.balanceRub += smsPriceRub;
+  it->second.reservedRub -= smsPriceRub;
 
   MessageHolder::instance().addMsg(
       createLogMsg("returned reserved money: " + it->second.toStr()));
@@ -73,7 +73,7 @@ bool SimtelPcrf::deductReservedMoney(const common::imsi_t &imsi) {
     return false;
   }
 
-  it->second.reservedRub = 0;
+  it->second.reservedRub -= smsPriceRub;
 
   MessageHolder::instance().addMsg(
       createLogMsg("deducted reserved money: " + it->second.toStr()));

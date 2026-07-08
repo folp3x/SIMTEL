@@ -378,7 +378,7 @@ void SimtelMme::handleSmDeliveryAck(const common::msisdn_t &msisdn_s,
 
   auto deducted = pcrf->deductReservedMoney(*imsi_s);
   if (!deducted) {
-    MessageHolder::instance().addErrorMsg("ue not known by PCRF");
+    MessageHolder::instance().addErrorMsg("UE not known by PCRF");
   }
 
   if (senderMmeId == id) {
@@ -541,13 +541,13 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
   if (!delivered) {
     auto imsi_s = findImsiInVlr(mtimsi_s);
     if (!imsi_s) {
-      MessageHolder::instance().addErrorMsg("ue not known by MME");
+      MessageHolder::instance().addErrorMsg("UE not known by MME");
       return;
     }
 
     auto returned = pcrf->returnReservedMoney(*imsi_s);
     if (!returned) {
-      MessageHolder::instance().addErrorMsg("ue not known by PCRF");
+      MessageHolder::instance().addErrorMsg("UE not known by PCRF");
     }
 
     sendSmDeliveryError(mtimsi_s, smsId);

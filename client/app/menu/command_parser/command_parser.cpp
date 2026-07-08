@@ -16,7 +16,8 @@ CommandParser::ArgsParsersMap CommandParser::getArgsParsers() const {
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseExitArgs(const std::vector<std::string> &args,
+CommandParser::parseExitArgs(const std::string &initialStr,
+                             const std::vector<std::string> &args,
                              std::string &extraMsg) {
   if (args.size() > MenuItemExit::getArgsCount()) {
     extraMsg = "Extra arguments ignored";
@@ -26,7 +27,8 @@ CommandParser::parseExitArgs(const std::vector<std::string> &args,
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseActiveArgs(const std::vector<std::string> &args,
+CommandParser::parseActiveArgs(const std::string &initialStr,
+                               const std::vector<std::string> &args,
                                std::string &extraMsg) {
   if (args.empty()) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");
@@ -46,13 +48,10 @@ CommandParser::parseActiveArgs(const std::vector<std::string> &args,
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseUssdCodeArgs(const std::vector<std::string> &args,
+CommandParser::parseUssdCodeArgs(const std::string &initialStr,
+                                 const std::vector<std::string> &args,
                                  std::string &extraMsg) {
-  if (args.empty()) {
-    return std::make_unique<common::MenuItemInvalid>("Missing command");
-  }
-
-  std::string command = args[0];
+  std::string command = common::firstWord(initialStr);
 
   size_t minLength =
       constants::USSD_PREFIX_LENGTH + 1 + constants::USSD_POSTFIX_LENGTH;
@@ -77,18 +76,20 @@ CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
   auto cmd = common::CommandParser::parseCommand(str, extraMsg);
   if (dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    std::vector<std::string> tokens = common::split(common::lowercased(str));
+    std::vector<std::string> tokens = common::split(str);
 
     if (tokens.empty()) {
       return cmd;
     }
 
-    std::string command = tokens[0];
+    std::string command = common::lowercased(tokens[0]);
+    // удаление названия команды
+    tokens.erase(tokens.begin());
 
     size_t lastChInd = command.size() - 1;
     if (command[0] == constants::USSD_PREFIX &&
         command[lastChInd] == constants::USSD_POSTFIX) {
-      return parseUssdCodeArgs(tokens, extraMsg);
+      return parseUssdCodeArgs(command, tokens, extraMsg);
     }
   }
 
@@ -96,7 +97,8 @@ CommandParser::parseCommand(const std::string &str,
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseProtocolArgs(const std::vector<std::string> &args,
+CommandParser::parseProtocolArgs(const std::string &initialStr,
+                                 const std::vector<std::string> &args,
                                  std::string &extraMsg) {
   if (args.empty()) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");
@@ -120,7 +122,8 @@ CommandParser::parseProtocolArgs(const std::vector<std::string> &args,
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseSmsArgs(const std::vector<std::string> &args,
+CommandParser::parseSmsArgs(const std::string &initialStr,
+                            const std::vector<std::string> &args,
                             std::string &extraMsg) {
   if (args.empty()) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");
@@ -147,18 +150,14 @@ CommandParser::parseSmsArgs(const std::vector<std::string> &args,
     cmd->setMsisdn(msisdn);
   }
 
-  if (args.size() > 1) {
-    cmd->setContent(args[1]);
-  }
+  cmd->setContent(common::ignoreWords(initialStr, 2));
 
-  if (args.size() > MenuItemSMS::getMaxArgsCount()) {
-    extraMsg = "Extra arguments ignored";
-  }
   return cmd;
 }
 
 std::unique_ptr<common::MenuItem>
-CommandParser::parseDialogArgs(const std::vector<std::string> &args,
+CommandParser::parseDialogArgs(const std::string &initialStr,
+                               const std::vector<std::string> &args,
                                std::string &extraMsg) {
   if (args.empty()) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");
