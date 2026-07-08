@@ -3,7 +3,8 @@
 namespace client {
 template <typename T>
 std::unique_ptr<common::MenuItem>
-CommandParser::parseMoveArgs(const std::vector<std::string> &args,
+CommandParser::parseMoveArgs(const std::string &initialStr,
+                             const std::vector<std::string> &args,
                              std::string &extraMsg) {
   const size_t requiredArgsCount = MenuItemMove<T>::getArgsCount();
 
@@ -38,7 +39,8 @@ CommandParser::parseMoveArgs(const std::vector<std::string> &args,
 
 template <typename T>
 std::unique_ptr<common::MenuItem>
-CommandParser::parseWithoutArgs(const std::vector<std::string> &args,
+CommandParser::parseWithoutArgs(const std::string &initialStr,
+                                const std::vector<std::string> &args,
                                 std::string &extraMsg) {
   if (!args.empty()) {
     extraMsg = "Extra arguments ignored";

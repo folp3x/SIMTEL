@@ -34,6 +34,10 @@ std::string toStr(Iterator begin, Iterator end,
 template <typename T>
   requires std::is_arithmetic_v<T>
 std::expected<T, std::string> fromString(const std::string &str);
+
+std::string firstWord(const std::string &str);
+
+std::string ignoreWords(const std::string &str, size_t count);
 } // namespace common
 
 #include "str_impl.h"

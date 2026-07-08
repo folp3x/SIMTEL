@@ -29,30 +29,38 @@ private:
 
   template <typename T = float>
   static std::unique_ptr<common::MenuItem>
-  parseMoveArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  parseMoveArgs(const std::string &initialStr,
+                const std::vector<std::string> &args, std::string &extraMsg);
 
   template <typename T>
   static std::unique_ptr<common::MenuItem>
-  parseWithoutArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  parseWithoutArgs(const std::string &initialStr,
+                   const std::vector<std::string> &args, std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
-  parseProtocolArgs(const std::vector<std::string> &args,
+  parseProtocolArgs(const std::string &initialStr,
+                    const std::vector<std::string> &args,
                     std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
-  parseSmsArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  parseSmsArgs(const std::string &initialStr,
+               const std::vector<std::string> &args, std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
-  parseDialogArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  parseDialogArgs(const std::string &initialStr,
+                  const std::vector<std::string> &args, std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
-  parseExitArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  parseExitArgs(const std::string &initialStr,
+                const std::vector<std::string> &args, std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
-  parseActiveArgs(const std::vector<std::string> &args, std::string &extraMsg);
+  parseActiveArgs(const std::string &initialStr,
+                  const std::vector<std::string> &args, std::string &extraMsg);
 
   static std::unique_ptr<common::MenuItem>
-  parseUssdCodeArgs(const std::vector<std::string> &args,
+  parseUssdCodeArgs(const std::string &initialStr,
+                    const std::vector<std::string> &args,
                     std::string &extraMsg);
 
 public:

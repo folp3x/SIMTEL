@@ -16,6 +16,8 @@ CommandParser::parseCommand(const std::string &str,
   }
 
   std::string commandName = lowercased(tokens[0]);
+  // удаление названия команды
+  tokens.erase(tokens.begin());
 
   auto argsParsers = getArgsParsers();
   auto it = argsParsers.find(commandName);
@@ -25,9 +27,7 @@ CommandParser::parseCommand(const std::string &str,
                                              "'");
   }
 
-  // удаление названия команды
-  tokens.erase(tokens.begin());
-  auto cmd = it->second(tokens, extraMsg);
+  auto cmd = it->second(str, tokens, extraMsg);
 
   return cmd;
 }

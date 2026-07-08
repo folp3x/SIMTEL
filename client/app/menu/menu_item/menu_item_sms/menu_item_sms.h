@@ -23,7 +23,5 @@ public:
 
   char getSpeedDialNum() const;
   void setSpeedDialNum(char speedDialNum_);
-
-  static size_t getMaxArgsCount();
 };
 } // namespace client

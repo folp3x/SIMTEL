@@ -20,6 +20,4 @@ char MenuItemSMS::getSpeedDialNum() const { return speedDialNum; }
 void MenuItemSMS::setSpeedDialNum(char speedDialNum_) {
   speedDialNum = speedDialNum_;
 }
-
-size_t MenuItemSMS::getMaxArgsCount() { return 2; }
 } // namespace client

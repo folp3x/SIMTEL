@@ -32,7 +32,7 @@ public:
   static std::optional<binary_t> imsiToBinary(const imsi_t &imsi);
   static std::optional<imsi_t> imsiFromBinary(const binary_t &binary);
 
-  static std::optional<binary_t> msisdnToBinary(const msisdn_t &imsi);
+  static std::optional<binary_t> msisdnToBinary(const msisdn_t &msisdn);
   static std::optional<msisdn_t> msisdnFromBinary(const binary_t &binary);
 };
 } // namespace common

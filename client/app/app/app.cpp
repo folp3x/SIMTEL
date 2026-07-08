@@ -265,6 +265,11 @@ void App::executeSentCommand() const {
 }
 
 void App::executeUssdCodeCommand(const MenuItemUssdCode &cmd) {
+  if (!exchange.hasSignal()) {
+    addErrorMsg("No signal");
+    return;
+  }
+
   menu.showMessage({"Sending USSD..."});
 
   auto req =

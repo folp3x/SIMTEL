@@ -73,7 +73,7 @@ bool SimtelPcrf::deductReservedMoney(const common::imsi_t &imsi) {
     return false;
   }
 
-  it->second.reservedRub = 0;
+  it->second.reservedRub -= smsPriceRub;
 
   MessageHolder::instance().addMsg(
       createLogMsg("deducted reserved money: " + it->second.toStr()));

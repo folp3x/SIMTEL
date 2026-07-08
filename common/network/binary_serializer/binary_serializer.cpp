@@ -71,8 +71,9 @@ std::optional<imsi_t> BinarySerializer::imsiFromBinary(const binary_t &binary) {
   return imsi;
 }
 
-std::optional<binary_t> BinarySerializer::msisdnToBinary(const msisdn_t &imsi) {
-  auto msisdnNum = fromString<uint64_t>(imsi);
+std::optional<binary_t>
+BinarySerializer::msisdnToBinary(const msisdn_t &msisdn) {
+  auto msisdnNum = fromString<uint64_t>(msisdn);
   if (!msisdnNum) {
     return std::nullopt;
   }
