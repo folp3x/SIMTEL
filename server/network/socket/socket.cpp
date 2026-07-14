@@ -30,10 +30,9 @@ Socket::create(const common::NetworkAddress &address) {
 }
 
 std::optional<std::string> Socket::listenForConnections() const {
-  if (listen(sock, MaxWaitingConnections) < 0) {
-    return getLastError();
-  }
-  return std::nullopt;
+  int ret = listen(sock, MaxWaitingConnections);
+
+  return (ret < 0) ? std::optional{getLastError()} : std::nullopt;
 }
 
 std::expected<std::unique_ptr<Socket>, std::string>

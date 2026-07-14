@@ -2,7 +2,7 @@
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 UssdCodeRequest::UssdCodeRequest(const imsi_t &mTimsi_, uint8_t code_)
@@ -32,17 +32,11 @@ UssdCodeRequest::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string> UssdCodeRequest::toBinary() const {
-  auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
-  if (!binMTimsi) {
-    return std::unexpected("m-timsi serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary, code);
 
-  auto binCode = BinarySerializer::toBinary(code);
-  if (!binCode) {
-    return std::unexpected("Code serialize error");
-  }
-
-  return mergeBinary(*binMTimsi, *binCode);
+  return binary;
 }
 
 std::optional<std::string> UssdCodeRequest::fromBinary(const binary_t &binary) {
@@ -52,11 +46,11 @@ std::optional<std::string> UssdCodeRequest::fromBinary(const binary_t &binary) {
   if (!mTimsiBinary) {
     return "Binary too short for m-TIMSI";
   }
-  auto parsedMTimsi = BinarySerializer::imsiFromBinary(*mTimsiBinary);
+  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(*mTimsiBinary);
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = *parsedMTimsi;
+  mTimsi = imsiToStr(*parsedMTimsi);
 
   auto codeBinary = it.getNext(sizeof(code));
   if (!codeBinary) {

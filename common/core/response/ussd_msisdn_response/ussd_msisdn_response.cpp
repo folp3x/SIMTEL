@@ -1,6 +1,7 @@
 #include "ussd_msisdn_response.h"
 
 #include "common/network/json_deserializer/json_deserializer.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 UssdMsisdnResponse::UssdMsisdnResponse(const msisdn_t &msisdn_)
@@ -26,12 +27,19 @@ UssdMsisdnResponse::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string> UssdMsisdnResponse::toBinary() const {
-  return BinarySerializer::strToBinary(msisdn);
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(msisdn));
+
+  return binary;
 }
 
 std::optional<std::string>
 UssdMsisdnResponse::fromBinary(const binary_t &binary) {
-  msisdn = BinarySerializer::strFromBinary(binary);
+  auto msisdnBin = BinarySerializer::fromBinary<uint64_t>(binary);
+  if (!msisdnBin) {
+    return "Failed to deserialize msisdn";
+  }
+  msisdn = *msisdnBin;
 
   return std::nullopt;
 }

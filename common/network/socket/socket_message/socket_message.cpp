@@ -7,7 +7,7 @@ socketMessageFromBinary(const binary_t &binary) {
 
   auto parsedHeader = socketMessageHeaderFromBinary(binary);
   if (!parsedHeader) {
-    return std::unexpected(parsedHeader.error());
+    return std::unexpected("Failed to deserialize header");
   }
   message.header = *parsedHeader;
 
@@ -26,11 +26,12 @@ std::expected<binary_t, std::string>
 socketMessagetoBinary(const SocketMessage &msg) {
   auto parsedHeader = socketMessageHeaderToBinary(msg.header);
   if (!parsedHeader) {
-    return std::unexpected(parsedHeader.error());
+    return std::unexpected("Failed to serialize header");
   }
-  binary_t result = std::move(*parsedHeader);
 
+  binary_t result = std::move(*parsedHeader);
   result.insert(result.end(), msg.content.begin(), msg.content.end());
+
   return result;
 }
 } // namespace common

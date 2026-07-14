@@ -2,7 +2,7 @@
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 RrcReconfigurationKeepResponse::RrcReconfigurationKeepResponse(
@@ -36,16 +36,11 @@ RrcReconfigurationKeepResponse::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string>
 RrcReconfigurationKeepResponse::toBinary() const {
-  auto binImei = BinarySerializer::imeiToBinary(imei);
-  if (!binImei) {
-    return std::unexpected("IMEI serialize error");
-  }
-  auto binBsId = BinarySerializer::toBinary(bsId);
-  if (!binBsId) {
-    return std::unexpected("BS id serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imei));
+  BinarySerializer::addToBinary(binary, bsId);
 
-  return mergeBinary(*binImei, *binBsId);
+  return binary;
 }
 
 std::optional<std::string>
@@ -56,11 +51,11 @@ RrcReconfigurationKeepResponse::fromBinary(const binary_t &binary) {
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
-  auto parsedImei = BinarySerializer::imeiFromBinary(*imeiBinary);
+  auto parsedImei = BinarySerializer::fromBinary<uint64_t>(*imeiBinary);
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
-  imei = *parsedImei;
+  imei = imeiToStr(*parsedImei);
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {

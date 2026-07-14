@@ -2,7 +2,7 @@
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 RrcReconfigurationHandoverResponse::RrcReconfigurationHandoverResponse(
@@ -36,16 +36,11 @@ RrcReconfigurationHandoverResponse::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string>
 RrcReconfigurationHandoverResponse::toBinary() const {
-  auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
-  if (!binMTimsi) {
-    return std::unexpected("m-timsi serialize error");
-  }
-  auto binBsId = BinarySerializer::toBinary(bsId);
-  if (!binBsId) {
-    return std::unexpected("BS id serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary, bsId);
 
-  return mergeBinary(*binMTimsi, *binBsId);
+  return binary;
 }
 
 std::optional<std::string>
@@ -56,11 +51,11 @@ RrcReconfigurationHandoverResponse::fromBinary(const binary_t &binary) {
   if (!mTimsiBinary) {
     return "Binary too short for m-timsi";
   }
-  auto parsedMTimsi = BinarySerializer::imsiFromBinary(*mTimsiBinary);
+  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(*mTimsiBinary);
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = *parsedMTimsi;
+  mTimsi = imsiToStr(*parsedMTimsi);
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {

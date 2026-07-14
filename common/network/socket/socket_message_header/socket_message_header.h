@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <expected>
+#include <optional>
 #include <string>
 
 #include "common/types.h"
@@ -13,9 +13,9 @@ struct SocketMessageHeader {
   uint8_t reqType;
 };
 
-std::expected<SocketMessageHeader, std::string>
+std::optional<SocketMessageHeader>
 socketMessageHeaderFromBinary(const binary_t &binary);
 
-std::expected<binary_t, std::string>
+std::optional<binary_t>
 socketMessageHeaderToBinary(const SocketMessageHeader &header);
 } // namespace common

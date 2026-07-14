@@ -58,21 +58,11 @@ std::vector<std::string> split(const std::string &str) {
 }
 
 std::string imsiToStr(uint64_t imsi) {
-  imsi_t str = std::to_string(imsi);
-  size_t lenDiff = common::constants::ImsiDefaultLength - str.length();
-  if (lenDiff > 0) {
-    return std::string(lenDiff, '0') + str;
-  }
-  return str;
+  return addLeadingZeroes(std::to_string(imsi), constants::ImsiDefaultLength);
 }
 
 std::string imeiToStr(uint64_t imei) {
-  imsi_t str = std::to_string(imei);
-  size_t lenDiff = common::constants::ImeiDefaultLength - str.length();
-  if (lenDiff > 0) {
-    return std::string(lenDiff, '0') + str;
-  }
-  return str;
+  return addLeadingZeroes(std::to_string(imei), constants::ImeiDefaultLength);
 }
 
 std::string firstWord(const std::string &str) {
@@ -122,5 +112,9 @@ std::string ignoreWords(const std::string &str, size_t count) {
   }
 
   return str.substr(i);
+}
+
+std::string addLeadingZeroes(const std::string &str, size_t length) {
+  return std::string(length - str.length(), '0') + str;
 }
 } // namespace common

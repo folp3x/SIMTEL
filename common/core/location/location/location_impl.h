@@ -47,10 +47,6 @@ template <typename T, size_t S> size_t Location<T, S>::getCoordsCount() const {
   return coords.size();
 }
 
-template <typename T, size_t S> nlohmann::json Location<T, S>::toJson() const {
-  return nlohmann::json{{"loc", coords}};
-}
-
 template <typename T, size_t S>
 std::expected<Location<T, S>, std::string>
 Location<T, S>::fromJsonStr(const std::string &str) {
@@ -65,28 +61,5 @@ Location<T, S>::fromJsonStr(const std::string &str) {
   }
 
   return loc;
-}
-
-template <typename T, size_t S>
-std::expected<binary_t, std::string> Location<T, S>::toBinary() const {
-  auto binary = BinarySerializer::toBinary<>(coords);
-  if (!binary) {
-    return std::unexpected("Failed to serialize location");
-  }
-  return *binary;
-}
-
-template <typename T, size_t S>
-std::expected<Location<T, S>, std::string>
-Location<T, S>::fromBinary(const binary_t &binary) {
-  coords_t coords{};
-
-  bool deserialized =
-      BinarySerializer::fromBinary<decltype(coords)>(binary, coords);
-  if (!deserialized) {
-    return std::unexpected("Failed to deserialize location");
-  }
-
-  return Location<T, S>{coords};
 }
 } // namespace common

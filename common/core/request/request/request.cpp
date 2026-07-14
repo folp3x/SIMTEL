@@ -7,7 +7,7 @@ std::expected<SocketMessage, std::string>
 Request::msgFromReqBytes(const binary_t &binary, Protocol &protocol) const {
   auto msg = socketMessageFromBinary(binary);
   if (!msg) {
-    return msg;
+    return std::unexpected(msg.error());
   }
 
   auto parsedProtocol = protocolFromNetworkId(msg->header.protocol);
@@ -59,6 +59,7 @@ std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
     if (!binary) {
       return std::unexpected(binary.error());
     }
+
     content = std::move(*binary);
     break;
   }
@@ -67,7 +68,8 @@ std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
 
     std::string jsonStr =
         jsonObj.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
-    content = BinarySerializer::strToBinary(jsonStr);
+
+    content = BinarySerializer::strToBinaryUnsized(jsonStr);
     break;
   }
   default:
@@ -89,7 +91,7 @@ std::optional<std::string> Request::fromBytes(const binary_t &bytes,
     return fromBinary(msg->content);
   }
   case Protocol::Json: {
-    std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
+    std::string jsonStr = BinarySerializer::strFromBinaryUnsized(msg->content);
     return fromJsonStr(jsonStr);
   }
   default:

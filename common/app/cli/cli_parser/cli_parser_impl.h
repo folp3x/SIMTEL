@@ -63,10 +63,7 @@ bool CliParser<T>::allConfigOptsSet() const {
 
 template <std::derived_from<Config> T>
 std::optional<std::string> CliParser<T>::getConfigFilePath() const {
-  if (isOptSet(configFileOpt)) {
-    return configFilePath;
-  }
-  return std::nullopt;
+  return isOptSet(configFileOpt) ? std::optional{configFilePath} : std::nullopt;
 }
 
 template <std::derived_from<Config> T>

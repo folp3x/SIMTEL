@@ -6,29 +6,27 @@
 #include "common/utils/network/network.h"
 
 namespace common {
-std::expected<SocketMessageHeader, std::string>
+std::optional<SocketMessageHeader>
 socketMessageHeaderFromBinary(const binary_t &binary) {
   SocketMessageHeader header;
 
-  zpp::bits::in in(binary);
-
-  if (in(header.msgSize, header.protocol, header.reqType) !=
-      zpp::bits::errc{}) {
-    return std::unexpected("Failed to deserialize header");
+  zpp::bits::in in(binary, zpp::bits::endian::big{});
+  auto result = in(header.msgSize, header.protocol, header.reqType);
+  if (zpp::bits::failure(result)) {
+    return std::nullopt;
   }
 
-  header.msgSize = ntohl(header.msgSize);
   return header;
 }
 
-std::expected<binary_t, std::string>
+std::optional<binary_t>
 socketMessageHeaderToBinary(const SocketMessageHeader &header) {
-  auto [data, in, out] = zpp::bits::data_in_out();
+  common::binary_t data{};
+  zpp::bits::out out(data, zpp::bits::endian::big{});
 
-  uint32_t msgSize = htonl(header.msgSize);
-
-  if (out(msgSize, header.protocol, header.reqType) != zpp::bits::errc{}) {
-    return std::unexpected("Failed to serialize header");
+  auto result = out(header.msgSize, header.protocol, header.reqType);
+  if (zpp::bits::failure(result)) {
+    return std::nullopt;
   }
 
   return data;

@@ -81,4 +81,15 @@ std::expected<T, std::string> fromString(const std::string &str) {
     return std::unexpected("Failed to deserialize number");
   }
 }
+
+template <typename T>
+  requires std::is_arithmetic_v<T>
+T fromStringSafe(const std::string &str, T defaultValue) {
+  auto result = fromString<T>(str);
+  if (!result) {
+    return defaultValue;
+  }
+
+  return 0;
+}
 } // namespace common

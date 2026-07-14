@@ -4,56 +4,35 @@
 
 namespace common {
 template <typename T>
-  requires std::is_arithmetic_v<T>
-std::optional<binary_t> BinarySerializer::toBinary(T data) {
-  binary_t binary;
-  auto out = zpp::bits::out(binary, zpp::bits::options::endian::big{});
-
-  if (out(data) != zpp::bits::errc{}) {
-    return std::nullopt;
+std::optional<std::string> BinarySerializer::addToBinary(binary_t &binary,
+                                                         const T &value) {
+  zpp::bits::out out(binary, zpp::bits::endian::big{});
+  bool error;
+  if constexpr (std::is_same_v<T, std::string>) {
+    std::string_view view = value;
+    error = failure(out(zpp::bits::sized<std::uint32_t>(view)));
+  } else {
+    error = zpp::bits::failure(out(value));
   }
 
-  return binary;
+  if (error) {
+    return "Serialization error at byte " + std::to_string(out.position());
+  }
+
+  return std::nullopt;
 }
 
 template <typename T>
-  requires std::is_arithmetic_v<T>
-std::optional<T> BinarySerializer::fromBinary(const binary_t &binary) {
-  T data;
-  auto in = zpp::bits::in(std::span(binary), zpp::bits::options::endian::big{});
-
-  if (in(data) != zpp::bits::errc{}) {
-    return std::nullopt;
-  }
-
-  return data;
-}
-
-template <std::ranges::contiguous_range Container>
-std::optional<binary_t> BinarySerializer::toBinary(const Container &data) {
-  binary_t binary;
-  auto out = zpp::bits::out(binary, zpp::bits::options::endian::big{});
-
-  if (out(zpp::bits::unsized(data)) != zpp::bits::errc{}) {
-    return std::nullopt;
-  }
-
-  return binary;
-}
-
-template <std::ranges::contiguous_range Container>
-bool BinarySerializer::fromBinary(const binary_t &binary, Container &data) {
-  if (std::ranges::empty(data)) {
-    throw std::invalid_argument("data cant be empty and must have size equal "
-                                "to expected elements count");
-  }
-
+std::expected<T, std::string>
+BinarySerializer::fromBinary(const binary_t &binary) {
+  T value;
   auto in = zpp::bits::in(binary, zpp::bits::options::endian::big{});
 
-  if (in(zpp::bits::unsized(data)) != zpp::bits::errc{}) {
-    return false;
+  if (zpp::bits::failure(in(value))) {
+    return std::unexpected("Deserialization error at byte " +
+                           std::to_string(in.position()));
   }
 
-  return true;
+  return value;
 }
 } // namespace common

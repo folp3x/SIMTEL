@@ -4,7 +4,7 @@
 #include "common/validator/validator.h"
 
 namespace common {
-binary_t BinarySerializer::strToBinary(const std::string &binary) {
+binary_t BinarySerializer::strToBinaryUnsized(const std::string &binary) {
   binary_t result;
   result.reserve(binary.size());
   for (auto byte : binary) {
@@ -13,75 +13,12 @@ binary_t BinarySerializer::strToBinary(const std::string &binary) {
   return result;
 }
 
-std::string BinarySerializer::strFromBinary(const binary_t &binary) {
+std::string BinarySerializer::strFromBinaryUnsized(const binary_t &binary) {
   std::string result;
   result.reserve(binary.size());
   for (std::byte byte : binary) {
     result.push_back(static_cast<char>(byte));
   }
   return result;
-}
-
-std::optional<binary_t> BinarySerializer::imeiToBinary(const imei_t &imei) {
-  auto imeiNum = fromString<uint64_t>(imei);
-  if (!imeiNum) {
-    return std::nullopt;
-  }
-  return toBinary<>(*imeiNum);
-}
-
-std::optional<imei_t> BinarySerializer::imeiFromBinary(const binary_t &binary) {
-  auto deserialized = fromBinary<uint64_t>(binary);
-  if (!deserialized) {
-    return std::nullopt;
-  }
-
-  imei_t imei = imeiToStr(*deserialized);
-  if (!Validator::isCorrectImei(imei).empty()) {
-    return std::nullopt;
-  }
-
-  return imei;
-}
-
-std::optional<binary_t> BinarySerializer::imsiToBinary(const imsi_t &imsi) {
-  auto imsiNum = fromString<uint64_t>(imsi);
-  if (!imsiNum) {
-    return std::nullopt;
-  }
-  return toBinary<>(*imsiNum);
-}
-
-std::optional<imsi_t> BinarySerializer::imsiFromBinary(const binary_t &binary) {
-  auto deserialized = fromBinary<uint64_t>(binary);
-  if (!deserialized) {
-    return std::nullopt;
-  }
-
-  imsi_t imsi = imsiToStr(*deserialized);
-  if (!Validator::isCorrectImsi(imsi).empty()) {
-    return std::nullopt;
-  }
-
-  return imsi;
-}
-
-std::optional<binary_t>
-BinarySerializer::msisdnToBinary(const msisdn_t &msisdn) {
-  auto msisdnNum = fromString<uint64_t>(msisdn);
-  if (!msisdnNum) {
-    return std::nullopt;
-  }
-  return toBinary<>(*msisdnNum);
-}
-
-std::optional<msisdn_t>
-BinarySerializer::msisdnFromBinary(const binary_t &binary) {
-  auto deserialized = fromBinary<uint64_t>(binary);
-  if (!deserialized) {
-    return std::nullopt;
-  }
-
-  return std::to_string(*deserialized);
 }
 } // namespace common

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <expected>
+
 #include "common/network/socket/socket_message_header/socket_message_header.h"
 
 namespace common {

@@ -2,7 +2,7 @@
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 SmDeliveryAckRequest::SmDeliveryAckRequest(const imsi_t &mTimsi_,
@@ -43,21 +43,12 @@ SmDeliveryAckRequest::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string> SmDeliveryAckRequest::toBinary() const {
-  auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
-  if (!binMTimsi) {
-    return std::unexpected("m-timsi serialize error");
-  }
-  auto binSmsId = BinarySerializer::toBinary(smsId);
-  if (!binSmsId) {
-    return std::unexpected("SMS id serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary, smsId);
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(msisdn));
 
-  auto binMsisdn = BinarySerializer::msisdnToBinary(msisdn);
-  if (!binMsisdn) {
-    return std::unexpected("MSISDN serialize error");
-  }
-
-  return mergeBinary(*binMTimsi, *binSmsId, *binMsisdn);
+  return binary;
 }
 
 std::optional<std::string>
@@ -68,11 +59,11 @@ SmDeliveryAckRequest::fromBinary(const binary_t &binary) {
   if (!mTimsiBinary) {
     return "Binary too short for m-TIMSI";
   }
-  auto parsedMTimsi = BinarySerializer::imsiFromBinary(*mTimsiBinary);
+  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(*mTimsiBinary);
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = *parsedMTimsi;
+  mTimsi = imsiToStr(*parsedMTimsi);
 
   auto smsIdBinary = it.getNext(sizeof(smsId));
   if (!smsIdBinary) {
@@ -88,11 +79,11 @@ SmDeliveryAckRequest::fromBinary(const binary_t &binary) {
   if (!msisdnBinary) {
     return "Binary too short for MSISDN";
   }
-  auto parsedMsisdn = BinarySerializer::msisdnFromBinary(*msisdnBinary);
+  auto parsedMsisdn = BinarySerializer::fromBinary<uint64_t>(*msisdnBinary);
   if (!parsedMsisdn) {
     return "MSISDN deserialize error";
   }
-  msisdn = *parsedMsisdn;
+  msisdn = std::to_string(*parsedMsisdn);
 
   return std::nullopt;
 }

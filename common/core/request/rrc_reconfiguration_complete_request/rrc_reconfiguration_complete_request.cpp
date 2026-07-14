@@ -1,6 +1,7 @@
 #include "rrc_reconfiguration_complete_request.h"
 
 #include "common/network/json_deserializer/json_deserializer.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 RrcReconfigurationCompleteRequest::RrcReconfigurationCompleteRequest(
@@ -28,22 +29,19 @@ RrcReconfigurationCompleteRequest::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string>
 RrcReconfigurationCompleteRequest::toBinary() const {
-  auto binMTimsi = BinarySerializer::imsiToBinary(mTimsi);
-  if (!binMTimsi) {
-    return std::unexpected("m-timsi serialize error");
-  }
-
-  return *binMTimsi;
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  return binary;
 }
 
 std::optional<std::string>
 RrcReconfigurationCompleteRequest::fromBinary(const binary_t &binary) {
   binary_t mTimsiBinary(binary.begin(), binary.end());
-  auto parsedMTimsi = BinarySerializer::imsiFromBinary(mTimsiBinary);
+  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(mTimsiBinary);
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = *parsedMTimsi;
+  mTimsi = imsiToStr(*parsedMTimsi);
 
   return std::nullopt;
 }

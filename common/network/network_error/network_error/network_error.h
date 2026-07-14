@@ -6,13 +6,13 @@
 
 namespace common {
 struct NetworkError {
-  NetworkErrorType type = NetworkErrorType::OTHER;
+  NetworkErrorType type = NetworkErrorType::Other;
   std::string description = "";
 };
 
 inline bool isNoConnectedError(NetworkError error) {
-  return error.type == NetworkErrorType::CONNECTION_CLOSED ||
-         error.type == NetworkErrorType::CONNECTION_RESET ||
-         error.type == NetworkErrorType::CONNECTION_CLOSED;
+  return error.type == NetworkErrorType::ConnectionClosed ||
+         error.type == NetworkErrorType::ConnectionReset ||
+         error.type == NetworkErrorType::BadFileDescriptor;
 }
 }; // namespace common

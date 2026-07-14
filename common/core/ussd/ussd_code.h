@@ -11,10 +11,10 @@ enum class UssdCode : uint8_t {
 };
 
 inline std::optional<UssdCode> ussdCodeFromNum(uint8_t num) {
-  if (num < static_cast<uint8_t>(UssdCode::MaxValue)) {
-    return static_cast<UssdCode>(num);
-  }
-  return std::nullopt;
+  auto maxValue = static_cast<uint8_t>(UssdCode::MaxValue);
+
+  return (num < maxValue) ? std::optional{static_cast<UssdCode>(num)}
+                          : std::nullopt;
 }
 
 inline uint8_t ussdCodeToNum(UssdCode code) {

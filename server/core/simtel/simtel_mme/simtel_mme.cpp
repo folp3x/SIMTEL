@@ -485,8 +485,8 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
                            const common::imsi_t &mtimsi_d,
                            const std::string &smsText,
                            std::shared_ptr<SimtelBaseStation> bs) {
-  common::binary_t binary = common::BinarySerializer::strToBinary(smsText);
-
+  common::binary_t binaryText =
+      common::BinarySerializer::strToBinaryUnsized(smsText);
   SmsUid uid = {mtimsi_s, smsId};
 
   auto ttlManager = smsc.lock()->getTtlManager(smsId, mtimsi_s);
@@ -516,7 +516,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
     MessageHolder::instance().addMsg(
         createLogMsg("trying to send SM_Delivery"));
 
-    bs->sendSmDelivery(mtimsi_d, smsId, msisdn_s, binary);
+    bs->sendSmDelivery(mtimsi_d, smsId, msisdn_s, binaryText);
 
     std::this_thread::sleep_for(SendSmsSleepTime);
 

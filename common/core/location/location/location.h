@@ -30,8 +30,6 @@ public:
 
   static std::expected<Location, std::string>
   fromJsonStr(const std::string &str);
-  static std::expected<Location, std::string>
-  fromBinary(const binary_t &binary);
 
   template <typename Container>
     requires std::ranges::input_range<Container> &&
@@ -44,9 +42,6 @@ public:
 
   coords_t<T, S> getCoords() const;
   size_t getCoordsCount() const;
-
-  nlohmann::json toJson() const;
-  std::expected<binary_t, std::string> toBinary() const;
 };
 } // namespace common
 

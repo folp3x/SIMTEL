@@ -5,6 +5,7 @@
 #include <zpp_bits.h>
 
 #include "common/network/socket/socket_message_header/socket_message_header.h"
+#include "common/utils/network/network.h"
 
 namespace common {
 std::optional<NetworkError> Socket::sendAll(const void *data,
@@ -16,11 +17,11 @@ std::optional<NetworkError> Socket::sendAll(const void *data,
     ssize_t sent = send(sock, ptr, leftSize, MSG_NOSIGNAL);
     if (sent < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        return NetworkError{NetworkErrorType::SEND_TIMEOUT, "Send timeout"};
+        return NetworkError{NetworkErrorType::SendTimeout, "Send timeout"};
       }
-      return NetworkError{NetworkErrorType::OTHER, getLastError()};
+      return NetworkError{NetworkErrorType::Other, getLastError()};
     } else if (sent == 0) {
-      return NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+      return NetworkError{NetworkErrorType::ConnectionClosed,
                           "Connection closed"};
     }
 
@@ -90,13 +91,13 @@ bool Socket::setReceiveTimeout(int sock, unsigned int timeoutMsec) {
 
 std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
   if (data.empty()) {
-    return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
+    return NetworkError{NetworkErrorType::EmptyMessage, "Empty message"};
   }
 
-  if (data.size() > MaxMsgSize) {
-    return NetworkError{NetworkErrorType::LARGE_MESSAGE,
+  if (data.size() > MaxMsgBytes) {
+    return NetworkError{NetworkErrorType::LargeMessage,
                         "Message cant be larger than " +
-                            std::to_string(MaxMsgSize / constants::BytesInMb) +
+                            std::to_string(MaxMsgBytes / constants::BytesInMb) +
                             " MB"};
   }
 
@@ -118,31 +119,31 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   if (received == -1) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
       return std::unexpected(
-          NetworkError{NetworkErrorType::RECEIVE_TIMEOUT, "Receive timeout"});
+          NetworkError{NetworkErrorType::ReceiveTimeout, "Receive timeout"});
     }
     if (errno == ECONNRESET) {
-      return std::unexpected(NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+      return std::unexpected(NetworkError{NetworkErrorType::ConnectionClosed,
                                           "Connection closed"});
     }
     if (errno == EBADF) {
-      return std::unexpected(NetworkError{NetworkErrorType::BAD_FILE_DESCRIPTOR,
+      return std::unexpected(NetworkError{NetworkErrorType::BadFileDescriptor,
                                           "Bad file descriptor"});
     }
     return std::unexpected(
-        NetworkError{NetworkErrorType::OTHER, getLastError()});
+        NetworkError{NetworkErrorType::Other, getLastError()});
   } else if (received == 0) {
     return std::unexpected(
-        NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
+        NetworkError{NetworkErrorType::ConnectionClosed, "Connection closed"});
   } else if (received != header.size()) {
     return std::unexpected(
-        NetworkError{NetworkErrorType::INCOMPLETE_HEADER, "Incomplete header"});
+        NetworkError{NetworkErrorType::IncompleteHeader, "Incomplete header"});
   }
 
   auto in = zpp::bits::in(header, zpp::bits::endian::big{});
   uint32_t msgSize = 0;
-  if (in(msgSize) != zpp::bits::errc{}) {
+  if (zpp::bits::failure(in(msgSize))) {
     return std::unexpected(
-        NetworkError{NetworkErrorType::NO_MSG_SIZE, "Failed to read size"});
+        NetworkError{NetworkErrorType::NoMsgSize, "Failed to read size"});
   }
 
   if (msgSize == 0) {
@@ -155,33 +156,29 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   if (received == -1) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
       return std::unexpected(
-          NetworkError{NetworkErrorType::RECEIVE_TIMEOUT, "Receive timeout"});
+          NetworkError{NetworkErrorType::ReceiveTimeout, "Receive timeout"});
     }
     if (errno == ECONNRESET) {
-      return std::unexpected(NetworkError{NetworkErrorType::CONNECTION_CLOSED,
+      return std::unexpected(NetworkError{NetworkErrorType::ConnectionClosed,
                                           "Connection closed"});
     }
     if (errno == EBADF) {
-      return std::unexpected(NetworkError{NetworkErrorType::BAD_FILE_DESCRIPTOR,
+      return std::unexpected(NetworkError{NetworkErrorType::BadFileDescriptor,
                                           "Bad file descriptor"});
     }
     return std::unexpected(
-        NetworkError{NetworkErrorType::OTHER, getLastError()});
+        NetworkError{NetworkErrorType::Other, getLastError()});
   } else if (received == 0) {
     return std::unexpected(
-        NetworkError{NetworkErrorType::CONNECTION_CLOSED, "Connection closed"});
+        NetworkError{NetworkErrorType::ConnectionClosed, "Connection closed"});
   } else if (received != msgSize) {
-    return std::unexpected(NetworkError{
-        NetworkErrorType::INCOMPLETE_CONTENT,
-        "Incomplete content: received " + std::to_string(received) +
-            ", expected " + std::to_string(msgSize)});
+    std::string description = "Incomplete content: received " +
+                              std::to_string(received) + ", expected " +
+                              std::to_string(msgSize);
+    return std::unexpected(
+        NetworkError{NetworkErrorType::IncompleteContent, description});
   }
 
-  binary_t result;
-  result.reserve(header.size() + content.size());
-  result.insert(result.end(), header.begin(), header.end());
-  result.insert(result.end(), content.begin(), content.end());
-
-  return result;
+  return mergeBinary(header, content);
 }
 } // namespace common

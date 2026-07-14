@@ -26,12 +26,10 @@ UssdBalanceResponse::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string> UssdBalanceResponse::toBinary() const {
-  auto binBalance = BinarySerializer::toBinary(balance);
-  if (!binBalance) {
-    return std::unexpected("Balance serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, balance);
 
-  return *binBalance;
+  return binary;
 }
 
 std::optional<std::string>

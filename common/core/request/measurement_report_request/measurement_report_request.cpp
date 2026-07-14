@@ -2,7 +2,7 @@
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 MeasurementReportRequest::MeasurementReportRequest(const imei_t &imei_,
@@ -43,20 +43,12 @@ MeasurementReportRequest::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string>
 MeasurementReportRequest::toBinary() const {
-  auto binImei = BinarySerializer::imeiToBinary(imei);
-  if (!binImei) {
-    return std::unexpected("IMEI serialize error");
-  }
-  auto binImsi = BinarySerializer::imsiToBinary(imsi);
-  if (!binImsi) {
-    return std::unexpected("IMSI serialize error");
-  }
-  auto binBsId = BinarySerializer::toBinary(bsId);
-  if (!binBsId) {
-    return std::unexpected("BS id serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imei));
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imsi));
+  BinarySerializer::addToBinary(binary, bsId);
 
-  return mergeBinary(*binImei, *binImsi, *binBsId);
+  return binary;
 }
 
 std::optional<std::string>
@@ -67,21 +59,21 @@ MeasurementReportRequest::fromBinary(const binary_t &binary) {
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
-  auto parsedImei = BinarySerializer::imeiFromBinary(*imeiBinary);
+  auto parsedImei = BinarySerializer::fromBinary<uint64_t>(*imeiBinary);
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
-  imei = *parsedImei;
+  imei = imeiToStr(*parsedImei);
 
   auto imsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!imsiBinary) {
     return "Binary too short for IMSI";
   }
-  auto parsedImsi = BinarySerializer::imsiFromBinary(*imsiBinary);
+  auto parsedImsi = BinarySerializer::fromBinary<uint64_t>(*imsiBinary);
   if (!parsedImsi) {
     return "IMSI deserialize error";
   }
-  imsi = *parsedImsi;
+  imsi = imsiToStr(*parsedImsi);
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {

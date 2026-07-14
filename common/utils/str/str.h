@@ -22,7 +22,7 @@ template <typename T>
 std::string toStr(T num, std::optional<unsigned int> precision_ = 4,
                   bool fixed = false);
 
-// итератор указывающий на числовой элемент контейнера
+// итератор, указывающий на числовой элемент контейнера
 // решение найдено здесь:
 // https://softwareengineering.stackexchange.com/questions/291803/template-function-passing-iterators
 template <class Iterator,
@@ -36,9 +36,14 @@ template <typename T>
   requires std::is_arithmetic_v<T>
 std::expected<T, std::string> fromString(const std::string &str);
 
-std::string firstWord(const std::string &str);
+template <typename T>
+  requires std::is_arithmetic_v<T>
+T fromStringSafe(const std::string &str, T defaultValue = 0);
 
+std::string firstWord(const std::string &str);
 std::string ignoreWords(const std::string &str, size_t count);
+
+std::string addLeadingZeroes(const std::string &str, size_t length);
 } // namespace common
 
 #include "str_impl.h"

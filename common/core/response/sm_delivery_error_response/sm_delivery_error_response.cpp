@@ -38,14 +38,15 @@ SmDeliveryErrorResponse::fromJsonStr(const std::string &jsonStr) {
 }
 
 std::expected<binary_t, std::string> SmDeliveryErrorResponse::toBinary() const {
-  auto binary = SmDeliveryReportResponse::toBinary();
-  if (!binary) {
-    return std::unexpected(binary.error());
+  auto baseBinary = SmDeliveryReportResponse::toBinary();
+  if (!baseBinary) {
+    return std::unexpected(baseBinary.error());
   }
+  binary_t binary = std::move(*baseBinary);
 
-  binary_t binDescription = BinarySerializer::strToBinary(description);
+  BinarySerializer::addToBinary(binary, description);
 
-  return mergeBinary(*binary, binDescription);
+  return binary;
 }
 
 std::optional<std::string>
@@ -66,7 +67,12 @@ SmDeliveryErrorResponse::fromBinary(const binary_t &binary) {
   if (!descriptionBinary) {
     return "Binary too short for description";
   }
-  description = BinarySerializer::strFromBinary(*descriptionBinary);
+  auto parsedDescription =
+      BinarySerializer::fromBinary<std::string>(*descriptionBinary);
+  if (!parsedDescription) {
+    return "Description deserialize error";
+  }
+  description = *parsedDescription;
 
   return std::nullopt;
 }

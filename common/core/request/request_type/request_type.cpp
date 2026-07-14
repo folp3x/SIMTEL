@@ -28,7 +28,7 @@ std::expected<RequestType, std::string>
 parseRequestType(const binary_t &bytes) {
   auto header = socketMessageHeaderFromBinary(bytes);
   if (!header) {
-    return std::unexpected(header.error());
+    return std::unexpected("Failed to deserialize header");
   }
 
   return static_cast<RequestType>(header->reqType);

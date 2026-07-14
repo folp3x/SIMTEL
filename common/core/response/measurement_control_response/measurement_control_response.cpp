@@ -2,7 +2,7 @@
 
 #include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
-#include "common/utils/network/network.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 MeasurementControlResponse::MeasurementControlResponse(const imei_t &imei_,
@@ -43,20 +43,12 @@ MeasurementControlResponse::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string>
 MeasurementControlResponse::toBinary() const {
-  auto binImei = BinarySerializer::imeiToBinary(imei);
-  if (!binImei) {
-    return std::unexpected("IMEI serialize error");
-  }
-  auto binSignal = BinarySerializer::toBinary(signal);
-  if (!binSignal) {
-    return std::unexpected("Signal serialize error");
-  }
-  auto binBsId = BinarySerializer::toBinary(bsId);
-  if (!binBsId) {
-    return std::unexpected("BS id serialize error");
-  }
+  binary_t binary;
+  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imei));
+  BinarySerializer::addToBinary(binary, signal);
+  BinarySerializer::addToBinary(binary, bsId);
 
-  return mergeBinary(*binImei, *binSignal, *binBsId);
+  return binary;
 }
 
 std::optional<std::string>
@@ -67,11 +59,11 @@ MeasurementControlResponse::fromBinary(const binary_t &binary) {
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
-  auto parsedImei = BinarySerializer::imeiFromBinary(*imeiBinary);
+  auto parsedImei = BinarySerializer::fromBinary<uint64_t>(*imeiBinary);
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
-  imei = *parsedImei;
+  imei = imeiToStr(*parsedImei);
 
   auto signalBinary = it.getNext(sizeof(signal));
   if (!signalBinary) {

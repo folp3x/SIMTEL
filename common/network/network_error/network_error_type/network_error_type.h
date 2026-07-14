@@ -1,18 +1,18 @@
 #pragma once
 
 namespace common {
-enum NetworkErrorType {
-  SEND_TIMEOUT,
-  CONNECTION_CLOSED,
-  OTHER,
-  EMPTY_MESSAGE,
-  EMPTY_MESSAGE_HEADER,
-  LARGE_MESSAGE,
-  RECEIVE_TIMEOUT,
-  CONNECTION_RESET,
-  BAD_FILE_DESCRIPTOR,
-  INCOMPLETE_HEADER,
-  NO_MSG_SIZE,
-  INCOMPLETE_CONTENT
+enum class NetworkErrorType {
+  SendTimeout,
+  ConnectionClosed,
+  Other,
+  EmptyMessage,
+  EmptyMessageHeader,
+  LargeMessage,
+  ReceiveTimeout,
+  ConnectionReset,
+  BadFileDescriptor,
+  IncompleteHeader,
+  NoMsgSize,
+  IncompleteContent
 };
 };

@@ -581,10 +581,10 @@ SimtelBaseStation::prepareSmDelivery(const common::imsi_t &mTimsi,
 
   common::binary_t buf = ue->takeBuf();
   if (buf.empty()) {
-    return std::unexpected("No SMS text in buf");
+    return std::unexpected("No SMS text in buffer");
   }
 
-  std::string smsText = common::BinarySerializer::strFromBinary(buf);
+  std::string smsText = common::BinarySerializer::strFromBinaryUnsized(buf);
   auto response = common::SmDeliveryResponse{mTimsi, smsId, msisdn, smsText};
 
   MessageHolder::instance().addMsg(
