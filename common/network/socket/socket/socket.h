@@ -12,13 +12,13 @@
 namespace common {
 class Socket {
 private:
-  static constexpr uint32_t MAX_MSG_SIZE = constants::BYTES_IN_MB;
-  static constexpr int INVALID_SOCK = -1;
+  static constexpr uint32_t MaxMsgSize = constants::BytesInMb;
+  static constexpr int InvalidSock = -1;
 
   std::optional<NetworkError> sendAll(const void *data, size_t size) const;
 
 protected:
-  int sock = INVALID_SOCK;
+  int sock = InvalidSock;
 
   Socket() = default;
   Socket(int sock_);

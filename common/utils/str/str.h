@@ -15,6 +15,7 @@ std::optional<bool> parseBool(std::string_view str);
 bool allDigits(std::string_view str);
 std::vector<std::string> split(const std::string &str);
 std::string imsiToStr(uint64_t imsi);
+std::string imeiToStr(uint64_t imei);
 
 template <typename T>
   requires std::is_floating_point_v<T>

@@ -10,7 +10,7 @@ RrcReconfigurationHandoverResponse::RrcReconfigurationHandoverResponse(
     : mTimsi(mTimsi_), bsId(bsId_) {}
 
 RequestType RrcReconfigurationHandoverResponse::getType() const {
-  return RequestType::Rrc_Reconfiguration_Handover;
+  return RequestType::RrcReconfigurationHandover;
 }
 
 nlohmann::json RrcReconfigurationHandoverResponse::toJson() const {
@@ -52,7 +52,7 @@ std::optional<std::string>
 RrcReconfigurationHandoverResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
+  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!mTimsiBinary) {
     return "Binary too short for m-timsi";
   }

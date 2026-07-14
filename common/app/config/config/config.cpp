@@ -1,7 +1,7 @@
 #include "config.h"
 
 namespace common {
-bool Config::isInitialized() const { return port != INVALID_PORT; }
+bool Config::isInitialized() const { return port != InvalidPort; }
 
 int Config::getPort() const { return port; }
 

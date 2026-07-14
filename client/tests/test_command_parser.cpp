@@ -59,7 +59,7 @@ TEST_F(CommandParserTest, Parse_MoveOneIntegerArg) {
 }
 
 TEST_F(CommandParserTest, Parse_MoveTwoArgs) {
-  if constexpr (common::constants::LOCATION_COORDS_COUNT < 2) {
+  if constexpr (common::constants::LocationCoordsCount < 2) {
     GTEST_SKIP() << "Test used only in n-dimensional space where n >= 2";
   }
 
@@ -73,7 +73,7 @@ TEST_F(CommandParserTest, Parse_MoveTwoArgs) {
 }
 
 TEST_F(CommandParserTest, Parse_MoveThreeArgs) {
-  if constexpr (common::constants::LOCATION_COORDS_COUNT < 3) {
+  if constexpr (common::constants::LocationCoordsCount < 3) {
     GTEST_SKIP() << "Test used only in n-dimensional space where n >= 3";
   }
 

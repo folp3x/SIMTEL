@@ -8,7 +8,7 @@ RrcReconfigurationCompleteRequest::RrcReconfigurationCompleteRequest(
     : mTimsi(mTimsi_) {}
 
 RequestType RrcReconfigurationCompleteRequest::getType() const {
-  return RequestType::Rrc_Reconfiguration_Complete;
+  return RequestType::RrcReconfigurationComplete;
 }
 
 nlohmann::json RrcReconfigurationCompleteRequest::toJson() const {

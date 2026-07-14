@@ -11,7 +11,7 @@ SmDeliveryAckRequest::SmDeliveryAckRequest(const imsi_t &mTimsi_,
     : mTimsi(mTimsi_), smsId(smsId_), msisdn(msisdn_) {}
 
 RequestType SmDeliveryAckRequest::getType() const {
-  return RequestType::SM_Delivery_Ack;
+  return RequestType::SmDeliveryAck;
 }
 
 nlohmann::json SmDeliveryAckRequest::toJson() const {
@@ -64,7 +64,7 @@ std::optional<std::string>
 SmDeliveryAckRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
+  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!mTimsiBinary) {
     return "Binary too short for m-TIMSI";
   }
@@ -84,7 +84,7 @@ SmDeliveryAckRequest::fromBinary(const binary_t &binary) {
   }
   smsId = *parsedSmsId;
 
-  auto msisdnBinary = it.getNext(constants::MSISDN_BINARY_BYTES);
+  auto msisdnBinary = it.getNext(constants::MsisdnBinaryBytes);
   if (!msisdnBinary) {
     return "Binary too short for MSISDN";
   }

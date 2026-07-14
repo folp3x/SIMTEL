@@ -10,7 +10,7 @@ SmDeliveryReportResponse::SmDeliveryReportResponse(const imsi_t &mTimsi_,
     : mTimsi(mTimsi_), smsId(smsId_) {}
 
 RequestType SmDeliveryReportResponse::getType() const {
-  return RequestType::SM_Delivery_Report;
+  return RequestType::SmDeliveryReport;
 }
 
 nlohmann::json SmDeliveryReportResponse::toJson() const {
@@ -53,7 +53,7 @@ std::optional<std::string>
 SmDeliveryReportResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
+  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!mTimsiBinary) {
     return "Binary too short for m-timsi";
   }

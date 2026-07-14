@@ -27,7 +27,7 @@ private:
     std::shared_ptr<TtlManager> ttlManager = nullptr;
   };
 
-  static constexpr unsigned int MAX_CONTEXT_SIZE = 10;
+  static constexpr size_t MaxContextSize = 10;
 
   const unsigned int smsTtlMs = 0;
 

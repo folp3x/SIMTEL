@@ -7,12 +7,12 @@ void AddressBookParser::initFields() {
   addInfo(makeParsedVector<common::msisdn_t>(
       "", [this](const std::vector<common::msisdn_t> &subscribers) {
         for (int i = 0; i < subscribers.size(); ++i) {
-          if (i >= constants::MAX_ADDRESS_BOOK_SIZE) {
+          if (i >= constants::MaxAddressBookSize) {
             break;
           }
 
           char speedDialNum = (i <= 9) ? static_cast<char>(i + '0')
-                                       : constants::EMPTY_SPEED_DIAL_NUM;
+                                       : constants::EmptySpeedDialNum;
           records[speedDialNum] = subscribers[i];
         }
       }));

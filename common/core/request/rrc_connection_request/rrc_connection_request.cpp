@@ -10,7 +10,7 @@ RrcConnectionRequest::RrcConnectionRequest(const imei_t &imei_,
     : imei(imei_), loc(loc_) {}
 
 RequestType RrcConnectionRequest::getType() const {
-  return RequestType::Rrc_Connection;
+  return RequestType::RrcConnection;
 }
 
 nlohmann::json RrcConnectionRequest::toJson() const {
@@ -54,7 +54,7 @@ std::optional<std::string>
 RrcConnectionRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(constants::ImeiBinaryBytes);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }

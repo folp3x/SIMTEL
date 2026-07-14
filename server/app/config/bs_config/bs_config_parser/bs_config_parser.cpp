@@ -1,6 +1,7 @@
 #include "bs_config_parser.h"
 
 #include "common/json/info/json_array_info/json_array_info.h"
+#include "common/validator/validator.h"
 
 namespace server {
 BsConfigParser::BsConfigParser(const std::vector<MmeConfig> &mme_)
@@ -28,11 +29,11 @@ void BsConfigParser::initFields() {
   bsConfigObj->addInner(makeParsedField<float>(
       "radius", [this](float radius) { curConfig.radius = radius; },
       [](float radius) {
-        return (radius > 0) ? "" : "Radius must be a positive number";
+        return common::Validator::isPositiveNumber(radius, "Radius");
       }));
 
   bsConfigObj->addInner(
-      makeParsedArray<float, common::constants::LOCATION_COORDS_COUNT>(
+      makeParsedArray<float, common::constants::LocationCoordsCount>(
           "loc",
           [this](const common::coords_t<> &loc) { curConfig.loc = loc; }));
 
@@ -42,7 +43,8 @@ void BsConfigParser::initFields() {
         curConfig.maxConnections = connections;
       },
       [](unsigned int connections) {
-        return (connections > 0) ? "" : "Max connections cant be 0";
+        return common::Validator::isPositiveNumber(connections,
+                                                   "Max connections");
       }));
 
   addInfo(makeParsedObjectArray("", std::move(bsConfigObj), [this]() {

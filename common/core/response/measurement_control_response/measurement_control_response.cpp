@@ -11,7 +11,7 @@ MeasurementControlResponse::MeasurementControlResponse(const imei_t &imei_,
     : imei(imei_), signal(signal_), bsId(bsId_) {}
 
 RequestType MeasurementControlResponse::getType() const {
-  return RequestType::Measurement_Control;
+  return RequestType::MeasurementControl;
 }
 
 nlohmann::json MeasurementControlResponse::toJson() const {
@@ -63,7 +63,7 @@ std::optional<std::string>
 MeasurementControlResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(constants::ImeiBinaryBytes);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }

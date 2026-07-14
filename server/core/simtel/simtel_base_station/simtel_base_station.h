@@ -21,7 +21,7 @@ private:
   static std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
       baseStations;
 
-  static constexpr unsigned int CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC = 10000;
+  static constexpr unsigned int ConnectionHandleReceiveTimeoutMsec = 10000;
 
   const float radius;
   const unsigned int id;

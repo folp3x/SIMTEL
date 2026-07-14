@@ -86,10 +86,9 @@ void SimtelMme::trySendReport(unsigned int smsId,
 
     auto warningSec = ttlManager->getWarningSec();
     if (warningSec) {
-      MessageHolder::instance().addMsg(
+      MessageHolder::instance().addInfoMsg(
           "SMS(" + uid.toStr() + ") TTL: " + std::to_string(*warningSec) +
-              " seconds left",
-          common::MenuMessageType::INFO);
+          " seconds left");
     }
 
     MessageHolder::instance().addMsg(
@@ -112,8 +111,7 @@ void SimtelMme::trySendReport(unsigned int smsId,
       reportSent = senderMme->sendSmDeliveryReport(*mtimsi_s, smsId);
     }
 
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(SEND_REPORT_SLEEP_MSEC));
+    std::this_thread::sleep_for(SendReportSleepTime);
   }
 }
 
@@ -415,7 +413,7 @@ std::optional<std::string> SimtelMme::handleUssd(const common::imsi_t &mTimsi,
   }
 
   switch (*ussd) {
-  case common::UssdCode::GET_BALANCE: {
+  case common::UssdCode::GetBalance: {
     auto balance = pcrf->getBalance(ueInfo->imsi);
     if (!balance) {
       return "UE not known by PCRF";
@@ -428,7 +426,7 @@ std::optional<std::string> SimtelMme::handleUssd(const common::imsi_t &mTimsi,
 
     return std::nullopt;
   }
-  case common::UssdCode::GET_PHONE_NUMBER: {
+  case common::UssdCode::GetPhoneNumber: {
     auto msisdn = reg->getMsisdnByImsi(ueInfo->imsi);
     if (!msisdn) {
       return "MSISDN not found in HLR";
@@ -510,10 +508,9 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
     auto warningSec = ttlManager->getWarningSec();
     if (warningSec) {
-      MessageHolder::instance().addMsg(
+      MessageHolder::instance().addInfoMsg(
           "SMS(" + uid.toStr() + ") TTL: " + std::to_string(*warningSec) +
-              " seconds left",
-          common::MenuMessageType::INFO);
+          " seconds left");
     }
 
     MessageHolder::instance().addMsg(
@@ -521,7 +518,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
     bs->sendSmDelivery(mtimsi_d, smsId, msisdn_s, binary);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(SEND_SMS_SLEEP_MSEC));
+    std::this_thread::sleep_for(SendSmsSleepTime);
 
     auto deliveredInfo = smsc.lock()->isDelivered(smsId, mtimsi_s);
     if (!deliveredInfo) {
@@ -556,7 +553,7 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 
 common::imsi_t SimtelMme::generateMTimsi() {
   curMTimsi++;
-  if (curMTimsi > MAX_MTIMSI) {
+  if (curMTimsi > MaxMtimsi) {
     curMTimsi = 0;
   }
 

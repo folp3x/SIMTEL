@@ -5,7 +5,7 @@
 namespace common {
 class SmTransferRequest : public Request {
 private:
-  static constexpr size_t TEXT_CHARS_SHOWED = 10;
+  static constexpr size_t TextCharsShowed = 10;
 
   imsi_t mTimsi = "";
   unsigned int smsId = 0;

@@ -7,9 +7,6 @@
 #include "common/utils/str/str.h"
 
 namespace common {
-const std::string Validator::MSISDN_FORMAT_STR =
-    "8" + std::string(MSISDN_LENGTH, MSISDN_ANY_DIGIT);
-
 bool Validator::isCorrectJsonPath(std::string_view filePath) {
   size_t jsonExtLen = std::strlen(".json");
   return (filePath.size() < jsonExtLen) ||
@@ -70,9 +67,9 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
 // проверяет коррекность IPv4. IP должен иметь хостовой порядок байт
 std::string Validator::isCorrectIp(uint32_t ip) {
   uint8_t lowByte = ip & 0xFF;
-  if (lowByte < MIN_IP_LOW_BYTE || lowByte > MAX_IP_LOW_BYTE) {
-    return "IP low byte must be from " + std::to_string(MIN_IP_LOW_BYTE) +
-           " to " + std::to_string(MAX_IP_LOW_BYTE);
+  if (lowByte < MinIpLowByte || lowByte > MaxIpLowByte) {
+    return "IP low byte must be from " + std::to_string(MinIpLowByte) + " to " +
+           std::to_string(MaxIpLowByte);
   }
   return "";
 }
@@ -86,9 +83,9 @@ std::string Validator::isCorrectIpStr(const std::string &ipStr) {
 }
 
 std::string Validator::isCorrectPort(int port) {
-  if (port < MIN_AVAILABLE_PORT || port > MAX_AVAILABLE_PORT) {
-    return "Port must be from " + std::to_string(MIN_AVAILABLE_PORT) + " to " +
-           std::to_string(MAX_AVAILABLE_PORT);
+  if (port < MinAvailablePort || port > MaxAvaliablePort) {
+    return "Port must be from " + std::to_string(MinAvailablePort) + " to " +
+           std::to_string(MaxAvaliablePort);
   }
   return "";
 }
@@ -102,30 +99,30 @@ std::string Validator::isCorrectPortStr(const std::string &portStr) {
 }
 
 std::string Validator::isCorrectImei(const imei_t &imei) {
-  return isCorrectDigitStr(imei, MIN_IMEI_LENGTH, MAX_IMEI_LENGTH, "IMEI");
+  return isCorrectDigitStr(imei, MinImeiLength, MaxImeiLength, "IMEI");
 }
 
 std::string Validator::isCorrectImsi(const imsi_t &imsi) {
-  return isCorrectDigitStr(imsi, MIN_IMSI_LENGTH, MAX_IMSI_LENGTH, "IMSI");
+  return isCorrectDigitStr(imsi, MimImsiLength, MaxImsiLength, "IMSI");
 }
 
 std::string Validator::isCorrectMsisdn(const msisdn_t &msisdn) {
   bool correct = true;
 
-  if (msisdn.length() != MSISDN_LENGTH) {
+  if (msisdn.length() != MsisdnLength) {
     correct = false;
   } else {
     for (int i = 0; i < msisdn.length(); ++i) {
-      char formatCh = MSISDN_FORMAT_STR[i];
+      char formatCh = MsisdnFormatStr[i];
       if (std::isdigit(formatCh) && msisdn[i] != formatCh ||
-          formatCh == MSISDN_ANY_DIGIT && !std::isdigit(msisdn[i])) {
+          formatCh == MsisdnAnyDigit && !std::isdigit(msisdn[i])) {
         correct = false;
         break;
       }
     }
   }
 
-  return correct ? "" : "MSISDN must have format: " + MSISDN_FORMAT_STR;
+  return correct ? "" : "MSISDN must have format: " + MsisdnFormatStr;
 }
 
 std::string
@@ -137,10 +134,15 @@ Validator::isCorrectSpeedDialNumStr(const std::string &speedDialNumStr) {
 }
 
 std::string Validator::isCorrectSignal(unsigned int signal) {
-  if (signal > common::constants::MAX_SIGNAL_LEVEL) {
+  if (signal > common::constants::MaxSignalLevel) {
     return "Signal cant be bigger than " +
-           std::to_string(common::constants::MAX_SIGNAL_LEVEL);
+           std::to_string(common::constants::MaxSignalLevel);
   }
   return "";
+}
+
+std::string Validator::isPositiveNumber(double number,
+                                        const std::string &name) {
+  return (number > 0) ? "" : name + " must be a positive number";
 }
 } // namespace common

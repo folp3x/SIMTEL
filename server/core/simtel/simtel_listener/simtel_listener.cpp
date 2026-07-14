@@ -33,9 +33,8 @@ void SimtelListener::acceptConnections(
       continue;
     }
 
-    MessageHolder::instance().addMsg("\nUE_" + (*acceptResult)->getAddrStr() +
-                                         " connected",
-                                     common::MenuMessageType::INFO);
+    MessageHolder::instance().addInfoMsg(
+        "\nUE_" + (*acceptResult)->getAddrStr() + " connected");
 
     if (activeThreads >= maxUeThreads) {
       MessageHolder::instance().addErrorMsg("Too many connections. UE ignored");

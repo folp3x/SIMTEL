@@ -43,29 +43,6 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
     return std::unexpected("Port parse error: " + portParseResult.error());
   }
 }
-
-std::string toStr(const binary_t &binary) {
-  if (binary.empty()) {
-    return "";
-  }
-
-  constexpr int ONE_BYTE_CHARS = 3;
-
-  std::string str;
-  str.reserve(binary.size() * ONE_BYTE_CHARS);
-  char buf[ONE_BYTE_CHARS];
-
-  for (size_t i = 0; i < binary.size(); ++i) {
-    if (i > 0) {
-      str += " ";
-    }
-    snprintf(buf, sizeof(buf), "%02X", static_cast<uint8_t>(binary[i]));
-
-    str += buf;
-  }
-
-  return str;
-}
 } // namespace common
 
 #include "network_impl.h"

@@ -3,15 +3,15 @@
 #include <rang.hpp>
 
 namespace common {
-enum class MenuMessageType : uint8_t { INFO, ERR, NO_COLOR, SUCCESS };
+enum class MenuMessageType : uint8_t { Info, Error, Success, NoColor };
 
 inline rang::fg menuMessageTypeToColor(MenuMessageType type) {
   switch (type) {
-  case MenuMessageType::INFO:
+  case MenuMessageType::Info:
     return rang::fg::cyan;
-  case MenuMessageType::ERR:
+  case MenuMessageType::Error:
     return rang::fg::red;
-  case MenuMessageType::SUCCESS:
+  case MenuMessageType::Success:
     return rang::fg::green;
   }
   return rang::fg::reset;

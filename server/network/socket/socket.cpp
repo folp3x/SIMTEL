@@ -16,7 +16,7 @@ Socket::create(const common::NetworkAddress &address) {
   int sock = *initResult;
   sockaddr_in sockAddr = toSockAddr(address);
 
-  bool sendTimeoutSet = setSendTimeout(sock, SEND_TIMEOUT_SEC);
+  bool sendTimeoutSet = setSendTimeout(sock, SendTimeoutSec);
   if (!sendTimeoutSet) {
     return std::unexpected("Error setting send timeout");
   }
@@ -30,7 +30,7 @@ Socket::create(const common::NetworkAddress &address) {
 }
 
 std::optional<std::string> Socket::listenForConnections() const {
-  if (listen(sock, MAX_WAITING_CONNECTIONS) < 0) {
+  if (listen(sock, MaxWaitingConnections) < 0) {
     return getLastError();
   }
   return std::nullopt;

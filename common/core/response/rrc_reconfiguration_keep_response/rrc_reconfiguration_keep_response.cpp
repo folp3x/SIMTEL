@@ -10,7 +10,7 @@ RrcReconfigurationKeepResponse::RrcReconfigurationKeepResponse(
     : imei(imei_), bsId(bsId_) {}
 
 RequestType RrcReconfigurationKeepResponse::getType() const {
-  return RequestType::Rrc_Reconfiguration_Keep;
+  return RequestType::RrcReconfigurationKeep;
 }
 
 nlohmann::json RrcReconfigurationKeepResponse::toJson() const {
@@ -52,7 +52,7 @@ std::optional<std::string>
 RrcReconfigurationKeepResponse::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(common::constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(common::constants::ImeiBinaryBytes);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }

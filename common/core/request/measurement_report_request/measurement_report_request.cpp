@@ -11,7 +11,7 @@ MeasurementReportRequest::MeasurementReportRequest(const imei_t &imei_,
     : imei(imei_), imsi(imsi_), bsId(bsId_) {}
 
 RequestType MeasurementReportRequest::getType() const {
-  return RequestType::Measurement_Report;
+  return RequestType::MeasurementReport;
 }
 
 nlohmann::json MeasurementReportRequest::toJson() const {
@@ -63,7 +63,7 @@ std::optional<std::string>
 MeasurementReportRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto imeiBinary = it.getNext(constants::IMEI_BINARY_BYTES);
+  auto imeiBinary = it.getNext(constants::ImeiBinaryBytes);
   if (!imeiBinary) {
     return "Binary too short for IMEI";
   }
@@ -73,7 +73,7 @@ MeasurementReportRequest::fromBinary(const binary_t &binary) {
   }
   imei = *parsedImei;
 
-  auto imsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
+  auto imsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!imsiBinary) {
     return "Binary too short for IMSI";
   }

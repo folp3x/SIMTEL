@@ -68,16 +68,16 @@ void UeExchange::sendRequests() {
     requests.pop();
     lock.unlock();
 
-    if (info.req->getType() != common::RequestType::Rrc_Connection &&
+    if (info.req->getType() != common::RequestType::RrcConnection &&
         signalLevel == 0) {
       info.callback(nullptr, "Not connected");
       continue;
     }
 
-    CallbackType callback = info.callback;
+    callback_t callback = info.callback;
     curProtocol = info.state.protocol;
     switch (info.req->getType()) {
-    case common::RequestType::Rrc_Connection: {
+    case common::RequestType::RrcConnection: {
       std::lock_guard lock(receiveMtx);
       auto response = handleLocationUpdate(std::move(info));
       if (!response) {
@@ -89,7 +89,7 @@ void UeExchange::sendRequests() {
 
       break;
     }
-    case common::RequestType::SM_Transfer: {
+    case common::RequestType::SmTransfer: {
       auto sendError = sendRequest(std::move(info.req));
       if (sendError) {
         callback(nullptr, "Failed to send sms - " + *sendError);
@@ -98,7 +98,7 @@ void UeExchange::sendRequests() {
       }
       break;
     }
-    case common::RequestType::SM_Delivery_Ack: {
+    case common::RequestType::SmDeliveryAck: {
       auto sendError = sendRequest(std::move(info.req));
       if (sendError) {
         callback(nullptr, "Failed to send sms deelivery ack - " + *sendError);
@@ -113,7 +113,7 @@ void UeExchange::sendRequests() {
 
 void UeExchange::addRequest(const UeState &state,
                             std::unique_ptr<common::Request> req,
-                            const CallbackType &callback) {
+                            const callback_t &callback) {
   {
     std::lock_guard lock(requestsMtx);
     requests.push({state, std::move(req), callback});
@@ -142,7 +142,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
     return std::unexpected("Failed to send location - " + *locationSendError);
   }
 
-  bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
+  bool set = sock.setReceiveTimeout(ReceiveSignalTimeoutMsec);
   if (!set) {
     return std::unexpected("Error setting receive timeout");
   }
@@ -186,7 +186,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
   unsigned int newBsId;
   std::unique_ptr<common::Request> response;
   switch (responseType) {
-  case common::RequestType::Rrc_Reconfiguration_Keep: {
+  case common::RequestType::RrcReconfigurationKeep: {
     auto receivedResponse =
         parseFromBytes<common::RrcReconfigurationKeepResponse>(*data);
     if (!receivedResponse) {
@@ -197,7 +197,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
         *receivedResponse);
     break;
   }
-  case common::RequestType::Rrc_Reconfiguration_Handover: {
+  case common::RequestType::RrcReconfigurationHandover: {
     auto receivedResponse =
         parseFromBytes<common::RrcReconfigurationHandoverResponse>(*data);
     if (!receivedResponse) {
@@ -257,14 +257,13 @@ void UeExchange::stop() {
   closeConnection();
 }
 
-void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
+void UeExchange::receiveFromBsInBackground(const callback_t &callback) {
   while (running) {
     {
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(RECEIVE_FROM_BS_SLEEP_MSEC));
+      std::this_thread::sleep_for(ReceiveFromBsSleepTime);
 
       std::unique_lock lock(receiveMtx);
-      bool set = sock.setReceiveTimeout(RECEIVE_FROM_BS_TIMEOUT_MSEC);
+      bool set = sock.setReceiveTimeout(ReceiveFromBsTimeoutMsec);
       if (!set) {
         lock.unlock();
         continue;
@@ -279,7 +278,7 @@ void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
 
       std::unique_ptr<common::Request> response;
       switch (responseType) {
-      case common::RequestType::SM_Delivery: {
+      case common::RequestType::SmDelivery: {
         auto receivedResponse =
             parseFromBytes<common::SmDeliveryResponse>(*data);
         if (!receivedResponse) {
@@ -291,7 +290,7 @@ void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
             std::make_unique<common::SmDeliveryResponse>(*receivedResponse);
         break;
       }
-      case common::RequestType::SM_Delivery_Report: {
+      case common::RequestType::SmDeliveryReport: {
         auto receivedResponse =
             parseFromBytes<common::SmDeliveryReportResponse>(*data);
         if (!receivedResponse) {
@@ -303,7 +302,7 @@ void UeExchange::receiveFromBsInBackground(const CallbackType &callback) {
             *receivedResponse);
         break;
       }
-      case common::RequestType::SM_Delivery_Error: {
+      case common::RequestType::SmDeliveryError: {
         auto receivedResponse =
             parseFromBytes<common::SmDeliveryErrorResponse>(*data);
         if (!receivedResponse) {
@@ -347,7 +346,7 @@ UeExchange::sendUssd(const UeState &state,
     return std::unexpected("Failed to send ussd - " + *sendError);
   }
 
-  bool set = sock.setReceiveTimeout(RECEIVE_SIGNAL_TIMEOUT_MSEC);
+  bool set = sock.setReceiveTimeout(ReceiveUssdTimeoutMsec);
   if (!set) {
     return std::unexpected("Error setting receive timeout");
   }

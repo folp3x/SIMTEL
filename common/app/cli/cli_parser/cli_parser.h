@@ -29,9 +29,6 @@ protected:
 
   static bool isOptSet(CLI::Option *opt);
 
-  void initPortOpt();
-  void initConfigFileOpt();
-
 public:
   virtual ~CliParser() = default;
 
@@ -39,7 +36,7 @@ public:
 
   virtual T redefineConfig(const T &definedConfig) const;
 
-  bool parse(int argc, char *argv[], std::string &msg, bool &helpCalled);
+  bool parse(int argc, char *argv[], std::string &msg, bool &isHelpOption);
 
   bool allConfigOptsSet() const;
 

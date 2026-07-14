@@ -9,7 +9,7 @@ private:
   unsigned int smsId = 0;
 
 protected:
-  size_t binaryBytesCount = constants::IMSI_BINARY_BYTES + sizeof(smsId);
+  static constexpr size_t BinaryBytesCount = constants::ImsiBinaryBytes + sizeof(smsId);
 
 public:
   SmDeliveryReportResponse() = default;

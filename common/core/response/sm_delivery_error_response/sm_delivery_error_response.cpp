@@ -10,7 +10,7 @@ SmDeliveryErrorResponse::SmDeliveryErrorResponse(
     : SmDeliveryReportResponse(mTimsi, smsId), description(description_) {}
 
 RequestType SmDeliveryErrorResponse::getType() const {
-  return RequestType::SM_Delivery_Error;
+  return RequestType::SmDeliveryError;
 }
 
 nlohmann::json SmDeliveryErrorResponse::toJson() const {
@@ -57,7 +57,7 @@ SmDeliveryErrorResponse::fromBinary(const binary_t &binary) {
 
   BinaryIterator it{binary};
 
-  bool skipped = it.skip(SmDeliveryReportResponse::binaryBytesCount);
+  bool skipped = it.skip(SmDeliveryReportResponse::BinaryBytesCount);
   if (!skipped) {
     return "Not enough bytes";
   }

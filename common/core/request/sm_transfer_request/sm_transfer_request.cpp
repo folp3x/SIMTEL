@@ -6,8 +6,8 @@
 
 namespace common {
 std::string SmTransferRequest::getValuesStr() const {
-  std::string showedText = (text.length() > TEXT_CHARS_SHOWED)
-                               ? text.substr(0, TEXT_CHARS_SHOWED) + "..."
+  std::string showedText = (text.length() > TextCharsShowed)
+                               ? text.substr(0, TextCharsShowed) + "..."
                                : text;
   return "{mTimsi=" + mTimsi + ", smsId=" + std::to_string(smsId) +
          ", msisdn=" + msisdn + ", text=" + showedText + "}";
@@ -19,14 +19,11 @@ SmTransferRequest::SmTransferRequest(const imsi_t &mTimsi_, unsigned int smsId_,
     : mTimsi(mTimsi_), smsId(smsId_), msisdn(msisdn_), text(text_) {}
 
 std::string SmTransferRequest::toStr() const {
-  std::string showedText = (text.length() > TEXT_CHARS_SHOWED)
-                               ? text.substr(0, TEXT_CHARS_SHOWED) + "..."
-                               : text;
   return requestTypeToStr(getType()) + getValuesStr();
 }
 
 RequestType SmTransferRequest::getType() const {
-  return RequestType::SM_Transfer;
+  return RequestType::SmTransfer;
 }
 
 nlohmann::json SmTransferRequest::toJson() const {
@@ -88,7 +85,7 @@ std::optional<std::string>
 SmTransferRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
+  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!mTimsiBinary) {
     return "Binary too short for m-TIMSI";
   }
@@ -108,7 +105,7 @@ SmTransferRequest::fromBinary(const binary_t &binary) {
   }
   smsId = *parsedSmsId;
 
-  auto msisdnBinary = it.getNext(constants::MSISDN_BINARY_BYTES);
+  auto msisdnBinary = it.getNext(constants::MsisdnBinaryBytes);
   if (!msisdnBinary) {
     return "Binary too short for MSISDN";
   }

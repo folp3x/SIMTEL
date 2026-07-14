@@ -28,7 +28,9 @@ void ConfigParser::initSmscConfigField() {
   auto smscConfigObj = makeParsedObject("smscConfig");
   smscConfigObj->addInner(makeParsedField<unsigned int>(
       "smsTtl_ms", [this](unsigned int ttl) { config.setSmscTtlMs(ttl); },
-      [](unsigned int ttl) { return (ttl > 0) ? "" : "SMS TTL cant be 0"; }));
+      [](unsigned int ttl) {
+        return common::Validator::isPositiveNumber(ttl, "SMS TTL");
+      }));
 
   addInfo(std::move(smscConfigObj));
 }
@@ -39,7 +41,9 @@ void ConfigParser::initMmeConfigsField() {
       "id", [this](unsigned int id) { curMmeConfig.id = id; }));
   mmeConfigObj->addInner(makeParsedField<size_t>(
       "maxVlrSize", [this](size_t size) { curMmeConfig.maxVlrSize = size; },
-      [](size_t size) { return (size > 0) ? "" : "VLR size cant be 0"; }));
+      [](size_t size) {
+        return common::Validator::isPositiveNumber(size, "VLR size");
+      }));
 
   addInfo(
       makeParsedObjectArray("mmeConfigs", std::move(mmeConfigObj), [this]() {
@@ -53,7 +57,9 @@ void ConfigParser::initPcrfConfigField() {
   pcrfConfigObj->addInner(makeParsedField<double>(
       "smsPrice_rub",
       [this](double price) { config.setPcrfSmsPriceRub(price); },
-      [](double price) { return (price > 0) ? "" : "SMS price must be > 0"; }));
+      [](double price) {
+        return common::Validator::isPositiveNumber(price, "SMS price");
+      }));
 
   auto balanceInfoObj = makeParsedObject("");
   balanceInfoObj->addInner(makeParsedField<common::imsi_t>(

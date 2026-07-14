@@ -8,15 +8,13 @@ namespace common {
 template <std::derived_from<Config> T>
 CliParser<T>::CliParser(const std::string &appTitle) : cliApp(appTitle) {}
 
-template <std::derived_from<Config> T> void CliParser<T>::initPortOpt() {
+template <std::derived_from<Config> T> void CliParser<T>::initOptions() {
   portOpt = cliApp.add_option_function<int>(
       "-p, --port", [this](int port) { config.setPort(port); }, "Set port");
   portOpt->check(Validator::isCorrectPortStr);
   portOpt->type_name("integer");
   configOpts.push_back(portOpt);
-}
 
-template <std::derived_from<Config> T> void CliParser<T>::initConfigFileOpt() {
   configFileOpt = cliApp.add_option_function<std::string>(
       "-k, --config",
       [this](const std::string &filePath) { configFilePath = filePath; },
@@ -25,11 +23,6 @@ template <std::derived_from<Config> T> void CliParser<T>::initConfigFileOpt() {
     return Validator::jsonFilePathExists(filePath, "Config");
   });
   configFileOpt->type_name("string");
-}
-
-template <std::derived_from<Config> T> void CliParser<T>::initOptions() {
-  initPortOpt();
-  initConfigFileOpt();
 }
 
 template <std::derived_from<Config> T>
@@ -47,7 +40,7 @@ CliParser<T>::create(const std::string &cliAppName) {
 
 template <std::derived_from<Config> T>
 bool CliParser<T>::parse(int argc, char *argv[], std::string &msg,
-                         bool &helpCalled) {
+                         bool &isHelpOption) {
   try {
     config = T{};
     cliApp.parse(argc, argv);
@@ -55,7 +48,7 @@ bool CliParser<T>::parse(int argc, char *argv[], std::string &msg,
   } catch (const CLI::ParseError &e) {
     if (e.get_name() == "CallForHelp") {
       msg = cliApp.help();
-      helpCalled = true;
+      isHelpOption = true;
     } else {
       msg = e.what();
     }
@@ -65,8 +58,7 @@ bool CliParser<T>::parse(int argc, char *argv[], std::string &msg,
 
 template <std::derived_from<Config> T>
 bool CliParser<T>::allConfigOptsSet() const {
-  return std::all_of(configOpts.begin(), configOpts.end(),
-                     [](CLI::Option *opt) { return isOptSet(opt); });
+  return std::all_of(configOpts.begin(), configOpts.end(), isOptSet);
 }
 
 template <std::derived_from<Config> T>

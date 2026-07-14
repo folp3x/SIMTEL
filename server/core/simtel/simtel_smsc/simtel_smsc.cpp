@@ -15,14 +15,14 @@ bool SimtelSmsc::handleSmSubmit(const common::imsi_t &mtimsi_s,
   SmsUid uid = {mtimsi_s, smsId};
 
   std::lock_guard lock(contextMtx);
-  if (context.size() < MAX_CONTEXT_SIZE) {
+  if (context.size() < MaxContextSize) {
     MessageHolder::instance().addMsg(
         createLogMsg("created SMS context for " + uid.toStr()));
 
     SmsContext ctx{mtimsi_s};
     unsigned int warningPeriodSec = 1;
     ctx.ttlManager = std::make_shared<TtlManager>(
-        smsTtlMs / common::constants::MSEC_IN_SEC, warningPeriodSec);
+        smsTtlMs / common::constants::MsecInSec, warningPeriodSec);
 
     context.emplace(uid, std::move(ctx));
     return true;

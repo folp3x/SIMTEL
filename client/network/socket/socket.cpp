@@ -12,7 +12,7 @@ Socket::connectTo(const common::NetworkAddress &address) {
 
   sock = *initResult;
 
-  bool sendTimeoutSet = setSendTimeout(sock, SEND_TIMEOUT_SEC);
+  bool sendTimeoutSet = setSendTimeout(sock, SendTimeoutSec);
   if (!sendTimeoutSet) {
     return "Error setting send timeout";
   }

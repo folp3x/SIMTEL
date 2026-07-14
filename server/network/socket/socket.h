@@ -7,8 +7,8 @@
 namespace server {
 class Socket : public common::Socket {
 private:
-  static constexpr unsigned int MAX_WAITING_CONNECTIONS = 10;
-  static constexpr unsigned int SEND_TIMEOUT_SEC = 10;
+  static constexpr unsigned int MaxWaitingConnections = 10;
+  static constexpr unsigned int SendTimeoutSec = 10;
 
   sockaddr_in sockAddr;
 

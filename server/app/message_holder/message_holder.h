@@ -24,7 +24,9 @@ public:
   }
 
   void addMsg(const std::string &content,
-              common::MenuMessageType type = common::MenuMessageType::NO_COLOR);
+              common::MenuMessageType type = common::MenuMessageType::NoColor);
+
+  void addInfoMsg(const std::string &content);
 
   void addErrorMsg(const std::string &content);
 

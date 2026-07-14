@@ -9,7 +9,7 @@ namespace client {
 class MenuItemDialog : public common::MenuItem {
 private:
   common::msisdn_t msisdn = "";
-  char speedDialNum = constants::EMPTY_SPEED_DIAL_NUM;
+  char speedDialNum = constants::EmptySpeedDialNum;
 
 public:
   virtual std::string_view getName() const override;

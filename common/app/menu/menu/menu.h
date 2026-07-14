@@ -8,7 +8,7 @@
 namespace common {
 class Menu {
 protected:
-  static constexpr int MENU_HEADER_LINE_LENGTH = 60;
+  static constexpr size_t MenuHeaderLineLength = 60;
 
 public:
   virtual ~Menu() = default;

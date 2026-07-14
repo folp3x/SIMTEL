@@ -7,12 +7,14 @@
 
 namespace client {
 struct Sms {
+  using unix_seconds_t = std::chrono::sys_time<std::chrono::seconds>;
+
   unsigned int id = 0;
-  std::chrono::sys_time<std::chrono::seconds> timeSent;
-  std::chrono::sys_time<std::chrono::seconds> timeReceived;
+  unix_seconds_t timeSent;
+  unix_seconds_t timeReceived;
   common::msisdn_t sender = "";
   common::msisdn_t receiver = "";
   std::string content = "";
-  SmsStatus status = SmsStatus::PENDING;
+  SmsStatus status = SmsStatus::Pending;
 };
 } // namespace client

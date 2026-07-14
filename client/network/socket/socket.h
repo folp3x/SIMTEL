@@ -5,7 +5,7 @@
 namespace client {
 class Socket : public common::Socket {
 private:
-  static constexpr unsigned int SEND_TIMEOUT_SEC = 2;
+  static constexpr unsigned int SendTimeoutSec = 2;
 
 public:
   std::optional<std::string> connectTo(const common::NetworkAddress &address);

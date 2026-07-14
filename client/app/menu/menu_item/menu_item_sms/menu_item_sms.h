@@ -10,7 +10,7 @@ class MenuItemSMS : public common::MenuItem {
 private:
   common::msisdn_t msisdn = "";
   std::string content = "";
-  char speedDialNum = constants::EMPTY_SPEED_DIAL_NUM;
+  char speedDialNum = constants::EmptySpeedDialNum;
 
 public:
   virtual std::string_view getName() const override;

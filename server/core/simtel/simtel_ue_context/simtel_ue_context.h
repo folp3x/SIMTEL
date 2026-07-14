@@ -17,7 +17,7 @@ private:
 
   std::unique_ptr<Socket> sock;
 
-  common::Protocol protocol = common::Protocol::JSON;
+  common::Protocol protocol = common::Protocol::Json;
 
   std::weak_ptr<SimtelBaseStation> bs;
 

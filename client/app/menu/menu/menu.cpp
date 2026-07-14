@@ -8,11 +8,11 @@
 namespace client {
 rang::fg Menu::getSmsStatusColor(SmsStatus status) const {
   switch (status) {
-  case SmsStatus::PENDING:
+  case SmsStatus::Pending:
     return rang::fg::yellow;
-  case SmsStatus::DELIVERED:
+  case SmsStatus::Delivered:
     return rang::fg::green;
-  case SmsStatus::NOT_DELIVERED:
+  case SmsStatus::NotDelivered:
     return rang::fg::red;
   default:
     return rang::fg::reset;
@@ -51,10 +51,9 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
 void Menu::showSignalInfo(const common::Location<> &location,
                           unsigned int signalLevel) const {
   std::string levelStr =
-      (signalLevel > 0)
-          ? std::to_string(signalLevel) + "/" +
-                std::to_string(common::constants::MAX_SIGNAL_LEVEL)
-          : "no signal";
+      (signalLevel > 0) ? std::to_string(signalLevel) + "/" +
+                              std::to_string(common::constants::MaxSignalLevel)
+                        : "no signal";
   std::cout << "Location: " << location.toStr() << ", signal: " << levelStr
             << std::endl;
 }
@@ -81,11 +80,11 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
       leftHeaderPart.size() + statusStr.size() + headerEnding.size();
 
   size_t headerLeftPadding =
-      alignRight ? MENU_HEADER_LINE_LENGTH - fullHeaderLength : 0;
+      alignRight ? MenuHeaderLineLength - fullHeaderLength : 0;
   std::string headerLeftSpace = std::string(headerLeftPadding, ' ');
 
   std::cout << headerLeftSpace << leftHeaderPart;
-  if (sms.status != SmsStatus::PENDING) {
+  if (sms.status != SmsStatus::Pending) {
     common::printColored(statusStr, getSmsStatusColor(sms.status), "");
   }
   std::cout << headerEnding << std::endl;
@@ -97,7 +96,7 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
     std::string curLine;
 
     while (std::getline(stream, curLine)) {
-      std::cout << std::right << std::setw(MENU_HEADER_LINE_LENGTH) << curLine
+      std::cout << std::right << std::setw(MenuHeaderLineLength) << curLine
                 << std::endl;
     }
   }
@@ -110,7 +109,7 @@ void Menu::showReceivedSms(const Sms &sms) const {
 }
 
 void Menu::showError(const std::string &error) const {
-  showMessage({error, common::MenuMessageType::ERR});
+  showMessage({error, common::MenuMessageType::Error});
 }
 
 void Menu::showUssdInfo(const std::vector<UssdInfo> &info) const {

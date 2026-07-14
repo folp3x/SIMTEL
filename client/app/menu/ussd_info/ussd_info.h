@@ -6,7 +6,7 @@
 
 namespace client {
 struct UssdInfo {
-  common::UssdCode code = common::UssdCode::MAX_VALUE;
+  common::UssdCode code = common::UssdCode::MaxValue;
   std::string description = "";
 };
 } // namespace client

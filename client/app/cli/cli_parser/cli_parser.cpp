@@ -6,35 +6,8 @@ namespace client {
 CliParser::CliParser(const std::string &cliAppName)
     : common::CliParser<Config>(cliAppName) {}
 
-void CliParser::initImeiOpt() {
-  imeiOpt = cliApp.add_option_function<common::imei_t>(
-      "-e, --imei",
-      [this](const common::imei_t &imei) { config.setImei(imei); }, "Set IMEI");
-  imeiOpt->check(common::Validator::isCorrectImei);
-  imeiOpt->type_name("char[15]");
-  configOpts.push_back(imeiOpt);
-}
-
-void CliParser::initImsiOpt() {
-  imsiOpt = cliApp.add_option_function<common::imsi_t>(
-      "-i, --imsi",
-      [this](const common::imsi_t &imsi) { config.setImsi(imsi); }, "Set IMSI");
-  imsiOpt->check(common::Validator::isCorrectImsi);
-  imsiOpt->type_name("char[15]");
-  configOpts.push_back(imsiOpt);
-}
-
-void CliParser::initIpOpt() {
-  ipOpt = cliApp.add_option_function<std::string>(
-      "-a, --ip", [this](const std::string &ip) { config.setIp(ip); },
-      "Set IP address");
-  ipOpt->check(common::Validator::isCorrectIpStr);
-  ipOpt->type_name("IPv4");
-  configOpts.push_back(ipOpt);
-}
-
 void CliParser::initLocOpt() {
-  if constexpr (common::constants::LOCATION_COORDS_COUNT == 1) {
+  if constexpr (common::constants::LocationCoordsCount == 1) {
     locOpt = cliApp.add_option_function<float>(
         "-l, --loc", [this](float x) { config.setLoc({x}); },
         "Set position vector");
@@ -51,9 +24,28 @@ void CliParser::initLocOpt() {
 
 void CliParser::initOptions() {
   common::CliParser<Config>::initOptions();
-  initImeiOpt();
-  initImsiOpt();
-  initIpOpt();
+
+  imeiOpt = cliApp.add_option_function<common::imei_t>(
+      "-e, --imei",
+      [this](const common::imei_t &imei) { config.setImei(imei); }, "Set IMEI");
+  imeiOpt->check(common::Validator::isCorrectImei);
+  imeiOpt->type_name("char[15]");
+  configOpts.push_back(imeiOpt);
+
+  imsiOpt = cliApp.add_option_function<common::imsi_t>(
+      "-i, --imsi",
+      [this](const common::imsi_t &imsi) { config.setImsi(imsi); }, "Set IMSI");
+  imsiOpt->check(common::Validator::isCorrectImsi);
+  imsiOpt->type_name("char[15]");
+  configOpts.push_back(imsiOpt);
+
+  ipOpt = cliApp.add_option_function<std::string>(
+      "-a, --ip", [this](const std::string &ip) { config.setIp(ip); },
+      "Set IP address");
+  ipOpt->check(common::Validator::isCorrectIpStr);
+  ipOpt->type_name("IPv4");
+  configOpts.push_back(ipOpt);
+
   initLocOpt();
 }
 

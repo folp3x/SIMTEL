@@ -22,13 +22,11 @@
 namespace client {
 class App {
 private:
-  static constexpr unsigned int HANDOVER_SIGNAL_THRESHOLD = 40;
-
-  static constexpr unsigned int MAX_SMS_ID = 9999;
+  static constexpr unsigned int MaxSmsId = 9999;
 
   std::vector<UssdInfo> ussdInfo = {
-      {common::UssdCode::GET_BALANCE, "get balance"},
-      {common::UssdCode::GET_PHONE_NUMBER, "get phone number"}};
+      {common::UssdCode::GetBalance, "get balance"},
+      {common::UssdCode::GetPhoneNumber, "get phone number"}};
 
   unsigned int curSmsId = 0;
 
@@ -84,7 +82,7 @@ private:
   std::optional<common::msisdn_t> findBySpeedDialNum(char num);
 
   void addMsg(const std::string &content,
-              common::MenuMessageType type = common::MenuMessageType::INFO);
+              common::MenuMessageType type = common::MenuMessageType::Info);
 
   void addErrorMsg(const std::string &content);
 

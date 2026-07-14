@@ -48,7 +48,7 @@ std::expected<binary_t, std::string> UssdCodeRequest::toBinary() const {
 std::optional<std::string> UssdCodeRequest::fromBinary(const binary_t &binary) {
   BinaryIterator it{binary};
 
-  auto mTimsiBinary = it.getNext(constants::IMSI_BINARY_BYTES);
+  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!mTimsiBinary) {
     return "Binary too short for m-TIMSI";
   }

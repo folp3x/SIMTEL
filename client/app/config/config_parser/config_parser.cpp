@@ -34,7 +34,7 @@ void ConfigParser::initAddressBookFilePathField() {
 }
 
 void ConfigParser::initLocField() {
-  addInfo(makeParsedArray<float, common::constants::LOCATION_COORDS_COUNT>(
+  addInfo(makeParsedArray<float, common::constants::LocationCoordsCount>(
       "loc", [this](const common::coords_t<> &loc) { config.setLoc(loc); }));
 }
 

@@ -28,8 +28,7 @@ std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
 }
 
 void SimtelBaseStation::handleConnection(std::shared_ptr<SimtelUeContext> ctx) {
-  bool timeoutSet =
-      ctx->setReceiveTimeout(CONNECTION_HANDLE_RECEIVE_TIMEOUT_MSEC);
+  bool timeoutSet = ctx->setReceiveTimeout(ConnectionHandleReceiveTimeoutMsec);
   if (!timeoutSet) {
     MessageHolder::instance().addErrorMsg(ctx->toStr() +
                                           " error setting receive timeout");
@@ -69,8 +68,7 @@ unsigned int
 SimtelBaseStation::measureSignal(const common::Location<> &targetLoc) const {
   float distance = calculateDistance(targetLoc);
   float coef = 1 - std::abs(distance) / radius;
-  return (coef < 0) ? 0
-                    : std::round(coef * common::constants::MAX_SIGNAL_LEVEL);
+  return (coef < 0) ? 0 : std::round(coef * common::constants::MaxSignalLevel);
 }
 
 std::optional<std::string> SimtelBaseStation::handleConfigureComplete(
@@ -140,7 +138,7 @@ SimtelBaseStation::sendResponse(std::shared_ptr<SimtelUeContext> ctx,
   if (!error) {
     MessageHolder::instance().addMsg(
         createLogMsg("response to " + ctx->toStr() + " = " + req->toStr()),
-        common::MenuMessageType::SUCCESS);
+        common::MenuMessageType::Success);
     return std::nullopt;
   }
 
@@ -230,7 +228,7 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
     if (auto ptr = ctx->getBs().lock()) {
       prevBs = ptr;
       ue->setBs(chosenBs);
-      chosenBs->addUe(std::move(ue));
+      chosenBs->addUe(ue);
     } else {
       return "UE not connected to BS";
     }
@@ -365,9 +363,8 @@ bool SimtelBaseStation::removeUe(const common::imsi_t &mTimsi) {
 }
 
 void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
-  MessageHolder::instance().addMsg(
-      createLogMsg("started handling requests from " + ctx->toStr()),
-      common::MenuMessageType::INFO);
+  MessageHolder::instance().addInfoMsg(
+      createLogMsg("started handling requests from " + ctx->toStr()));
 
   while (true) {
     bool timeoutRemoved = ctx->removeReceiveTimeout();
@@ -384,9 +381,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
         bool removed = removeUe(ctx->getMTimsi());
 
         if (removed) {
-          MessageHolder::instance().addMsg(
-              createLogMsg(ctx->toStr() + " disconnected\n"),
-              common::MenuMessageType::INFO);
+          MessageHolder::instance().addInfoMsg(
+              createLogMsg(ctx->toStr() + " disconnected\n"));
         }
 
         break;
@@ -405,7 +401,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
       }
 
       switch (*reqType) {
-      case common::RequestType::Rrc_Connection: {
+      case common::RequestType::RrcConnection: {
         common::Protocol protocol;
         auto req = parseFromBytes<common::RrcConnectionRequest>(data, protocol);
         ctx->clearBuf();
@@ -416,9 +412,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
         ctx->setProtocol(protocol);
 
-        MessageHolder::instance().addMsg(
-            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
-            common::MenuMessageType::INFO);
+        MessageHolder::instance().addInfoMsg(createLogMsg(
+            "request from " + ctx->toStr() + " = " + req->toStr()));
 
         auto updateError = handleLocationUpdate(*req, ctx, false);
         if (updateError) {
@@ -434,7 +429,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
         break;
       }
-      case common::RequestType::SM_Transfer: {
+      case common::RequestType::SmTransfer: {
         common::Protocol protocol;
         auto req = parseFromBytes<common::SmTransferRequest>(data, protocol);
         ctx->clearBuf();
@@ -443,9 +438,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
           continue;
         }
 
-        MessageHolder::instance().addMsg(
-            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
-            common::MenuMessageType::INFO);
+        MessageHolder::instance().addInfoMsg(createLogMsg(
+            "request from " + ctx->toStr() + " = " + req->toStr()));
 
         ctx->setProtocol(protocol);
 
@@ -466,7 +460,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
         break;
       }
-      case common::RequestType::SM_Delivery_Ack: {
+      case common::RequestType::SmDeliveryAck: {
         common::Protocol protocol;
         auto req = parseFromBytes<common::SmDeliveryAckRequest>(data, protocol);
         ctx->clearBuf();
@@ -475,9 +469,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
           continue;
         }
 
-        MessageHolder::instance().addMsg(
-            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
-            common::MenuMessageType::INFO);
+        MessageHolder::instance().addInfoMsg(createLogMsg(
+            "request from " + ctx->toStr() + " = " + req->toStr()));
 
         ctx->setProtocol(protocol);
 
@@ -495,9 +488,8 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
           continue;
         }
 
-        MessageHolder::instance().addMsg(
-            createLogMsg("request from " + ctx->toStr() + " = " + req->toStr()),
-            common::MenuMessageType::INFO);
+        MessageHolder::instance().addInfoMsg(createLogMsg(
+            "request from " + ctx->toStr() + " = " + req->toStr()));
 
         ctx->setProtocol(protocol);
 

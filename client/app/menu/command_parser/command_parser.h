@@ -14,7 +14,15 @@
 namespace client {
 class CommandParser : public common::CommandParser {
 private:
-  const CommandParser::ArgsParsersMap argsParsers = {
+  static constexpr char SpeedDialNumPrefix = '@';
+
+  static constexpr char UssdPrefix = '*';
+  static constexpr char UssdPostfix = '#';
+
+  static constexpr size_t UssdPrefixLength = 1;
+  static constexpr size_t UssdPostfixLength = 1;
+
+  const CommandParser::arg_parser_map_t argsParsers = {
       {"exit", parseExitArgs},
       {"active", parseActiveArgs},
       {"move", parseMoveArgs<>},
@@ -25,7 +33,7 @@ private:
       {"dialog", parseDialogArgs},
       {"ussd", parseWithoutArgs<MenuItemUssd>}};
 
-  virtual CommandParser::ArgsParsersMap getArgsParsers() const override;
+  virtual CommandParser::arg_parser_map_t getArgsParsers() const override;
 
   template <typename T = float>
   static std::unique_ptr<common::MenuItem>

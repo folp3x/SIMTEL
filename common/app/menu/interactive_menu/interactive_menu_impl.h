@@ -13,7 +13,7 @@ InteractiveMenu<T>::getCommand(std::string &extraMsg) const {
 
 template <std::derived_from<CommandParser> T>
 void InteractiveMenu<T>::showCommandsInfo(
-    const CommandInfoMap &commands) const {
+    const std::unordered_map<std::string, CommandInfo> &commands) const {
   for (const auto &[_, info] : commands) {
     std::cout << "- " << info.usage << " - " << info.description << std::endl;
   }

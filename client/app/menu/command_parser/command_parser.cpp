@@ -11,7 +11,7 @@
 #include "common/validator/validator.h"
 
 namespace client {
-CommandParser::ArgsParsersMap CommandParser::getArgsParsers() const {
+CommandParser::arg_parser_map_t CommandParser::getArgsParsers() const {
   return argsParsers;
 }
 
@@ -53,15 +53,13 @@ CommandParser::parseUssdCodeArgs(const std::string &initialStr,
                                  std::string &extraMsg) {
   std::string command = common::firstWord(initialStr);
 
-  size_t minLength =
-      constants::USSD_PREFIX_LENGTH + 1 + constants::USSD_POSTFIX_LENGTH;
+  size_t minLength = UssdPrefixLength + 1 + UssdPostfixLength;
   if (command.size() < minLength) {
     return std::make_unique<common::MenuItemInvalid>("Missing argument");
   }
 
-  size_t lastCodeChInd = command.size() - 1 - constants::USSD_POSTFIX_LENGTH;
-  std::string codeStr =
-      command.substr(constants::USSD_PREFIX_LENGTH, lastCodeChInd);
+  size_t lastCodeChInd = command.size() - 1 - UssdPostfixLength;
+  std::string codeStr = command.substr(UssdPrefixLength, lastCodeChInd);
 
   auto code = common::fromString<unsigned int>(codeStr);
   if (code) {
@@ -87,8 +85,7 @@ CommandParser::parseCommand(const std::string &str,
     tokens.erase(tokens.begin());
 
     size_t lastChInd = command.size() - 1;
-    if (command[0] == constants::USSD_PREFIX &&
-        command[lastChInd] == constants::USSD_POSTFIX) {
+    if (command[0] == UssdPrefix && command[lastChInd] == UssdPostfix) {
       return parseUssdCodeArgs(command, tokens, extraMsg);
     }
   }
@@ -131,7 +128,7 @@ CommandParser::parseSmsArgs(const std::string &initialStr,
 
   auto cmd = std::make_unique<MenuItemSMS>();
   std::string firstArg = args[0];
-  if (firstArg[0] == constants::SPEED_DIAL_NUM_PREFIX) {
+  if (firstArg[0] == SpeedDialNumPrefix) {
     std::string speedDialNumStr = firstArg.substr(1);
     std::string error = Validator::isCorrectSpeedDialNumStr(speedDialNumStr);
     if (!error.empty()) {
@@ -165,7 +162,7 @@ CommandParser::parseDialogArgs(const std::string &initialStr,
 
   auto cmd = std::make_unique<MenuItemDialog>();
   std::string firstArg = args[0];
-  if (firstArg[0] == constants::SPEED_DIAL_NUM_PREFIX) {
+  if (firstArg[0] == SpeedDialNumPrefix) {
     std::string speedDialNumStr = firstArg.substr(1);
     std::string error = Validator::isCorrectSpeedDialNumStr(speedDialNumStr);
     if (!error.empty()) {

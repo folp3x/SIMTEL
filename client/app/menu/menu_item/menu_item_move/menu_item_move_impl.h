@@ -17,7 +17,7 @@ std::string_view MenuItemMove<T>::getName() const {
 template <typename T>
   requires std::is_arithmetic_v<T>
 size_t MenuItemMove<T>::getArgsCount() {
-  return common::constants::LOCATION_COORDS_COUNT;
+  return common::constants::LocationCoordsCount;
 }
 
 template <typename T>

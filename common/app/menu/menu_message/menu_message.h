@@ -7,8 +7,6 @@
 namespace common {
 struct MenuMessage {
   std::string content = "";
-  MenuMessageType type = MenuMessageType::INFO;
-
-  bool operator<(const MenuMessage &other) const { return type < other.type; }
+  MenuMessageType type = MenuMessageType::Info;
 };
 } // namespace common

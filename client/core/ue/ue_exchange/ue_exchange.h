@@ -12,19 +12,21 @@
 namespace client {
 class UeExchange {
 private:
-  using CallbackType = std::function<void(std::unique_ptr<common::Request>,
-                                          const std::string &)>;
+  using callback_t = std::function<void(std::unique_ptr<common::Request>,
+                                        const std::string &)>;
 
   struct RequestInfo {
     UeState state;
     std::unique_ptr<common::Request> req;
-    CallbackType callback{};
+    callback_t callback{};
   };
 
-  static constexpr unsigned int RECEIVE_FROM_BS_SLEEP_MSEC = 1000;
-  static constexpr unsigned int RECEIVE_FROM_BS_TIMEOUT_MSEC = 100;
-  static constexpr unsigned int RECEIVE_SIGNAL_TIMEOUT_MSEC = 2000;
-  static constexpr unsigned int RECEIVE_USSD_TIMEOUT_MSEC = 1000;
+  static constexpr std::chrono::milliseconds ReceiveFromBsSleepTime{1000};
+  static constexpr unsigned int ReceiveFromBsTimeoutMsec = 100;
+
+  static constexpr unsigned int ReceiveSignalTimeoutMsec = 2000;
+
+  static constexpr unsigned int ReceiveUssdTimeoutMsec = 1000;
 
   bool running = true;
 
@@ -62,7 +64,7 @@ public:
   void sendRequests();
 
   void addRequest(const UeState &state, std::unique_ptr<common::Request> req,
-                  const CallbackType &callback);
+                  const callback_t &callback);
 
   std::optional<std::string> updateConnection(bool ueActive);
 
@@ -73,7 +75,7 @@ public:
 
   void stop();
 
-  void receiveFromBsInBackground(const CallbackType &callback);
+  void receiveFromBsInBackground(const callback_t &callback);
 
   std::expected<std::unique_ptr<common::Request>, std::string>
   sendUssd(const UeState &state, std::unique_ptr<common::UssdCodeRequest> req);

@@ -15,8 +15,8 @@
 namespace server {
 class App {
 private:
-  static constexpr unsigned int MENU_SLEEP_MSEC = 100;
-  static constexpr unsigned int TTL_WARNING_PERIOD_SEC = 1;
+  static constexpr std::chrono::milliseconds MenuSleepTime{1000};
+  static constexpr unsigned int TtlWarningPeriodSec = 1;
 
   SimtelListener listener;
 

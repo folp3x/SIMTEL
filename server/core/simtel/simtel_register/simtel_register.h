@@ -10,11 +10,11 @@
 namespace server {
 class SimtelRegister {
 private:
-  using HlrStorageType = decltype(HlrStorageHelper::create(""));
-  using EirStorageType = decltype(EirStorageHelper::create(""));
+  using hlr_storage_t = decltype(HlrStorageHelper::create(""));
+  using eir_storage_t = decltype(EirStorageHelper::create(""));
 
-  HlrStorageType hlrStorage;
-  EirStorageType eirStorage;
+  hlr_storage_t hlrStorage;
+  eir_storage_t eirStorage;
 
   std::string createLogMsg(const std::string &content) const;
 

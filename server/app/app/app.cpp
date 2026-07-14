@@ -26,8 +26,8 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig,
          const PcrfConfig &pcrfConfig)
-    : ttlManager(std::make_shared<TtlManager>(epcConfig.ttlSec,
-                                              TTL_WARNING_PERIOD_SEC)),
+    : ttlManager(
+          std::make_shared<TtlManager>(epcConfig.ttlSec, TtlWarningPeriodSec)),
       listener(addr, maxUeThreadsCount),
       reg(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath,
                                            epcConfig.eirSqliteFilePath)),
@@ -82,9 +82,7 @@ void App::run() {
   ttlManager->start();
 
   std::jthread connectionHandler{[this]() {
-    listener.acceptConnections([](std::shared_ptr<SimtelUeContext> ctx) {
-      SimtelBaseStation::handleConnection(ctx);
-    });
+    listener.acceptConnections(SimtelBaseStation::handleConnection);
   }};
 
   while (running) {
@@ -106,12 +104,11 @@ void App::run() {
       if (warningSec) {
         menu.showMessage(
             {"TTL: " + std::to_string(*warningSec) + " seconds left",
-             common::MenuMessageType::INFO});
+             common::MenuMessageType::Info});
       }
     }
 
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(MENU_SLEEP_MSEC * 10));
+    std::this_thread::sleep_for(MenuSleepTime);
   }
 
   exitApp();

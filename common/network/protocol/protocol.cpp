@@ -4,36 +4,34 @@
 #include <unordered_map>
 
 namespace common {
-using ProtocolInfoMap = std::unordered_map<Protocol, ProtocolInfo>;
-using ProtocolAliasMap = std::unordered_map<std::string_view, std::string>;
+static const std::unordered_map<Protocol, ProtocolInfo> protocols = {
+    {Protocol::Json, {"json", 1}}, {Protocol::Binary, {"binary", 0}}};
 
-static const ProtocolInfoMap PROTOCOLS = {{Protocol::JSON, {"json", 1}},
-                                          {Protocol::BINARY, {"binary", 0}}};
-
-static const ProtocolAliasMap ALIASES = {{"b", "binary"}, {"j", "json"}};
+static const std::unordered_map<std::string_view, std::string> aliases = {
+    {"b", "binary"}, {"j", "json"}};
 
 auto findProtocolByName(std::string_view name) {
   size_t hash = getHash(name);
-  auto it = PROTOCOLS.find(static_cast<Protocol>(hash));
+  auto it = protocols.find(static_cast<Protocol>(hash));
   return it;
 }
 
 std::optional<std::string> protocolNameFromAlias(std::string_view alias) {
-  auto it = ALIASES.find(alias);
-  if (it != ALIASES.end()) {
+  auto it = aliases.find(alias);
+  if (it != aliases.end()) {
     return it->second;
   }
   return std::nullopt;
 }
 
 std::string protocolToStr(Protocol p) {
-  auto it = PROTOCOLS.find(p);
-  return (it == PROTOCOLS.end()) ? "unknown" : it->second.name;
+  auto it = protocols.find(p);
+  return (it == protocols.end()) ? "unknown" : it->second.name;
 }
 
 std::optional<Protocol> protocolFromStr(std::string_view str) {
   auto it = findProtocolByName(str);
-  if (it != PROTOCOLS.end()) {
+  if (it != protocols.end()) {
     return it->first;
   }
   return std::nullopt;
@@ -41,19 +39,19 @@ std::optional<Protocol> protocolFromStr(std::string_view str) {
 
 bool isCorrectProtocolStr(std::string_view str) {
   auto it = findProtocolByName(str);
-  return it != PROTOCOLS.end();
+  return it != protocols.end();
 }
 
 std::optional<uint8_t> protocolToNetworkId(Protocol p) {
-  auto it = PROTOCOLS.find(p);
-  if (it == PROTOCOLS.end()) {
+  auto it = protocols.find(p);
+  if (it == protocols.end()) {
     return std::nullopt;
   }
   return it->second.networkId;
 }
 
 std::optional<Protocol> protocolFromNetworkId(uint8_t networkId) {
-  for (const auto &[protocol, info] : PROTOCOLS) {
+  for (const auto &[protocol, info] : protocols) {
     if (info.networkId == networkId) {
       return protocol;
     }

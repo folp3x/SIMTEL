@@ -54,7 +54,7 @@ std::string Request::toStr() const {
 std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
   binary_t content;
   switch (protocol) {
-  case Protocol::BINARY: {
+  case Protocol::Binary: {
     auto binary = toBinary();
     if (!binary) {
       return std::unexpected(binary.error());
@@ -62,7 +62,7 @@ std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
     content = std::move(*binary);
     break;
   }
-  case Protocol::JSON: {
+  case Protocol::Json: {
     nlohmann::json jsonObj = toJson();
 
     std::string jsonStr =
@@ -85,10 +85,10 @@ std::optional<std::string> Request::fromBytes(const binary_t &bytes,
   }
 
   switch (protocol) {
-  case Protocol::BINARY: {
+  case Protocol::Binary: {
     return fromBinary(msg->content);
   }
-  case Protocol::JSON: {
+  case Protocol::Json: {
     std::string jsonStr = BinarySerializer::strFromBinary(msg->content);
     return fromJsonStr(jsonStr);
   }

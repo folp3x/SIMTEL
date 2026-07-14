@@ -5,9 +5,9 @@
 namespace common {
 class Config {
 private:
-  static constexpr int INVALID_PORT = -1;
+  static constexpr int InvalidPort = -1;
 
-  int port = INVALID_PORT;
+  int port = InvalidPort;
 
 public:
   virtual ~Config() = default;

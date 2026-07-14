@@ -100,13 +100,13 @@ bool SimtelRegister::hasHlrData() { return hlrStorage.count<HlrRecord>() != 0; }
 
 void SimtelRegister::insertEirData() {
   eirStorage.insert(EirRecord{0, "100000000000000",
-                              subscriberStatusToStr(SubscriberStatus::ACTIVE)});
+                              subscriberStatusToStr(SubscriberStatus::Active)});
   eirStorage.insert(EirRecord{0, "300000000000000",
-                              subscriberStatusToStr(SubscriberStatus::ACTIVE)});
+                              subscriberStatusToStr(SubscriberStatus::Active)});
   eirStorage.insert(EirRecord{0, "500000000000000",
-                              subscriberStatusToStr(SubscriberStatus::BANNED)});
+                              subscriberStatusToStr(SubscriberStatus::Banned)});
   eirStorage.insert(EirRecord{0, "700000000000000",
-                              subscriberStatusToStr(SubscriberStatus::ACTIVE)});
+                              subscriberStatusToStr(SubscriberStatus::Active)});
 }
 
 bool SimtelRegister::hasEirData() { return eirStorage.count<EirRecord>() != 0; }
@@ -122,7 +122,7 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
     }
 
     EirRecord eirRecord = eirRecords[0];
-    if (eirRecord.status == subscriberStatusToStr(SubscriberStatus::BANNED)) {
+    if (eirRecord.status == subscriberStatusToStr(SubscriberStatus::Banned)) {
       return std::unexpected("UE is banned by IMEI");
     }
 

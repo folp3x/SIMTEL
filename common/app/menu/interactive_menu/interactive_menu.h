@@ -16,7 +16,8 @@ private:
 public:
   std::unique_ptr<MenuItem> getCommand(std::string &extraMsg) const;
 
-  void showCommandsInfo(const CommandInfoMap &commands) const;
+  void showCommandsInfo(
+      const std::unordered_map<std::string, CommandInfo> &commands) const;
 };
 } // namespace common
 

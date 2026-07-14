@@ -16,7 +16,7 @@
 #include "common/utils/str/str.h"
 
 namespace common {
-template <typename T = float, size_t S = constants::LOCATION_COORDS_COUNT>
+template <typename T = float, size_t S = constants::LocationCoordsCount>
 class Location {
 private:
   coords_t<T, S> coords = {0};

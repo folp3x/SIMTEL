@@ -7,8 +7,8 @@
 
 namespace common {
 enum class Protocol : size_t {
-  JSON = getHash("json"),
-  BINARY = getHash("binary"),
+  Json = getHash("json"),
+  Binary = getHash("binary"),
 };
 
 struct ProtocolInfo {

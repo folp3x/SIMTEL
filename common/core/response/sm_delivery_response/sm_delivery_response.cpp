@@ -7,6 +7,6 @@ SmDeliveryResponse::SmDeliveryResponse(const imsi_t &mTimsi, unsigned int smsId,
     : SmTransferRequest(mTimsi, smsId, msisdn, text) {}
 
 RequestType SmDeliveryResponse::getType() const {
-  return RequestType::SM_Delivery;
+  return RequestType::SmDelivery;
 }
 } // namespace common

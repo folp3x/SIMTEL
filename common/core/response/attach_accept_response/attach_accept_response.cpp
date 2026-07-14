@@ -2,6 +2,6 @@
 
 namespace common {
 RequestType AttachAcceptResponse::getType() const {
-  return RequestType::Attach_Accept;
+  return RequestType::AttachAccept;
 }
 } // namespace common

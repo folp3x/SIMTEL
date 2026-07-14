@@ -4,7 +4,7 @@
 
 namespace server {
 static std::unordered_map<std::string, SubscriberStatus> statuses = {
-    {"active", SubscriberStatus::ACTIVE}, {"banned", SubscriberStatus::BANNED}};
+    {"active", SubscriberStatus::Active}, {"banned", SubscriberStatus::Banned}};
 
 std::optional<SubscriberStatus>
 subscriberStatusfromStr(const std::string &str) {

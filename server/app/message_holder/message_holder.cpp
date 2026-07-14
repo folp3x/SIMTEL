@@ -10,8 +10,12 @@ void MessageHolder::addMsg(const std::string &content,
   messagesCv.notify_one();
 }
 
+void MessageHolder::addInfoMsg(const std::string &content) {
+  addMsg(content, common::MenuMessageType::Info);
+}
+
 void MessageHolder::addErrorMsg(const std::string &content) {
-  addMsg(content, common::MenuMessageType::ERR);
+  addMsg(content, common::MenuMessageType::Error);
 }
 
 std::optional<common::MenuMessage> MessageHolder::takeMsg() {

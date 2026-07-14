@@ -36,12 +36,7 @@ std::optional<imei_t> BinarySerializer::imeiFromBinary(const binary_t &binary) {
     return std::nullopt;
   }
 
-  imei_t imei = std::to_string(*deserialized);
-  size_t lenDiff = common::constants::IMEI_DEFAULT_LENGTH - imei.length();
-  if (lenDiff > 0) {
-    imei = std::string(lenDiff, '0') + imei;
-  }
-
+  imei_t imei = imeiToStr(*deserialized);
   if (!Validator::isCorrectImei(imei).empty()) {
     return std::nullopt;
   }

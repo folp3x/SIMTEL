@@ -12,7 +12,7 @@ struct UeState {
   common::imsi_t mTimsi;
 
   common::Location<> location;
-  common::Protocol protocol = common::Protocol::JSON;
+  common::Protocol protocol = common::Protocol::Json;
 
   UeState(const common::imsi_t &imsi_, const common::imei_t &imei_,
           const common::Location<> location_)

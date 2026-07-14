@@ -24,7 +24,9 @@ EpcConfigParser::parseJson(const nlohmann::json &json) {
 void EpcConfigParser::initTtlField() {
   addInfo(makeParsedField<unsigned int>(
       "ttl_sec", [this](unsigned int ttl) { config.ttlSec = ttl; },
-      [](unsigned int ttl) { return (ttl > 0) ? "" : "TTL cant be 0"; }));
+      [](unsigned int ttl) {
+        return common::Validator::isPositiveNumber(ttl, "TTL");
+      }));
 }
 
 void EpcConfigParser::initHlrAccessParamsField() {

@@ -14,9 +14,9 @@
 namespace server {
 class SimtelMme {
 private:
-  static constexpr uint64_t MAX_MTIMSI = 999'999'999'999'999;
-  static constexpr unsigned int SEND_SMS_SLEEP_MSEC = 1000;
-  static constexpr unsigned int SEND_REPORT_SLEEP_MSEC = 1000;
+  static constexpr uint64_t MaxMtimsi = 999'999'999'999'999;
+  static constexpr std::chrono::milliseconds SendSmsSleepTime{1000};
+  static constexpr std::chrono::milliseconds SendReportSleepTime{1000};
 
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;

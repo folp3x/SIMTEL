@@ -8,30 +8,30 @@ namespace common {
 static std::unordered_map<RequestType, std::string> types = {
     {RequestType::Empty, "Empty"},
     {RequestType::Error, "Error"},
-    {RequestType::Rrc_Connection, "Rrc_Connection"},
-    {RequestType::Measurement_Control, "Measurement_Control"},
-    {RequestType::Measurement_Report, "Measurement_Report"},
-    {RequestType::Rrc_Reconfiguration_Keep, "Rrc_Reconfiguration_Keep"},
-    {RequestType::Rrc_Reconfiguration_Handover, "Rrc_Reconfiguration_Handover"},
-    {RequestType::Rrc_Reconfiguration_Complete, "Rrc_Reconfiguration_Complete"},
-    {RequestType::Attach_Accept, "Attach_Accept"},
-    {RequestType::SM_Transfer, "SM_Transfer"},
-    {RequestType::SM_Delivery, "SM_Delivery"},
-    {RequestType::SM_Delivery_Report, "SM_Delivery_Report"},
-    {RequestType::SM_Delivery_Ack, "SM_Delivery_Ack"},
-    {RequestType::SM_Delivery_Error, "SM_Delivery_Error"},
+    {RequestType::RrcConnection, "Rrc_Connection"},
+    {RequestType::MeasurementControl, "Measurement_Control"},
+    {RequestType::MeasurementReport, "Measurement_Report"},
+    {RequestType::RrcReconfigurationKeep, "Rrc_Reconfiguration_Keep"},
+    {RequestType::RrcReconfigurationHandover, "Rrc_Reconfiguration_Handover"},
+    {RequestType::RrcReconfigurationComplete, "Rrc_Reconfiguration_Complete"},
+    {RequestType::AttachAccept, "Attach_Accept"},
+    {RequestType::SmTransfer, "SM_Transfer"},
+    {RequestType::SmDelivery, "SM_Delivery"},
+    {RequestType::SmDeliveryReport, "SM_Delivery_Report"},
+    {RequestType::SmDeliveryAck, "SM_Delivery_Ack"},
+    {RequestType::SmDeliveryError, "SM_Delivery_Error"},
     {RequestType::UssdCode, "Ussd_Code"},
     {RequestType::UssdBalance, "Ussd_Balance"},
     {RequestType::UssdMsisdn, "Ussd_Msisdn"}};
 
 std::expected<RequestType, std::string>
 parseRequestType(const binary_t &bytes) {
-  auto msg = socketMessageFromBinary(bytes);
-  if (!msg) {
-    return std::unexpected(msg.error());
+  auto header = socketMessageHeaderFromBinary(bytes);
+  if (!header) {
+    return std::unexpected(header.error());
   }
 
-  return static_cast<RequestType>(msg->header.reqType);
+  return static_cast<RequestType>(header->reqType);
 }
 
 std::string requestTypeToStr(RequestType type) {

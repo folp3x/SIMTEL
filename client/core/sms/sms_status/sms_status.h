@@ -3,15 +3,15 @@
 #include <string>
 
 namespace client {
-enum class SmsStatus : uint8_t { PENDING, DELIVERED, NOT_DELIVERED };
+enum class SmsStatus : uint8_t { Pending, Delivered, NotDelivered };
 
 inline std::string smsStatusToStr(SmsStatus status) {
   switch (status) {
-  case SmsStatus::PENDING:
+  case SmsStatus::Pending:
     return "pending...";
-  case SmsStatus::DELIVERED:
+  case SmsStatus::Delivered:
     return "V (delivered)";
-  case SmsStatus::NOT_DELIVERED:
+  case SmsStatus::NotDelivered:
     return "X (not delivered)";
   default:
     return "unknown";

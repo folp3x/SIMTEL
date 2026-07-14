@@ -12,14 +12,12 @@ socketMessageFromBinary(const binary_t &binary) {
   message.header = *parsedHeader;
 
   if (binary.size() <
-      constants::SOCKET_MESSAGE_HEADER_BYTES + message.header.msgSize) {
+      constants::SocketMessageHeaderBytes + message.header.msgSize) {
     return std::unexpected("Failed to deserialize content");
   }
 
-  message.content.assign(
-      binary.begin() + constants::SOCKET_MESSAGE_HEADER_BYTES,
-      binary.begin() + constants::SOCKET_MESSAGE_HEADER_BYTES +
-          message.header.msgSize);
+  message.content.assign(binary.begin() + constants::SocketMessageHeaderBytes,
+                         binary.end());
 
   return message;
 }

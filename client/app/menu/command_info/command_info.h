@@ -4,7 +4,7 @@
 
 namespace client {
 inline const auto &getCommandsInfo() {
-  static const common::CommandInfoMap info = {
+  static const std::unordered_map<std::string, common::CommandInfo> info = {
       {"exit", {"exit <>", "exit program"}},
       {"active", {"active <1|true|0|false>", "set status"}},
       {"move", {"move <x>", "change location"}},

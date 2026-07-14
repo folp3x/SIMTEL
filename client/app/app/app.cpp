@@ -63,9 +63,9 @@ void App::handleLocationUpdate() {
 }
 
 void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
+  auto ptr = response.get();
   if (auto *handoverResponse =
-          dynamic_cast<common::RrcReconfigurationHandoverResponse *>(
-              response.get())) {
+          dynamic_cast<common::RrcReconfigurationHandoverResponse *>(ptr)) {
     common::imsi_t newMTimsi = handoverResponse->getMTimsi();
     bool updated = ctx.setMTimsi(newMTimsi);
     if (updated) {
@@ -79,8 +79,7 @@ void App::handleHandoverResponse(std::unique_ptr<common::Request> response) {
       }
     }
   } else if (auto *keepResponse =
-                 dynamic_cast<common::RrcReconfigurationKeepResponse *>(
-                     response.get())) {
+                 dynamic_cast<common::RrcReconfigurationKeepResponse *>(ptr)) {
     addMsg("BS not changed");
   }
 }
@@ -137,8 +136,7 @@ void App::executeProtocolCommand(const MenuItemProtocol &cmd) {
     return;
   }
 
-  common::Protocol newProtocol = std::move(*parsedProtocol);
-
+  common::Protocol newProtocol = *parsedProtocol;
   bool protocolChanged = newProtocol != ctx.getProtocol();
   if (protocolChanged) {
     ctx.setProtocol(newProtocol);
@@ -155,7 +153,7 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
   }
 
   common::msisdn_t targetMsisdn = "";
-  if (cmd.getSpeedDialNum() != constants::EMPTY_SPEED_DIAL_NUM) {
+  if (cmd.getSpeedDialNum() != constants::EmptySpeedDialNum) {
     auto foundMsisdn = findBySpeedDialNum(cmd.getSpeedDialNum());
     if (!foundMsisdn) {
       addErrorMsg("Unknown speed dial num");
@@ -199,13 +197,9 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
 
 void App::addSentSms(const common::msisdn_t &targetMsisdn,
                      const std::string &smsContent, unsigned int smsId) {
-  Sms sms{smsId,
-          std::chrono::time_point_cast<std::chrono::seconds>(
-              std::chrono::system_clock::now()),
-          {},
-          "",
-          targetMsisdn,
-          smsContent};
+  auto now = std::chrono::time_point_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now());
+  Sms sms{smsId, now, {}, "", targetMsisdn, smsContent};
   addSms(sms);
 }
 
@@ -315,7 +309,7 @@ void App::exitApp() {
 
 unsigned int App::generateSmsId() {
   curSmsId++;
-  if (curSmsId > MAX_SMS_ID) {
+  if (curSmsId > MaxSmsId) {
     curSmsId = 0;
   }
   return curSmsId;
@@ -323,27 +317,28 @@ unsigned int App::generateSmsId() {
 
 void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
                          bool &exit) {
-  if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
+  auto ptr = cmd.get();
+  if (auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(ptr)) {
     addErrorMsg("Error! " + invalidCmd->getError());
-  } else if (dynamic_cast<MenuItemExit *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemExit *>(ptr)) {
     exit = true;
-  } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(cmd.get())) {
+  } else if (auto *activeCmd = dynamic_cast<MenuItemActive *>(ptr)) {
     executeActiveCommand(*activeCmd);
-  } else if (auto *moveCmd = dynamic_cast<MenuItemMove<> *>(cmd.get())) {
+  } else if (auto *moveCmd = dynamic_cast<MenuItemMove<> *>(ptr)) {
     executeMoveCommand(*moveCmd);
-  } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(cmd.get())) {
+  } else if (auto *protocolCmd = dynamic_cast<MenuItemProtocol *>(ptr)) {
     executeProtocolCommand(*protocolCmd);
-  } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(cmd.get())) {
+  } else if (auto *smsCmd = dynamic_cast<MenuItemSMS *>(ptr)) {
     executeSmsCommand(*smsCmd);
-  } else if (dynamic_cast<MenuItemSent *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemSent *>(ptr)) {
     executeSentCommand();
-  } else if (dynamic_cast<MenuItemReceived *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemReceived *>(ptr)) {
     executeReceivedCommand();
-  } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(cmd.get())) {
+  } else if (auto *dialogCmd = dynamic_cast<MenuItemDialog *>(ptr)) {
     executeDialogCommand(*dialogCmd);
-  } else if (dynamic_cast<MenuItemUssd *>(cmd.get())) {
+  } else if (dynamic_cast<MenuItemUssd *>(ptr)) {
     menu.showUssdInfo(ussdInfo);
-  } else if (auto *ussdCodeCmd = dynamic_cast<MenuItemUssdCode *>(cmd.get())) {
+  } else if (auto *ussdCodeCmd = dynamic_cast<MenuItemUssdCode *>(ptr)) {
     executeUssdCodeCommand(*ussdCodeCmd);
   }
 }
@@ -418,12 +413,13 @@ void App::addMsg(const std::string &content, common::MenuMessageType type) {
 }
 
 void App::addErrorMsg(const std::string &content) {
-  addMsg(content, common::MenuMessageType::ERR);
+  addMsg(content, common::MenuMessageType::Error);
 }
 
 void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
+  auto ptr = response.get();
   if (auto *deliveryResponse =
-          dynamic_cast<common::SmDeliveryResponse *>(response.get())) {
+          dynamic_cast<common::SmDeliveryResponse *>(ptr)) {
     if (deliveryResponse->getMTimsi() != ctx.getMTimsi()) {
       addErrorMsg("Unknown m-timsi in delivery response: " +
                   deliveryResponse->getMTimsi());
@@ -442,30 +438,25 @@ void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
     if (!duplicate) {
       addMsg("SMS received from " + deliveryResponse->getMsisdn());
 
-      Sms sms{deliveryResponse->getSmsId(),
-              {},
-              std::chrono::time_point_cast<std::chrono::seconds>(
-                  std::chrono::system_clock::now()),
-              deliveryResponse->getMsisdn(),
-              "",
-              deliveryResponse->getText()};
+      auto now = std::chrono::time_point_cast<std::chrono::seconds>(
+          std::chrono::system_clock::now());
+      Sms sms{deliveryResponse->getSmsId(),  {}, now,
+              deliveryResponse->getMsisdn(), "", deliveryResponse->getText()};
       addSms(sms);
     }
 
     addDeliveryAckToExchange(deliveryResponse->getMsisdn(),
                              deliveryResponse->getSmsId());
   } else if (auto *errorResponse =
-                 dynamic_cast<common::SmDeliveryErrorResponse *>(
-                     response.get())) {
-    setSentSmsStatus(errorResponse->getSmsId(), SmsStatus::NOT_DELIVERED);
+                 dynamic_cast<common::SmDeliveryErrorResponse *>(ptr)) {
+    setSentSmsStatus(errorResponse->getSmsId(), SmsStatus::NotDelivered);
     std::string description = errorResponse->getDescription();
     if (!description.empty()) {
       addErrorMsg("SMS not delivered: " + description);
     }
   } else if (auto *reportResponse =
-                 dynamic_cast<common::SmDeliveryReportResponse *>(
-                     response.get())) {
-    setSentSmsStatus(reportResponse->getSmsId(), SmsStatus::DELIVERED);
+                 dynamic_cast<common::SmDeliveryReportResponse *>(ptr)) {
+    setSentSmsStatus(reportResponse->getSmsId(), SmsStatus::Delivered);
   }
 }
 

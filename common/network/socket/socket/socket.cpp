@@ -49,13 +49,13 @@ Socket::Socket(int sock_) : sock(sock_) {}
 
 Socket::Socket(Socket &&other) {
   sock = other.sock;
-  other.sock = INVALID_SOCK;
+  other.sock = InvalidSock;
 }
 
 Socket &Socket::operator=(Socket &&other) {
   if (&other != this) {
     sock = other.sock;
-    other.sock = INVALID_SOCK;
+    other.sock = InvalidSock;
   }
   return *this;
 }
@@ -73,7 +73,7 @@ std::expected<int, std::string> Socket::initSock() {
 void Socket::closeSock() {
   shutdown(sock, SHUT_RDWR);
   close(sock);
-  sock = INVALID_SOCK;
+  sock = InvalidSock;
 }
 
 bool Socket::setSendTimeout(int sock, unsigned int timeoutSec) {
@@ -93,11 +93,11 @@ std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
     return NetworkError{NetworkErrorType::EMPTY_MESSAGE, "Empty message"};
   }
 
-  if (data.size() > MAX_MSG_SIZE) {
-    return NetworkError{
-        NetworkErrorType::LARGE_MESSAGE,
-        "Message cant be larger than " +
-            std::to_string(MAX_MSG_SIZE / constants::BYTES_IN_MB) + " MB"};
+  if (data.size() > MaxMsgSize) {
+    return NetworkError{NetworkErrorType::LARGE_MESSAGE,
+                        "Message cant be larger than " +
+                            std::to_string(MaxMsgSize / constants::BytesInMb) +
+                            " MB"};
   }
 
   auto error = sendAll(data.data(), data.size());
@@ -110,7 +110,7 @@ std::optional<NetworkError> Socket::sendMessage(const binary_t &data) const {
 
 std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
   binary_t header;
-  header.resize(constants::SOCKET_MESSAGE_HEADER_BYTES);
+  header.resize(constants::SocketMessageHeaderBytes);
 
   // чтение заголовка
   ssize_t received =
@@ -138,13 +138,12 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
         NetworkError{NetworkErrorType::INCOMPLETE_HEADER, "Incomplete header"});
   }
 
-  auto in = zpp::bits::in(header);
+  auto in = zpp::bits::in(header, zpp::bits::endian::big{});
   uint32_t msgSize = 0;
   if (in(msgSize) != zpp::bits::errc{}) {
     return std::unexpected(
         NetworkError{NetworkErrorType::NO_MSG_SIZE, "Failed to read size"});
   }
-  msgSize = ntohl(msgSize);
 
   if (msgSize == 0) {
     return header;
