@@ -1,7 +1,7 @@
 #include "ussd_balance_response.h"
 
-#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
+#include "common/validator/validator.h"
 
 namespace common {
 UssdBalanceResponse::UssdBalanceResponse(double balance_) : balance(balance_) {}
@@ -25,28 +25,11 @@ UssdBalanceResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> UssdBalanceResponse::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary, balance);
-
-  return binary;
-}
-
-std::optional<std::string>
-UssdBalanceResponse::fromBinary(const binary_t &binary) {
-  BinaryIterator it{binary};
-
-  auto balanceBinary = it.getNext(sizeof(balance));
-  if (!balanceBinary) {
-    return "Binary too short for balance";
-  }
-  auto parsedBalance = BinarySerializer::fromBinary<double>(*balanceBinary);
-  if (!parsedBalance) {
-    return "Balance deserialize error";
-  }
-  balance = *parsedBalance;
-
-  return std::nullopt;
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+UssdBalanceResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
+  valuesInfo.emplace_back(makeBinaryValue(&balance));
+  return valuesInfo;
 }
 
 double UssdBalanceResponse::getBalance() const { return balance; }

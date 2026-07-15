@@ -1,5 +1,6 @@
 #include "json_deserializer.h"
 
+#include "common/utils/num/num.h"
 #include "common/validator/validator.h"
 
 namespace common {

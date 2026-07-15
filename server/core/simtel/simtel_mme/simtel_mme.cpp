@@ -8,8 +8,6 @@
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {
-uint64_t SimtelMme::curMTimsi = 0;
-
 SimtelMme::SimtelMme(const MmeConfig &config,
                      std::shared_ptr<SimtelRegister> reg_,
                      std::weak_ptr<SimtelSmsc> smsc_,

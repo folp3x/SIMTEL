@@ -1,8 +1,8 @@
 #include "rrc_connection_request.h"
 
-#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 RrcConnectionRequest::RrcConnectionRequest(const imei_t &imei_,
@@ -34,39 +34,19 @@ RrcConnectionRequest::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> RrcConnectionRequest::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary, loc.getCoords());
-  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imei));
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+RrcConnectionRequest::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-  return binary;
-}
+  valuesInfo.emplace_back(makeBinaryValue<imei_t, uint64_t>(
+      &imei, Validator::isCorrectImei, utils::identifierFromStr,
+      utils::imeiToStr));
 
-std::optional<std::string>
-RrcConnectionRequest::fromBinary(const binary_t &binary) {
-  BinaryIterator it{binary};
+  valuesInfo.emplace_back(makeBinaryValue<Location<>, coords_t<>>(
+      &loc, nullptr, [](const Location<> &loc) { return loc.getCoords(); },
+      [](const coords_t<> &coords) { return Location<>(coords); }));
 
-  auto imeiBinary = it.getNext(constants::ImeiBinaryBytes);
-  if (!imeiBinary) {
-    return "Binary too short for IMEI";
-  }
-  auto parsedImei = BinarySerializer::fromBinary<uint64_t>(*imeiBinary);
-  if (!parsedImei) {
-    return "IMEI deserialize error";
-  }
-  imei = utils::imeiToStr(*parsedImei);
-
-  auto locBinary = it.getRemaining();
-  if (!locBinary) {
-    return "Binary too short for location";
-  }
-  auto parsedLoc = BinarySerializer::fromBinary<coords_t<>>(*locBinary);
-  if (!parsedLoc) {
-    return parsedLoc.error();
-  }
-  loc = Location<>(*parsedLoc);
-
-  return std::nullopt;
+  return valuesInfo;
 }
 
 imei_t RrcConnectionRequest::getImei() const { return imei; }

@@ -312,7 +312,7 @@ void App::exitApp() {
 unsigned int App::generateSmsId() {
   curSmsId++;
   if (curSmsId > MaxSmsId) {
-    curSmsId = 0;
+    curSmsId = 1;
   }
   return curSmsId;
 }

@@ -1,8 +1,8 @@
 #include "rrc_reconfiguration_keep_response.h"
 
-#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 RrcReconfigurationKeepResponse::RrcReconfigurationKeepResponse(
@@ -34,40 +34,18 @@ RrcReconfigurationKeepResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string>
-RrcReconfigurationKeepResponse::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imei));
-  BinarySerializer::addToBinary(binary, bsId);
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+RrcReconfigurationKeepResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-  return binary;
-}
+  valuesInfo.emplace_back(makeBinaryValue<imei_t, uint64_t>(
+      &imei, Validator::isCorrectImei, utils::identifierFromStr,
+      utils::imeiToStr));
 
-std::optional<std::string>
-RrcReconfigurationKeepResponse::fromBinary(const binary_t &binary) {
-  BinaryIterator it{binary};
+  valuesInfo.emplace_back(
+      makeBinaryValue<unsigned int>(&bsId, Validator::isCorrectBsId));
 
-  auto imeiBinary = it.getNext(common::constants::ImeiBinaryBytes);
-  if (!imeiBinary) {
-    return "Binary too short for IMEI";
-  }
-  auto parsedImei = BinarySerializer::fromBinary<uint64_t>(*imeiBinary);
-  if (!parsedImei) {
-    return "IMEI deserialize error";
-  }
-  imei = utils::imeiToStr(*parsedImei);
-
-  auto bsIdBinary = it.getNext(sizeof(bsId));
-  if (!bsIdBinary) {
-    return "Binary too short for BS id";
-  }
-  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
-  if (!parsedBsId) {
-    return "BS id deserialize error";
-  }
-  bsId = *parsedBsId;
-
-  return std::nullopt;
+  return valuesInfo;
 }
 
 imei_t RrcReconfigurationKeepResponse::getImei() const { return imei; }

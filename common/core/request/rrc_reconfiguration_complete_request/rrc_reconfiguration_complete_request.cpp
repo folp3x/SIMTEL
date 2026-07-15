@@ -2,6 +2,7 @@
 
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 RrcReconfigurationCompleteRequest::RrcReconfigurationCompleteRequest(
@@ -27,24 +28,15 @@ RrcReconfigurationCompleteRequest::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string>
-RrcReconfigurationCompleteRequest::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary,
-                                utils::fromStringSafe<uint64_t>(mTimsi));
-  return binary;
-}
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+RrcReconfigurationCompleteRequest::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-std::optional<std::string>
-RrcReconfigurationCompleteRequest::fromBinary(const binary_t &binary) {
-  binary_t mTimsiBinary(binary.begin(), binary.end());
-  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(mTimsiBinary);
-  if (!parsedMTimsi) {
-    return "m-TIMSI deserialize error";
-  }
-  mTimsi = utils::imsiToStr(*parsedMTimsi);
+  valuesInfo.emplace_back(makeBinaryValue<imsi_t, uint64_t>(
+      &mTimsi, Validator::isCorrectImsi, utils::identifierFromStr,
+      utils::imsiToStr));
 
-  return std::nullopt;
+  return valuesInfo;
 }
 
 imsi_t RrcReconfigurationCompleteRequest::getMTimsi() const { return mTimsi; }

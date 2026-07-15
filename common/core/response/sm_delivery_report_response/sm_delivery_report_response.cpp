@@ -1,8 +1,8 @@
 #include "sm_delivery_report_response.h"
 
-#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 SmDeliveryReportResponse::SmDeliveryReportResponse(const imsi_t &mTimsi_,
@@ -34,41 +34,18 @@ SmDeliveryReportResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string>
-SmDeliveryReportResponse::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary,
-                                utils::fromStringSafe<uint64_t>(mTimsi));
-  BinarySerializer::addToBinary(binary, smsId);
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+SmDeliveryReportResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-  return binary;
-}
+  valuesInfo.emplace_back(makeBinaryValue<imsi_t, uint64_t>(
+      &mTimsi, Validator::isCorrectImsi, utils::identifierFromStr,
+      utils::imsiToStr));
 
-std::optional<std::string>
-SmDeliveryReportResponse::fromBinary(const binary_t &binary) {
-  BinaryIterator it{binary};
+  valuesInfo.emplace_back(
+      makeBinaryValue<unsigned int>(&smsId, Validator::isCorrectSmsId));
 
-  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
-  if (!mTimsiBinary) {
-    return "Binary too short for m-timsi";
-  }
-  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(*mTimsiBinary);
-  if (!parsedMTimsi) {
-    return "m-timsi deserialize error";
-  }
-  mTimsi = utils::imsiToStr(*parsedMTimsi);
-
-  auto smsIdBinary = it.getNext(sizeof(smsId));
-  if (!smsIdBinary) {
-    return "Binary too short for SMS id";
-  }
-  auto parsedSmsId = BinarySerializer::fromBinary<unsigned int>(*smsIdBinary);
-  if (!parsedSmsId) {
-    return "SMS id deserialize error";
-  }
-  smsId = *parsedSmsId;
-
-  return std::nullopt;
+  return valuesInfo;
 }
 
 imsi_t SmDeliveryReportResponse::getMTimsi() const { return mTimsi; }

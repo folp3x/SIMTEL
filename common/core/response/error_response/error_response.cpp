@@ -24,20 +24,11 @@ ErrorResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> ErrorResponse::toBinary() const {
-  common::binary_t binary;
-  BinarySerializer::addToBinary(binary, description);
-  return binary;
-}
-
-std::optional<std::string> ErrorResponse::fromBinary(const binary_t &binary) {
-  auto parsedDescription = BinarySerializer::fromBinary<std::string>(binary);
-  if (!parsedDescription) {
-    return "Description deserialize error";
-  }
-  description = *parsedDescription;
-
-  return std::nullopt;
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+ErrorResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
+  valuesInfo.emplace_back(makeBinaryValue(&description));
+  return valuesInfo;
 }
 
 std::string ErrorResponse::getDescription() const { return description; }

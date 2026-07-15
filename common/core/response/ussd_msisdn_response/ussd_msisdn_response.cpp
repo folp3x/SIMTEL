@@ -2,6 +2,7 @@
 
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 UssdMsisdnResponse::UssdMsisdnResponse(const msisdn_t &msisdn_)
@@ -26,23 +27,15 @@ UssdMsisdnResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> UssdMsisdnResponse::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary,
-                                utils::fromStringSafe<uint64_t>(msisdn));
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+UssdMsisdnResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-  return binary;
-}
+  valuesInfo.emplace_back(makeBinaryValue<msisdn_t, uint64_t>(
+      &msisdn, Validator::isCorrectMsisdn, utils::identifierFromStr,
+      [](uint64_t msisdn) { return std::to_string(msisdn); }));
 
-std::optional<std::string>
-UssdMsisdnResponse::fromBinary(const binary_t &binary) {
-  auto msisdnBin = BinarySerializer::fromBinary<uint64_t>(binary);
-  if (!msisdnBin) {
-    return "Failed to deserialize msisdn";
-  }
-  msisdn = *msisdnBin;
-
-  return std::nullopt;
+  return valuesInfo;
 }
 
 msisdn_t UssdMsisdnResponse::getMsisdn() const { return msisdn; }

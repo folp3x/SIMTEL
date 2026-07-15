@@ -23,6 +23,8 @@ std::vector<std::string> split(const std::string &str);
 std::string imsiToStr(uint64_t imsi);
 std::string imeiToStr(uint64_t imei);
 
+std::optional<uint64_t> identifierFromStr(const std::string &str);
+
 template <typename T>
   requires std::is_floating_point_v<T>
 std::string
@@ -45,14 +47,13 @@ template <typename T>
   requires std::is_arithmetic_v<T>
 std::expected<T, std::string> fromString(const std::string &str);
 
-template <typename T>
-  requires std::is_arithmetic_v<T>
-T fromStringSafe(const std::string &str, T defaultValue = 0);
-
 std::string firstWord(const std::string &str);
 std::string ignoreWords(const std::string &str, size_t count);
 
 std::string addLeadingZeroes(const std::string &str, size_t length);
+
+template <typename T>
+std::optional<T> toOptional(const std::expected<T, std::string> &result);
 } // namespace common::utils
 
 #include "str_impl.h"

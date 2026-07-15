@@ -1,8 +1,8 @@
 #include "measurement_control_response.h"
 
-#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 MeasurementControlResponse::MeasurementControlResponse(const imei_t &imei_,
@@ -41,51 +41,21 @@ MeasurementControlResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string>
-MeasurementControlResponse::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imei));
-  BinarySerializer::addToBinary(binary, signal);
-  BinarySerializer::addToBinary(binary, bsId);
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+MeasurementControlResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-  return binary;
-}
+  valuesInfo.emplace_back(makeBinaryValue<imei_t, uint64_t>(
+      &imei, Validator::isCorrectImei, utils::identifierFromStr,
+      utils::imeiToStr));
 
-std::optional<std::string>
-MeasurementControlResponse::fromBinary(const binary_t &binary) {
-  BinaryIterator it{binary};
+  valuesInfo.emplace_back(
+      makeBinaryValue<unsigned int>(&signal, Validator::isCorrectSignal));
 
-  auto imeiBinary = it.getNext(constants::ImeiBinaryBytes);
-  if (!imeiBinary) {
-    return "Binary too short for IMEI";
-  }
-  auto parsedImei = BinarySerializer::fromBinary<uint64_t>(*imeiBinary);
-  if (!parsedImei) {
-    return "IMEI deserialize error";
-  }
-  imei = utils::imeiToStr(*parsedImei);
+  valuesInfo.emplace_back(
+      makeBinaryValue<unsigned int>(&bsId, Validator::isCorrectBsId));
 
-  auto signalBinary = it.getNext(sizeof(signal));
-  if (!signalBinary) {
-    return "Binary too short for signal";
-  }
-  auto parsedSignal = BinarySerializer::fromBinary<unsigned int>(*signalBinary);
-  if (!parsedSignal) {
-    return "Signal deserialize error";
-  }
-  signal = *parsedSignal;
-
-  auto bsIdBinary = it.getNext(sizeof(bsId));
-  if (!bsIdBinary) {
-    return "Binary too short for bsId";
-  }
-  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
-  if (!parsedBsId) {
-    return "BS id deserialize error";
-  }
-  bsId = *parsedBsId;
-
-  return std::nullopt;
+  return valuesInfo;
 }
 
 imei_t MeasurementControlResponse::getImei() const { return imei; }

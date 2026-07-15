@@ -51,7 +51,7 @@ std::string Request::toStr() const {
   return requestTypeToStr(getType()) + contentStr;
 }
 
-std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) const {
+std::expected<binary_t, std::string> Request::toBytes(Protocol protocol) {
   binary_t content;
   switch (protocol) {
   case Protocol::Binary: {

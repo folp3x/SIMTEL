@@ -28,7 +28,7 @@ private:
       {common::UssdCode::GetBalance, "get balance"},
       {common::UssdCode::GetPhoneNumber, "get phone number"}};
 
-  unsigned int curSmsId = 0;
+  unsigned int curSmsId = 1;
 
   UeContext ctx;
   UeExchange exchange;

@@ -1,5 +1,7 @@
 #include "binary_serializer.h"
 
+#include <zpp_bits.h>
+
 #include "common/utils/network/network.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"

@@ -10,11 +10,8 @@ EmptyRequest::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string> EmptyRequest::toBinary() const {
-  return binary_t{};
-}
-
-std::optional<std::string> EmptyRequest::fromBinary(const binary_t &binary) {
-  return std::nullopt;
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+EmptyRequest::getBinaryValuesInfo() {
+  return {};
 }
 } // namespace common

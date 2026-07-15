@@ -83,13 +83,7 @@ std::expected<T, std::string> fromString(const std::string &str) {
 }
 
 template <typename T>
-  requires std::is_arithmetic_v<T>
-T fromStringSafe(const std::string &str, T defaultValue) {
-  auto result = fromString<T>(str);
-  if (!result) {
-    return defaultValue;
-  }
-
-  return 0;
+std::optional<T> toOptional(const std::expected<T, std::string> &result) {
+  return result ? std::optional{*result} : std::nullopt;
 }
 } // namespace common::utils

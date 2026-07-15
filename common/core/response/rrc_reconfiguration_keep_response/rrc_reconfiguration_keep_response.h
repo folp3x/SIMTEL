@@ -17,8 +17,8 @@ public:
   virtual nlohmann::json toJson() const;
   virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
 
-  virtual std::expected<binary_t, std::string> toBinary() const;
-  virtual std::optional<std::string> fromBinary(const binary_t &binary);
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
 
   imei_t getImei() const;
   unsigned int getBsId() const;

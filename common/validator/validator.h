@@ -51,5 +51,7 @@ public:
   isCorrectSpeedDialNumStr(const std::string &speedDialNumStr);
   static std::string isCorrectSignal(unsigned int signal);
   static std::string isPositiveNumber(double number, const std::string &name);
+  static std::string isCorrectBsId(unsigned int bsId);
+  static std::string isCorrectSmsId(unsigned int smsId);
 };
 } // namespace common

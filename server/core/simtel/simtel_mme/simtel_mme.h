@@ -21,7 +21,7 @@ private:
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;
 
-  static uint64_t curMTimsi;
+  inline static uint64_t curMTimsi = 1;
 
   SimtelVisitorList vlr;
 

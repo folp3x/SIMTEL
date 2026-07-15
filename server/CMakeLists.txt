@@ -4,15 +4,17 @@ set(APP_LIB_NAME "server_lib")
 set(SOURCES_LIST
     "app/app/app.cpp"
     "app/menu/menu/menu.cpp"
-    "network/socket/socket.cpp"
-    "core/simtel/simtel_listener/simtel_listener.cpp"
-    "core/simtel/simtel_ue_context/simtel_ue_context.cpp"
-    "core/simtel/simtel_base_station/simtel_base_station.cpp"
     "app/message_holder/message_holder.cpp"
     "app/config/config/config.cpp"
     "app/config/config_parser/config_parser.cpp"
     "app/config/bs_config/bs_config_parser/bs_config_parser.cpp"
     "app/config/epc_config/epc_config_parser/epc_config_parser.cpp"
+
+    "network/socket/socket.cpp"
+
+    "core/simtel/simtel_listener/simtel_listener.cpp"
+    "core/simtel/simtel_ue_context/simtel_ue_context.cpp"
+    "core/simtel/simtel_base_station/simtel_base_station.cpp"
     "core/simtel/simtel_mme/simtel_mme.cpp"
     "core/simtel/simtel_smsc/simtel_smsc.cpp"
     "core/simtel/simtel_visitor_list/simtel_visitor_list.cpp"

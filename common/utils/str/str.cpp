@@ -66,6 +66,10 @@ std::string imeiToStr(uint64_t imei) {
   return addLeadingZeroes(std::to_string(imei), constants::ImeiDefaultLength);
 }
 
+std::optional<uint64_t> identifierFromStr(const std::string &str) {
+  return toOptional(fromString<uint64_t>(str));
+}
+
 std::string firstWord(const std::string &str) {
   std::string curToken = "";
   for (auto ch : str) {

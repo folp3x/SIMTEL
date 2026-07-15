@@ -9,7 +9,8 @@ private:
   unsigned int smsId = 0;
 
 protected:
-  static constexpr size_t BinaryBytesCount = constants::ImsiBinaryBytes + sizeof(smsId);
+  static constexpr size_t BinaryBytesCount =
+      constants::ImsiBinaryBytes + sizeof(smsId);
 
 public:
   SmDeliveryReportResponse() = default;
@@ -20,8 +21,8 @@ public:
   virtual nlohmann::json toJson() const;
   virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
 
-  virtual std::expected<binary_t, std::string> toBinary() const;
-  virtual std::optional<std::string> fromBinary(const binary_t &binary);
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
 
   imsi_t getMTimsi() const;
   unsigned int getSmsId() const;

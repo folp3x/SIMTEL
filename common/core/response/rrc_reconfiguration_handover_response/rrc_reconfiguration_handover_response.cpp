@@ -1,8 +1,8 @@
 #include "rrc_reconfiguration_handover_response.h"
 
-#include "common/network/binary_iterator/binary_iterator.h"
 #include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
+#include "common/validator/validator.h"
 
 namespace common {
 RrcReconfigurationHandoverResponse::RrcReconfigurationHandoverResponse(
@@ -34,41 +34,18 @@ RrcReconfigurationHandoverResponse::fromJsonStr(const std::string &jsonStr) {
   return std::nullopt;
 }
 
-std::expected<binary_t, std::string>
-RrcReconfigurationHandoverResponse::toBinary() const {
-  binary_t binary;
-  BinarySerializer::addToBinary(binary,
-                                utils::fromStringSafe<uint64_t>(mTimsi));
-  BinarySerializer::addToBinary(binary, bsId);
+std::vector<std::unique_ptr<BaseBinaryInfo>>
+RrcReconfigurationHandoverResponse::getBinaryValuesInfo() {
+  std::vector<std::unique_ptr<BaseBinaryInfo>> valuesInfo{};
 
-  return binary;
-}
+  valuesInfo.emplace_back(makeBinaryValue<imsi_t, uint64_t>(
+      &mTimsi, Validator::isCorrectImsi, utils::identifierFromStr,
+      utils::imeiToStr));
 
-std::optional<std::string>
-RrcReconfigurationHandoverResponse::fromBinary(const binary_t &binary) {
-  BinaryIterator it{binary};
+  valuesInfo.emplace_back(
+      makeBinaryValue<unsigned int>(&bsId, Validator::isCorrectBsId));
 
-  auto mTimsiBinary = it.getNext(constants::ImsiBinaryBytes);
-  if (!mTimsiBinary) {
-    return "Binary too short for m-timsi";
-  }
-  auto parsedMTimsi = BinarySerializer::fromBinary<uint64_t>(*mTimsiBinary);
-  if (!parsedMTimsi) {
-    return "m-TIMSI deserialize error";
-  }
-  mTimsi = utils::imsiToStr(*parsedMTimsi);
-
-  auto bsIdBinary = it.getNext(sizeof(bsId));
-  if (!bsIdBinary) {
-    return "Binary too short for BS id";
-  }
-  auto parsedBsId = BinarySerializer::fromBinary<unsigned int>(*bsIdBinary);
-  if (!parsedBsId) {
-    return "BS id deserialize error";
-  }
-  bsId = *parsedBsId;
-
-  return std::nullopt;
+  return valuesInfo;
 }
 
 imsi_t RrcReconfigurationHandoverResponse::getMTimsi() const { return mTimsi; }
