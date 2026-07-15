@@ -19,7 +19,10 @@ public:
             const common::NetworkAddress &serverAddr_);
 
   common::Location<> getLocation() const;
-  template <typename T> void updateLocation(const std::vector<T> &coords);
+
+  template <typename T>
+    requires std::is_arithmetic_v<T>
+  void updateLocation(const std::vector<T> &coords);
 
   common::imsi_t getImsi() const;
 

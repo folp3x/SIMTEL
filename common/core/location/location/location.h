@@ -17,6 +17,7 @@
 
 namespace common {
 template <typename T = float, size_t S = constants::LocationCoordsCount>
+  requires std::is_arithmetic_v<T>
 class Location {
 private:
   coords_t<T, S> coords = {0};
@@ -32,8 +33,7 @@ public:
   fromJsonStr(const std::string &str);
 
   template <typename Container>
-    requires std::ranges::input_range<Container> &&
-             std::ranges::sized_range<Container>
+    requires std::ranges::sized_range<Container>
   void move(const Container &newCoords);
 
   std::string toStr() const;

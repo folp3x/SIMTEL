@@ -2,12 +2,12 @@
 
 namespace common {
 template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
 Location<T, S>::Location(const coords_t<T, S> &coords_) : coords(coords_) {}
 
 template <typename T, size_t S>
 template <typename Container>
-  requires std::ranges::input_range<Container> &&
-           std::ranges::sized_range<Container>
+  requires std::ranges::sized_range<Container>
 void Location<T, S>::move(const Container &newCoords) {
   if (newCoords.size() > coords.size()) {
     throw std::invalid_argument("newCoords size must be <= " +
@@ -20,12 +20,15 @@ void Location<T, S>::move(const Container &newCoords) {
   std::ranges::copy(newCoords, coords.begin());
 }
 
-template <typename T, size_t S> std::string Location<T, S>::toStr() const {
+template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
+std::string Location<T, S>::toStr() const {
   return utils::toStr(coords.begin(), coords.end(), constants::RealNumPrecision,
                       '(', ')');
 }
 
 template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
 bool Location<T, S>::coordsEqual(const std::vector<T> &otherCoords) const {
   if (otherCoords.size() > coords.size()) {
     throw std::invalid_argument("otherCoords size must be <= " +
@@ -39,15 +42,19 @@ bool Location<T, S>::coordsEqual(const std::vector<T> &otherCoords) const {
 }
 
 template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
 coords_t<T, S> Location<T, S>::getCoords() const {
   return coords;
 }
 
-template <typename T, size_t S> size_t Location<T, S>::getCoordsCount() const {
+template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
+size_t Location<T, S>::getCoordsCount() const {
   return coords.size();
 }
 
 template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
 std::expected<Location<T, S>, std::string>
 Location<T, S>::fromJsonStr(const std::string &str) {
   Location<T, S> loc{};

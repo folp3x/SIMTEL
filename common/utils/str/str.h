@@ -35,8 +35,8 @@ toStr(T num,
 // итератор, указывающий на числовой элемент контейнера
 // решение найдено здесь:
 // https://softwareengineering.stackexchange.com/questions/291803/template-function-passing-iterators
-template <class Iterator,
-          class U = typename std::iterator_traits<Iterator>::value_type>
+template <std::input_iterator Iterator,
+          typename U = std::iter_value_t<Iterator>>
   requires std::is_arithmetic_v<U>
 std::string
 toStr(Iterator begin, Iterator end,

@@ -2,6 +2,7 @@
 
 namespace client {
 template <typename T>
+  requires std::is_arithmetic_v<T>
 std::unique_ptr<common::MenuItem>
 CommandParser::parseMoveArgs(const std::string &initialStr,
                              const std::vector<std::string> &args,
@@ -37,7 +38,7 @@ CommandParser::parseMoveArgs(const std::string &initialStr,
   return std::make_unique<MenuItemMove<T>>(coords);
 }
 
-template <typename T>
+template <std::derived_from<common::MenuItem> T>
 std::unique_ptr<common::MenuItem>
 CommandParser::parseWithoutArgs(const std::string &initialStr,
                                 const std::vector<std::string> &args,

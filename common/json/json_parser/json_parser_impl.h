@@ -25,6 +25,7 @@ std::unique_ptr<JsonFieldInfo<F>> JsonParser<T>::makeParsedField(
 
 template <typename T>
 template <typename E, size_t S>
+  requires std::is_fundamental_v<E> || std::is_same_v<E, std::string>
 std::unique_ptr<JsonArrayInfo<E, S>> JsonParser<T>::makeParsedArray(
     const std::string &name,
     const std::function<void(const std::array<E, S> &)> &successCallback,
@@ -34,6 +35,7 @@ std::unique_ptr<JsonArrayInfo<E, S>> JsonParser<T>::makeParsedArray(
 
 template <typename T>
 template <typename E>
+  requires std::is_fundamental_v<E> || std::is_same_v<E, std::string>
 std::unique_ptr<JsonVectorInfo<E>> JsonParser<T>::makeParsedVector(
     const std::string &name,
     const std::function<void(const std::vector<E> &)> &successCallback,

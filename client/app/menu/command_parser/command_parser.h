@@ -36,11 +36,12 @@ private:
   virtual CommandParser::arg_parser_map_t getArgsParsers() const override;
 
   template <typename T = float>
+    requires std::is_arithmetic_v<T>
   static std::unique_ptr<common::MenuItem>
   parseMoveArgs(const std::string &initialStr,
                 const std::vector<std::string> &args, std::string &extraMsg);
 
-  template <typename T>
+  template <std::derived_from<common::MenuItem> T>
   static std::unique_ptr<common::MenuItem>
   parseWithoutArgs(const std::string &initialStr,
                    const std::vector<std::string> &args, std::string &extraMsg);

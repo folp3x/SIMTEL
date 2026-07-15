@@ -35,7 +35,7 @@ std::string toStr(T num, std::optional<unsigned int> precision_, bool fixed) {
   }
 }
 
-template <class Iterator, class U>
+template <std::input_iterator Iterator, typename U>
   requires std::is_arithmetic_v<U>
 std::string toStr(Iterator begin, Iterator end,
                   std::optional<unsigned int> precision, char leftBorder,
