@@ -2,6 +2,8 @@
 
 #include "common/core/ussd/ussd_code.h"
 #include "common/network/binary_serializer/binary_serializer.h"
+#include "common/utils/num/num.h"
+
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
@@ -397,7 +399,7 @@ std::optional<std::string> SimtelMme::handleUssd(const common::imsi_t &mTimsi,
   MessageHolder::instance().addMsg(
       createLogMsg("received USSD: " + std::to_string(code)));
 
-  auto ussd = common::ussdCodeFromNum(code);
+  auto ussd = common::utils::ussdCodeFromNum(code);
   if (!ussd) {
     return "Unknown command";
   }
@@ -557,7 +559,7 @@ common::imsi_t SimtelMme::generateMTimsi() {
     curMTimsi = 0;
   }
 
-  return common::imsiToStr(curMTimsi);
+  return common::utils::imsiToStr(curMTimsi);
 }
 
 std::shared_ptr<SimtelBaseStation>

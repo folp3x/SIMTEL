@@ -37,6 +37,14 @@ public:
   void insertEirData();
   bool hasEirData();
 
+  template <typename Condition>
+  std::expected<std::vector<HlrRecord>, std::string>
+  findInHlr(const Condition &condition);
+
+  template <typename Condition>
+  std::expected<std::vector<EirRecord>, std::string>
+  findInEir(const Condition &condition);
+
   std::expected<HlrRecord, std::string>
   handleAuthInfoRequest(const common::imsi_t &imsi, const common::imei_t &imei);
 
@@ -52,3 +60,5 @@ public:
   void logRecords();
 };
 } // namespace server
+
+#include "server/core/simtel/simtel_register/simtel_register_impl.h"

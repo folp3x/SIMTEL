@@ -37,7 +37,7 @@ RrcReconfigurationKeepResponse::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string>
 RrcReconfigurationKeepResponse::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imei));
+  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imei));
   BinarySerializer::addToBinary(binary, bsId);
 
   return binary;
@@ -55,7 +55,7 @@ RrcReconfigurationKeepResponse::fromBinary(const binary_t &binary) {
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
-  imei = imeiToStr(*parsedImei);
+  imei = utils::imeiToStr(*parsedImei);
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {

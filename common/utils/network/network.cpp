@@ -6,7 +6,7 @@
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
-namespace common {
+namespace common::utils {
 // парсит IP, возвращает его в хостовом порядке байт
 std::expected<uint64_t, std::string> parseIp(const std::string &str) {
   in_addr tempAddr{};
@@ -43,6 +43,6 @@ std::expected<uint16_t, std::string> parsePort(const std::string &str) {
     return std::unexpected("Port parse error: " + portParseResult.error());
   }
 }
-} // namespace common
+} // namespace common::utils
 
 #include "network_impl.h"

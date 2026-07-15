@@ -62,9 +62,11 @@ SmTransferRequest::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string> SmTransferRequest::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary,
+                                utils::fromStringSafe<uint64_t>(mTimsi));
   BinarySerializer::addToBinary(binary, smsId);
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(msisdn));
+  BinarySerializer::addToBinary(binary,
+                                utils::fromStringSafe<uint64_t>(msisdn));
   BinarySerializer::addToBinary(binary, text);
 
   return binary;
@@ -82,7 +84,7 @@ SmTransferRequest::fromBinary(const binary_t &binary) {
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = imsiToStr(*parsedMTimsi);
+  mTimsi = utils::imsiToStr(*parsedMTimsi);
 
   auto smsIdBinary = it.getNext(sizeof(smsId));
   if (!smsIdBinary) {

@@ -1,23 +1,24 @@
 #include "str.h"
 
 #include <algorithm>
+#include <ranges>
 
 #include "common/types.h"
 
-namespace common {
+namespace common::utils {
 std::string lowercased(std::string_view str) {
   std::string result{};
   result.resize(str.size());
-  std::transform(str.begin(), str.end(), result.begin(),
-                 [](char ch) { return std::tolower(ch); });
+  std::ranges::transform(str, result.begin(),
+                         [](char ch) { return std::tolower(ch); });
   return result;
 }
 
 std::string uppercased(std::string_view str) {
   std::string result{};
   result.resize(str.size());
-  std::transform(str.begin(), str.end(), result.begin(),
-                 [](char ch) { return std::toupper(ch); });
+  std::ranges::transform(str, result.begin(),
+                         [](char ch) { return std::toupper(ch); });
   return result;
 }
 
@@ -33,7 +34,7 @@ std::optional<bool> parseBool(std::string_view str) {
 }
 
 bool allDigits(std::string_view str) {
-  return std::all_of(str.begin(), str.end(), ::isdigit);
+  return std::ranges::all_of(str, ::isdigit);
 }
 
 std::vector<std::string> split(const std::string &str) {
@@ -117,4 +118,4 @@ std::string ignoreWords(const std::string &str, size_t count) {
 std::string addLeadingZeroes(const std::string &str, size_t length) {
   return std::string(length - str.length(), '0') + str;
 }
-} // namespace common
+} // namespace common::utils

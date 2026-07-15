@@ -10,7 +10,7 @@ template <typename Container>
            std::ranges::sized_range<Container>
 void Location<T, S>::move(const Container &newCoords) {
   if (newCoords.size() > coords.size()) {
-    throw std::invalid_argument("newCoords size cant be bigger than " +
+    throw std::invalid_argument("newCoords size must be <= " +
                                 std::to_string(coords.size()));
   }
   if (std::ranges::empty(newCoords)) {
@@ -21,21 +21,21 @@ void Location<T, S>::move(const Container &newCoords) {
 }
 
 template <typename T, size_t S> std::string Location<T, S>::toStr() const {
-  constexpr unsigned int precision = 4;
-  return common::toStr(coords.begin(), coords.end(), precision, '(', ')');
+  return utils::toStr(coords.begin(), coords.end(), constants::RealNumPrecision,
+                      '(', ')');
 }
 
 template <typename T, size_t S>
 bool Location<T, S>::coordsEqual(const std::vector<T> &otherCoords) const {
   if (otherCoords.size() > coords.size()) {
-    throw std::invalid_argument("otherCoords size cant be bigger than " +
+    throw std::invalid_argument("otherCoords size must be <= " +
                                 std::to_string(coords.size()));
   }
   if (otherCoords.empty()) {
-    throw std::invalid_argument("newCoords cant be empty" +
+    throw std::invalid_argument("otherCoords cant be empty" +
                                 std::to_string(coords.size()));
   }
-  return std::equal(otherCoords.begin(), otherCoords.end(), coords.begin());
+  return std::ranges::equal(otherCoords, coords);
 }
 
 template <typename T, size_t S>

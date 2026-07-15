@@ -20,7 +20,7 @@ CommandParser::parseMoveArgs(const std::string &initialStr,
       break;
     }
 
-    auto coord = common::fromString<T>(args[i]);
+    auto coord = common::utils::fromString<T>(args[i]);
     if (coord) {
       coords.push_back(*coord);
     } else {
@@ -31,7 +31,7 @@ CommandParser::parseMoveArgs(const std::string &initialStr,
 
   if (args.size() > requiredArgsCount) {
     extraMsg = "Extra arguments ignored. Only " +
-               common::toStr(coords.begin(), coords.end()) + " used";
+               common::utils::toStr(coords.begin(), coords.end()) + " used";
   }
 
   return std::make_unique<MenuItemMove<T>>(coords);

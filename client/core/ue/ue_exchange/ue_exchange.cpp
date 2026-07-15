@@ -41,7 +41,7 @@ UeExchange::receiveResponseData(common::RequestType &type) const {
     return std::unexpected(bytes.error().description);
   }
 
-  auto reqType = common::parseRequestType(*bytes);
+  auto reqType = common::BinarySerializer::parseRequestType(*bytes);
   if (!reqType) {
     return std::unexpected(reqType.error());
   }

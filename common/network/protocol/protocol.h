@@ -7,13 +7,8 @@
 
 namespace common {
 enum class Protocol : size_t {
-  Json = getHash("json"),
-  Binary = getHash("binary"),
-};
-
-struct ProtocolInfo {
-  std::string name;
-  uint8_t networkId;
+  Json = utils::getHash("json"),
+  Binary = utils::getHash("binary"),
 };
 
 static auto findProtocolByName(std::string_view name);

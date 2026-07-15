@@ -37,7 +37,8 @@ RrcReconfigurationHandoverResponse::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string>
 RrcReconfigurationHandoverResponse::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary,
+                                utils::fromStringSafe<uint64_t>(mTimsi));
   BinarySerializer::addToBinary(binary, bsId);
 
   return binary;
@@ -55,7 +56,7 @@ RrcReconfigurationHandoverResponse::fromBinary(const binary_t &binary) {
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = imsiToStr(*parsedMTimsi);
+  mTimsi = utils::imsiToStr(*parsedMTimsi);
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {

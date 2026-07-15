@@ -9,10 +9,4 @@ struct NetworkError {
   NetworkErrorType type = NetworkErrorType::Other;
   std::string description = "";
 };
-
-inline bool isNoConnectedError(NetworkError error) {
-  return error.type == NetworkErrorType::ConnectionClosed ||
-         error.type == NetworkErrorType::ConnectionReset ||
-         error.type == NetworkErrorType::BadFileDescriptor;
-}
 }; // namespace common

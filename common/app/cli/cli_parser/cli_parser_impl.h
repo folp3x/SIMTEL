@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algorithm>
+#include <ranges>
 
 #include "common/validator/validator.h"
 
@@ -58,7 +58,7 @@ bool CliParser<T>::parse(int argc, char *argv[], std::string &msg,
 
 template <std::derived_from<Config> T>
 bool CliParser<T>::allConfigOptsSet() const {
-  return std::all_of(configOpts.begin(), configOpts.end(), isOptSet);
+  return std::ranges::all_of(configOpts, isOptSet);
 }
 
 template <std::derived_from<Config> T>

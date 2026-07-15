@@ -3,24 +3,37 @@
 #include <zpp_bits.h>
 
 namespace common {
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 template <typename T>
 std::optional<std::string> BinarySerializer::addToBinary(binary_t &binary,
                                                          const T &value) {
-  zpp::bits::out out(binary, zpp::bits::endian::big{});
   bool error;
+  size_t lastByte;
   if constexpr (std::is_same_v<T, std::string>) {
-    std::string_view view = value;
-    error = failure(out(zpp::bits::sized<std::uint32_t>(view)));
+    zpp::bits::out out(binary);
+    error = failure(out(value));
+    lastByte = out.position();
   } else {
+    zpp::bits::out out(binary, zpp::bits::endian::big{});
     error = zpp::bits::failure(out(value));
+    lastByte = out.position();
   }
 
   if (error) {
-    return "Serialization error at byte " + std::to_string(out.position());
+    return "Serialization error at byte " + std::to_string(lastByte);
   }
 
   return std::nullopt;
 }
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 template <typename T>
 std::expected<T, std::string>

@@ -19,6 +19,8 @@
 #include "server/app/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
+#include "common/utils/network/network.h"
+
 namespace server {
 std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
     SimtelBaseStation::baseStations = {};
@@ -376,7 +378,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
 
     auto receiveError = ctx->receiveData();
     if (receiveError) {
-      if (isNoConnectedError(*receiveError)) {
+      if (common::utils::isNoConnectedError(*receiveError)) {
         ctx->setBs(std::weak_ptr<SimtelBaseStation>());
         bool removed = removeUe(ctx->getMTimsi());
 
@@ -393,7 +395,7 @@ void SimtelBaseStation::handleUeRequests(std::shared_ptr<SimtelUeContext> ctx) {
       MessageHolder::instance().addMsg("");
 
       common::binary_t data = ctx->copyBuf();
-      auto reqType = common::parseRequestType(data);
+      auto reqType = common::BinarySerializer::parseRequestType(data);
       if (!reqType) {
         MessageHolder::instance().addErrorMsg(reqType.error());
         ctx->clearBuf();

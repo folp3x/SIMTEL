@@ -3,7 +3,10 @@
 #include <iostream>
 
 #include "client/core/ue/ue_active/ue_active.h"
+#include "client/utils/str.h"
+#include "common/utils/num/num.h"
 #include "common/utils/print/print.h"
+#include "common/utils/time/time.h"
 
 namespace client {
 rang::fg Menu::getSmsStatusColor(SmsStatus status) const {
@@ -40,9 +43,9 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
   std::cout << ", state: ";
   std::string statusStr = ueActiveToStr(inActive);
   if (inActive) {
-    common::printColored(statusStr, rang::fg::green, "");
+    common::utils::printColored(statusStr, rang::fg::green, "");
   } else {
-    common::printColored(statusStr, rang::fg::red, "");
+    common::utils::printColored(statusStr, rang::fg::red, "");
   }
 
   std::cout << ", protocol: " << common::protocolToStr(protocol) << std::endl;
@@ -72,8 +75,8 @@ void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
 
 void Menu::showSentSms(const Sms &sms, bool alignRight) const {
   std::string leftHeaderPart =
-      "To " + sms.receiver + " at " + common::formatTime(sms.timeSent);
-  std::string statusStr = " " + smsStatusToStr(sms.status);
+      "To " + sms.receiver + " at " + common::utils::formatTime(sms.timeSent);
+  std::string statusStr = " " + utils::smsStatusToStr(sms.status);
   std::string headerEnding = ":";
 
   size_t fullHeaderLength =
@@ -85,7 +88,7 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
 
   std::cout << headerLeftSpace << leftHeaderPart;
   if (sms.status != SmsStatus::Pending) {
-    common::printColored(statusStr, getSmsStatusColor(sms.status), "");
+    common::utils::printColored(statusStr, getSmsStatusColor(sms.status), "");
   }
   std::cout << headerEnding << std::endl;
 
@@ -104,7 +107,7 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
 
 void Menu::showReceivedSms(const Sms &sms) const {
   std::cout << "From " << sms.sender << " at ";
-  std::cout << common::formatTime(sms.timeReceived) << ":" << std::endl;
+  std::cout << common::utils::formatTime(sms.timeReceived) << ":" << std::endl;
   std::cout << sms.content << std::endl;
 }
 
@@ -114,8 +117,8 @@ void Menu::showError(const std::string &error) const {
 
 void Menu::showUssdInfo(const std::vector<UssdInfo> &info) const {
   for (const auto &ussd : info) {
-    std::cout << std::to_string(common::ussdCodeToNum(ussd.code)) << " - "
-              << ussd.description << std::endl;
+    std::cout << std::to_string(common::utils::ussdCodeToNum(ussd.code))
+              << " - " << ussd.description << std::endl;
   }
 }
 } // namespace client

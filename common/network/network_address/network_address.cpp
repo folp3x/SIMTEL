@@ -7,7 +7,7 @@
 
 namespace common {
 void NetworkAddress::setIp(const std::string &ipStr) {
-  auto parseResult = parseIp(ipStr);
+  auto parseResult = utils::parseIp(ipStr);
   if (!parseResult) {
     throw std::invalid_argument(parseResult.error());
   }
@@ -15,7 +15,7 @@ void NetworkAddress::setIp(const std::string &ipStr) {
 }
 
 void NetworkAddress::setPort(const std::string &portStr) {
-  auto parseResult = parsePort(portStr);
+  auto parseResult = utils::parsePort(portStr);
   if (!parseResult) {
     throw std::invalid_argument(parseResult.error());
   }

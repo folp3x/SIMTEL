@@ -28,7 +28,8 @@ UssdMsisdnResponse::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string> UssdMsisdnResponse::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(msisdn));
+  BinarySerializer::addToBinary(binary,
+                                utils::fromStringSafe<uint64_t>(msisdn));
 
   return binary;
 }

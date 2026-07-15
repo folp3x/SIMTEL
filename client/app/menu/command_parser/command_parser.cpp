@@ -36,7 +36,7 @@ CommandParser::parseActiveArgs(const std::string &initialStr,
 
   std::string isActiveStr = args[0];
 
-  auto isActiveValue = common::parseBool(isActiveStr);
+  auto isActiveValue = common::utils::parseBool(isActiveStr);
   if (isActiveValue) {
     if (args.size() > MenuItemActive::getArgsCount()) {
       extraMsg = "Extra arguments ignored";
@@ -51,7 +51,7 @@ std::unique_ptr<common::MenuItem>
 CommandParser::parseUssdCodeArgs(const std::string &initialStr,
                                  const std::vector<std::string> &args,
                                  std::string &extraMsg) {
-  std::string command = common::firstWord(initialStr);
+  std::string command = common::utils::firstWord(initialStr);
 
   size_t minLength = UssdPrefixLength + 1 + UssdPostfixLength;
   if (command.size() < minLength) {
@@ -61,7 +61,7 @@ CommandParser::parseUssdCodeArgs(const std::string &initialStr,
   size_t lastCodeChInd = command.size() - 1 - UssdPostfixLength;
   std::string codeStr = command.substr(UssdPrefixLength, lastCodeChInd);
 
-  auto code = common::fromString<unsigned int>(codeStr);
+  auto code = common::utils::fromString<unsigned int>(codeStr);
   if (code) {
     return std::make_unique<MenuItemUssdCode>(*code);
   }
@@ -74,13 +74,13 @@ CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
   auto cmd = common::CommandParser::parseCommand(str, extraMsg);
   if (dynamic_cast<common::MenuItemInvalid *>(cmd.get())) {
-    std::vector<std::string> tokens = common::split(str);
+    std::vector<std::string> tokens = common::utils::split(str);
 
     if (tokens.empty()) {
       return cmd;
     }
 
-    std::string command = common::lowercased(tokens[0]);
+    std::string command = common::utils::lowercased(tokens[0]);
     // удаление названия команды
     tokens.erase(tokens.begin());
 
@@ -147,7 +147,7 @@ CommandParser::parseSmsArgs(const std::string &initialStr,
     cmd->setMsisdn(msisdn);
   }
 
-  cmd->setContent(common::ignoreWords(initialStr, 2));
+  cmd->setContent(common::utils::ignoreWords(initialStr, 2));
 
   return cmd;
 }

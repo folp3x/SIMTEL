@@ -6,6 +6,6 @@ void Menu::showMenuHeaderLine() const {
 }
 
 void Menu::showMessage(const MenuMessage &msg) const {
-  printColored(msg.content, menuMessageTypeToColor(msg.type));
+  utils::printColored(msg.content, utils::menuMessageTypeToColor(msg.type));
 }
 } // namespace common

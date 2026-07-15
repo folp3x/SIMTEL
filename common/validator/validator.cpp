@@ -58,7 +58,7 @@ std::string Validator::isCorrectDigitStr(std::string_view str,
     return name + " must have more than " + minLengthStr + " digits";
   if (maxLength && moreDigits)
     return name + " must have less than " + minLengthStr + " digits";
-  if (!allDigits(str))
+  if (!utils::allDigits(str))
     return name + " must contain only digits";
 
   return "";
@@ -75,7 +75,7 @@ std::string Validator::isCorrectIp(uint32_t ip) {
 }
 
 std::string Validator::isCorrectIpStr(const std::string &ipStr) {
-  auto parseResult = parseIp(ipStr);
+  auto parseResult = utils::parseIp(ipStr);
   if (parseResult) {
     return "";
   }
@@ -91,7 +91,7 @@ std::string Validator::isCorrectPort(int port) {
 }
 
 std::string Validator::isCorrectPortStr(const std::string &portStr) {
-  auto parseResult = parsePort(portStr);
+  auto parseResult = utils::parsePort(portStr);
   if (parseResult) {
     return "";
   }

@@ -179,6 +179,6 @@ std::expected<binary_t, NetworkError> Socket::receiveMessage() const {
         NetworkError{NetworkErrorType::IncompleteContent, description});
   }
 
-  return mergeBinary(header, content);
+  return utils::mergeBinary(header, content);
 }
 } // namespace common

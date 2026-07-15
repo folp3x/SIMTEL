@@ -18,4 +18,7 @@ constexpr size_t MsisdnBinaryBytes = 8;
 
 constexpr size_t ImeiDefaultLength = 15;
 constexpr size_t ImsiDefaultLength = 15;
+
+constexpr unsigned int RealNumPrecision = 4;
+constexpr unsigned int PriceNumPrecision = 2;
 } // namespace common::constants

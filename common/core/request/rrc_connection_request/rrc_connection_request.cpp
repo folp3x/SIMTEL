@@ -37,7 +37,7 @@ RrcConnectionRequest::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string> RrcConnectionRequest::toBinary() const {
   binary_t binary;
   BinarySerializer::addToBinary(binary, loc.getCoords());
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imei));
+  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imei));
 
   return binary;
 }
@@ -54,7 +54,7 @@ RrcConnectionRequest::fromBinary(const binary_t &binary) {
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
-  imei = imeiToStr(*parsedImei);
+  imei = utils::imeiToStr(*parsedImei);
 
   auto locBinary = it.getRemaining();
   if (!locBinary) {

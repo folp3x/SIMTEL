@@ -37,7 +37,8 @@ SmDeliveryReportResponse::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string>
 SmDeliveryReportResponse::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary,
+                                utils::fromStringSafe<uint64_t>(mTimsi));
   BinarySerializer::addToBinary(binary, smsId);
 
   return binary;
@@ -55,7 +56,7 @@ SmDeliveryReportResponse::fromBinary(const binary_t &binary) {
   if (!parsedMTimsi) {
     return "m-timsi deserialize error";
   }
-  mTimsi = imsiToStr(*parsedMTimsi);
+  mTimsi = utils::imsiToStr(*parsedMTimsi);
 
   auto smsIdBinary = it.getNext(sizeof(smsId));
   if (!smsIdBinary) {

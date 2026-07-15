@@ -8,19 +8,27 @@
 #include <string>
 #include <vector>
 
-namespace common {
+#include "common/constants.h"
+
+namespace common::utils {
 std::string lowercased(std::string_view str);
 std::string uppercased(std::string_view str);
+
 std::optional<bool> parseBool(std::string_view str);
+
 bool allDigits(std::string_view str);
+
 std::vector<std::string> split(const std::string &str);
+
 std::string imsiToStr(uint64_t imsi);
 std::string imeiToStr(uint64_t imei);
 
 template <typename T>
   requires std::is_floating_point_v<T>
-std::string toStr(T num, std::optional<unsigned int> precision_ = 4,
-                  bool fixed = false);
+std::string
+toStr(T num,
+      std::optional<unsigned int> precision_ = constants::RealNumPrecision,
+      bool fixed = false);
 
 // итератор, указывающий на числовой элемент контейнера
 // решение найдено здесь:
@@ -28,9 +36,10 @@ std::string toStr(T num, std::optional<unsigned int> precision_ = 4,
 template <class Iterator,
           class U = typename std::iterator_traits<Iterator>::value_type>
   requires std::is_arithmetic_v<U>
-std::string toStr(Iterator begin, Iterator end,
-                  std::optional<unsigned int> precision = 4,
-                  char leftBorder = '[', char rightBorder = ']');
+std::string
+toStr(Iterator begin, Iterator end,
+      std::optional<unsigned int> precision = constants::RealNumPrecision,
+      char leftBorder = '[', char rightBorder = ']');
 
 template <typename T>
   requires std::is_arithmetic_v<T>
@@ -44,6 +53,6 @@ std::string firstWord(const std::string &str);
 std::string ignoreWords(const std::string &str, size_t count);
 
 std::string addLeadingZeroes(const std::string &str, size_t length);
-} // namespace common
+} // namespace common::utils
 
 #include "str_impl.h"

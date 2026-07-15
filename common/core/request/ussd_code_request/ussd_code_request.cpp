@@ -33,7 +33,8 @@ UssdCodeRequest::fromJsonStr(const std::string &jsonStr) {
 
 std::expected<binary_t, std::string> UssdCodeRequest::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(mTimsi));
+  BinarySerializer::addToBinary(binary,
+                                utils::fromStringSafe<uint64_t>(mTimsi));
   BinarySerializer::addToBinary(binary, code);
 
   return binary;
@@ -50,7 +51,7 @@ std::optional<std::string> UssdCodeRequest::fromBinary(const binary_t &binary) {
   if (!parsedMTimsi) {
     return "m-TIMSI deserialize error";
   }
-  mTimsi = imsiToStr(*parsedMTimsi);
+  mTimsi = utils::imsiToStr(*parsedMTimsi);
 
   auto codeBinary = it.getNext(sizeof(code));
   if (!codeBinary) {

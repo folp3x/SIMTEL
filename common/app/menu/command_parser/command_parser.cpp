@@ -9,13 +9,13 @@ namespace common {
 std::unique_ptr<MenuItem>
 CommandParser::parseCommand(const std::string &str,
                             std::string &extraMsg) const {
-  std::vector<std::string> tokens = split(str);
+  std::vector<std::string> tokens = utils::split(str);
 
   if (tokens.empty()) {
     return std::make_unique<MenuItemEmpty>();
   }
 
-  std::string commandName = lowercased(tokens[0]);
+  std::string commandName = utils::lowercased(tokens[0]);
   // удаление названия команды
   tokens.erase(tokens.begin());
 

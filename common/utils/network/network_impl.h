@@ -1,6 +1,6 @@
 #pragma once
 
-namespace common {
+namespace common::utils {
 template <typename... Binaries>
 binary_t mergeBinary(const Binaries &...binaries) {
   binary_t result;
@@ -10,4 +10,4 @@ binary_t mergeBinary(const Binaries &...binaries) {
 
   return result;
 }
-} // namespace common
+} // namespace common::utils

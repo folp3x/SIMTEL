@@ -1,6 +1,6 @@
 #pragma once
 
-namespace common {
+namespace common::utils {
 template <typename T>
   requires std::is_floating_point_v<T>
 std::string toStr(T num, std::optional<unsigned int> precision_, bool fixed) {
@@ -78,7 +78,7 @@ std::expected<T, std::string> fromString(const std::string &str) {
   } catch (std::out_of_range &e) {
     return std::unexpected("Value out of range");
   } catch (std::exception &e) {
-    return std::unexpected("Failed to deserialize number");
+    return std::unexpected("Failed to parse number");
   }
 }
 
@@ -92,4 +92,4 @@ T fromStringSafe(const std::string &str, T defaultValue) {
 
   return 0;
 }
-} // namespace common
+} // namespace common::utils

@@ -24,16 +24,6 @@ static std::unordered_map<RequestType, std::string> types = {
     {RequestType::UssdBalance, "Ussd_Balance"},
     {RequestType::UssdMsisdn, "Ussd_Msisdn"}};
 
-std::expected<RequestType, std::string>
-parseRequestType(const binary_t &bytes) {
-  auto header = socketMessageHeaderFromBinary(bytes);
-  if (!header) {
-    return std::unexpected("Failed to deserialize header");
-  }
-
-  return static_cast<RequestType>(header->reqType);
-}
-
 std::string requestTypeToStr(RequestType type) {
   auto it = types.find(type);
   if (it == types.end()) {

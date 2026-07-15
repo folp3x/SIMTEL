@@ -1,11 +1,11 @@
 #include "request.h"
 
-#include "common/network/socket/socket_message/socket_message.h"
+#include "common/network/binary_serializer/binary_serializer.h"
 
 namespace common {
 std::expected<SocketMessage, std::string>
 Request::msgFromReqBytes(const binary_t &binary, Protocol &protocol) const {
-  auto msg = socketMessageFromBinary(binary);
+  auto msg = BinarySerializer::socketMessageFromBinary(binary);
   if (!msg) {
     return std::unexpected(msg.error());
   }
@@ -39,7 +39,7 @@ Request::reqToMsgBytes(Protocol protocol, const binary_t &content) const {
       {static_cast<uint32_t>(content.size()), *protocolId, requestTypeBinary},
       content};
 
-  return socketMessagetoBinary(msg);
+  return BinarySerializer::socketMessagetoBinary(msg);
 }
 
 std::string Request::toStr() const {

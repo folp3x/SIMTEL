@@ -44,8 +44,8 @@ MeasurementReportRequest::fromJsonStr(const std::string &jsonStr) {
 std::expected<binary_t, std::string>
 MeasurementReportRequest::toBinary() const {
   binary_t binary;
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imei));
-  BinarySerializer::addToBinary(binary, fromStringSafe<uint64_t>(imsi));
+  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imei));
+  BinarySerializer::addToBinary(binary, utils::fromStringSafe<uint64_t>(imsi));
   BinarySerializer::addToBinary(binary, bsId);
 
   return binary;
@@ -63,7 +63,7 @@ MeasurementReportRequest::fromBinary(const binary_t &binary) {
   if (!parsedImei) {
     return "IMEI deserialize error";
   }
-  imei = imeiToStr(*parsedImei);
+  imei = utils::imeiToStr(*parsedImei);
 
   auto imsiBinary = it.getNext(constants::ImsiBinaryBytes);
   if (!imsiBinary) {
@@ -73,7 +73,7 @@ MeasurementReportRequest::fromBinary(const binary_t &binary) {
   if (!parsedImsi) {
     return "IMSI deserialize error";
   }
-  imsi = imsiToStr(*parsedImsi);
+  imsi = utils::imsiToStr(*parsedImsi);
 
   auto bsIdBinary = it.getNext(sizeof(bsId));
   if (!bsIdBinary) {

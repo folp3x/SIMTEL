@@ -25,6 +25,8 @@
 #include "common/core/response/ussd_balance_response/ussd_balance_response.h"
 #include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
 
+#include "common/utils/time/time.h"
+
 namespace client {
 void App::sigintHandler(int signal) {
   if (signal == SIGINT) {
@@ -197,8 +199,7 @@ void App::executeSmsCommand(const MenuItemSMS &cmd) {
 
 void App::addSentSms(const common::msisdn_t &targetMsisdn,
                      const std::string &smsContent, unsigned int smsId) {
-  auto now = std::chrono::time_point_cast<std::chrono::seconds>(
-      std::chrono::system_clock::now());
+  auto now = common::utils::getNowSeconds();
   Sms sms{smsId, now, {}, "", targetMsisdn, smsContent};
   addSms(sms);
 }
@@ -278,7 +279,8 @@ void App::executeUssdCodeCommand(const MenuItemUssdCode &cmd) {
   if (auto *balanceResponse =
           dynamic_cast<common::UssdBalanceResponse *>(response->get())) {
     menu.showMessage(
-        {"Balance: " + common::toStr(balanceResponse->getBalance(), 2, true) +
+        {"Balance: " +
+         common::utils::toStr(balanceResponse->getBalance(), 2, true) +
          " rub"});
   } else if (auto *msisdnResponse =
                  dynamic_cast<common::UssdMsisdnResponse *>(response->get())) {
@@ -438,8 +440,7 @@ void App::handleBackgroundResponse(std::unique_ptr<common::Request> response) {
     if (!duplicate) {
       addMsg("SMS received from " + deliveryResponse->getMsisdn());
 
-      auto now = std::chrono::time_point_cast<std::chrono::seconds>(
-          std::chrono::system_clock::now());
+      auto now = common::utils::getNowSeconds();
       Sms sms{deliveryResponse->getSmsId(),  {}, now,
               deliveryResponse->getMsisdn(), "", deliveryResponse->getText()};
       addSms(sms);

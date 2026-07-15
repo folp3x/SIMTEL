@@ -25,6 +25,5 @@ enum class RequestType : uint8_t {
   UssdMsisdn
 };
 
-std::expected<RequestType, std::string> parseRequestType(const binary_t &bytes);
 std::string requestTypeToStr(RequestType type);
 } // namespace common
