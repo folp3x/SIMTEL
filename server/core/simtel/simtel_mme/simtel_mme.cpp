@@ -1,10 +1,10 @@
 #include "simtel_mme.h"
 
+#include "common/binary/binary_serializer/binary_serializer.h"
 #include "common/core/ussd/ussd_code.h"
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/utils/num/num.h"
 
-#include "server/app/message_holder/message_holder.h"
+#include "server/app/menu/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {

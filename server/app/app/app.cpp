@@ -3,7 +3,7 @@
 #include <csignal>
 #include <thread>
 
-#include "common/app/signals/signal_handler/signal_handler.h"
+#include "common/app/signal_handler/signal_handler.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {

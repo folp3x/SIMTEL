@@ -1,6 +1,6 @@
 #include "request.h"
 
-#include "common/network/binary_serializer/binary_serializer.h"
+#include "common/binary/binary_serializer/binary_serializer.h"
 
 namespace common {
 std::expected<SocketMessage, std::string>

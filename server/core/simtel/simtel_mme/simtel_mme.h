@@ -6,10 +6,10 @@
 #include "common/types.h"
 #include "server/app/config/mme_config/mme_config.h"
 
-#include "server/core/simtel/simtel_pcrf/simtel_pcrf.h"
-#include "server/core/simtel/simtel_register/simtel_register.h"
-#include "server/core/simtel/simtel_smsc/simtel_smsc.h"
-#include "server/core/simtel/simtel_visitor_list/simtel_visitor_list.h"
+#include "server/core/simtel/pcrf/simtel_pcrf/simtel_pcrf.h"
+#include "server/core/simtel/register/simtel_register/simtel_register.h"
+#include "server/core/simtel/smsc/simtel_smsc/simtel_smsc.h"
+#include "server/core/simtel/visitor_list/simtel_visitor_list/simtel_visitor_list.h"
 
 namespace server {
 class SimtelMme {

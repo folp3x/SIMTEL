@@ -2,7 +2,7 @@
 
 #include <sqlite_orm/sqlite_orm.h>
 
-#include "server/core/simtel/hlr_record/hlr_record.h"
+#include "server/core/simtel/register/hlr_record/hlr_record.h"
 
 namespace server {
 struct HlrStorageHelper {

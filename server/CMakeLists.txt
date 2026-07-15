@@ -4,7 +4,7 @@ set(APP_LIB_NAME "server_lib")
 set(SOURCES_LIST
     "app/app/app.cpp"
     "app/menu/menu/menu.cpp"
-    "app/message_holder/message_holder.cpp"
+    "app/menu/message_holder/message_holder.cpp"
     "app/config/config/config.cpp"
     "app/config/config_parser/config_parser.cpp"
     "app/config/bs_config/bs_config_parser/bs_config_parser.cpp"
@@ -16,13 +16,13 @@ set(SOURCES_LIST
     "core/simtel/simtel_ue_context/simtel_ue_context.cpp"
     "core/simtel/simtel_base_station/simtel_base_station.cpp"
     "core/simtel/simtel_mme/simtel_mme.cpp"
-    "core/simtel/simtel_smsc/simtel_smsc.cpp"
-    "core/simtel/simtel_visitor_list/simtel_visitor_list.cpp"
-    "core/simtel/simtel_register/simtel_register.cpp"
+    "core/simtel/smsc/simtel_smsc/simtel_smsc.cpp"
+    "core/simtel/visitor_list/simtel_visitor_list/simtel_visitor_list.cpp"
+    "core/simtel/register/simtel_register/simtel_register.cpp"
     "core/ttl_manager/ttl_manager.cpp"
-    "core/simtel/vlr_record/vlr_record.cpp"
-    "core/simtel/subscriber_status/subscriber_status.cpp"
-    "core/simtel/simtel_pcrf/simtel_pcrf.cpp"
+    "core/simtel/visitor_list/vlr_record/vlr_record.cpp"
+    "core/simtel/register/subscriber_status/subscriber_status.cpp"
+    "core/simtel/pcrf/simtel_pcrf/simtel_pcrf.cpp"
 )
 
 # установка библиотек

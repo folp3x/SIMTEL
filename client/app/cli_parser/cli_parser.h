@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/app/cli/cli_parser/cli_parser.h"
+#include "common/app/cli_parser/cli_parser.h"
 
 #include "client/app/config/config/config.h"
 

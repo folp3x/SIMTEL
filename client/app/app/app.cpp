@@ -10,7 +10,7 @@
 
 #include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
-#include "common/app/signals/signal_handler/signal_handler.h"
+#include "common/app/signal_handler/signal_handler.h"
 
 #include "common/core/request/sm_delivery_ack_request/sm_delivery_ack_request.h"
 #include "common/core/request/sm_transfer_request/sm_transfer_request.h"

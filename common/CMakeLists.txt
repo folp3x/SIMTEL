@@ -10,7 +10,7 @@ set(SOURCES_LIST
 	"network/protocol/protocol.cpp"
 	"network/network_address/network_address.cpp"
 	"network/socket/socket/socket.cpp"
-	"network/binary_serializer/binary_serializer.cpp"
+	"binary/binary_serializer/binary_serializer.cpp"
 	"network/json_deserializer/json_deserializer.cpp"
 
 	"app/config/config/config.cpp"
@@ -18,7 +18,7 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_invalid/menu_item_invalid.cpp"
 	"app/menu/command_parser/command_parser.cpp"
 	"app/menu/menu/menu.cpp"
-	"app/signals/signal_handler/signal_handler.cpp"
+	"app/signal_handler/signal_handler.cpp"
 	"app/menu/menu_item/menu_item_empty/menu_item_empty.cpp"
 
 	"core/request/rrc_connection_request/rrc_connection_request.cpp"

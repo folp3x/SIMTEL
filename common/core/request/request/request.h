@@ -4,7 +4,7 @@
 
 #include "common/core/request/request_type/request_type.h"
 
-#include "common/network/binary_serializer/binary_serializer.h"
+#include "common/binary/binary_serializer/binary_serializer.h"
 #include "common/network/protocol/protocol.h"
 #include "common/network/socket/socket_message/socket_message.h"
 

@@ -1,7 +1,7 @@
 #include "simtel_register.h"
 
-#include "server/app/message_holder/message_holder.h"
-#include "server/core/simtel/subscriber_status/subscriber_status.h"
+#include "server/app/menu/message_holder/message_holder.h"
+#include "server/core/simtel/register/subscriber_status/subscriber_status.h"
 
 namespace server {
 std::string SimtelRegister::createLogMsg(const std::string &content) const {

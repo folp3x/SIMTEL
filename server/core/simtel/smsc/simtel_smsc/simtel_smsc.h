@@ -6,7 +6,7 @@
 #include <optional>
 
 #include "server/app/config/smsc_config/smsc_config.h"
-#include "server/core/simtel/sms_uid/sms_uid.h"
+#include "server/core/simtel/smsc/sms_uid/sms_uid.h"
 #include "server/core/ttl_manager/ttl_manager.h"
 
 namespace server {

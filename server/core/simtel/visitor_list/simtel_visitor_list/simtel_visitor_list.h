@@ -3,7 +3,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "server/core/simtel/vlr_record/vlr_record.h"
+#include "server/core/simtel/visitor_list/vlr_record/vlr_record.h"
 
 namespace server {
 class SimtelVisitorList {

@@ -4,7 +4,7 @@
 
 #include "common/core/location/location/location.h"
 #include "common/network/protocol/protocol.h"
-#include "server/app/message_holder/message_holder.h"
+#include "server/app/menu/message_holder/message_holder.h"
 #include "server/network/socket/socket.h"
 
 namespace server {

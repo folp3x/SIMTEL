@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "common/binary/binary_serializer/binary_serializer.h"
 #include "common/json/json_parser/json_parser.h"
-#include "common/network/binary_serializer/binary_serializer.h"
 #include "common/types.h"
 #include "common/utils/str/str.h"
 

@@ -1,6 +1,6 @@
 #include "simtel_smsc.h"
 
-#include "server/app/message_holder/message_holder.h"
+#include "server/app/menu/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
 
 namespace server {

@@ -16,7 +16,7 @@
 #include "common/core/response/ussd_balance_response/ussd_balance_response.h"
 #include "common/core/response/ussd_msisdn_response/ussd_msisdn_response.h"
 
-#include "server/app/message_holder/message_holder.h"
+#include "server/app/menu/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_ue_context/simtel_ue_context.h"
 
 #include "common/utils/network/network.h"

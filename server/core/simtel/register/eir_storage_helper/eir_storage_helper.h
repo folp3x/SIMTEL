@@ -2,7 +2,7 @@
 
 #include <sqlite_orm/sqlite_orm.h>
 
-#include "server/core/simtel/eir_record/eir_record.h"
+#include "server/core/simtel/register/eir_record/eir_record.h"
 
 namespace server {
 struct EirStorageHelper {

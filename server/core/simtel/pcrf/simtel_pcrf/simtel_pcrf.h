@@ -3,7 +3,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "server/core/simtel/balance_info/balance_info.h"
+#include "server/core/simtel/pcrf/balance_info/balance_info.h"
 
 namespace server {
 class SimtelPcrf {

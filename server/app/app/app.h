@@ -8,9 +8,9 @@
 
 #include "server/app/menu/menu/menu.h"
 
+#include "server/core/simtel/pcrf/simtel_pcrf/simtel_pcrf.h"
 #include "server/core/simtel/simtel_listener/simtel_listener.h"
 #include "server/core/simtel/simtel_mme/simtel_mme.h"
-#include "server/core/simtel/simtel_pcrf/simtel_pcrf.h"
 
 namespace server {
 class App {

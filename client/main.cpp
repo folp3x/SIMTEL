@@ -1,7 +1,7 @@
+#include "app/address_book_parser/address_book_parser.h"
 #include "app/app/app.h"
-#include "app/cli/cli_parser/cli_parser.h"
+#include "app/cli_parser/cli_parser.h"
 #include "app/config/config_parser/config_parser.h"
-#include "core/address_book/address_book_parser/address_book_parser.h"
 
 int main(int argc, char *argv[]) {
   try {

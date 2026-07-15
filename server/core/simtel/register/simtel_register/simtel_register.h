@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 
-#include "server/core/simtel/eir_storage_helper/eir_storage_helper.h"
-#include "server/core/simtel/hlr_storage_helper/hlr_storage_helper.h"
+#include "server/core/simtel/register/eir_storage_helper/eir_storage_helper.h"
+#include "server/core/simtel/register/hlr_storage_helper/hlr_storage_helper.h"
 
 namespace server {
 class SimtelRegister {
@@ -61,4 +61,4 @@ public:
 };
 } // namespace server
 
-#include "server/core/simtel/simtel_register/simtel_register_impl.h"
+#include "simtel_register_impl.h"

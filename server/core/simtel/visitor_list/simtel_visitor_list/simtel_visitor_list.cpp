@@ -1,6 +1,6 @@
 #include "simtel_visitor_list.h"
 
-#include "server/app/message_holder/message_holder.h"
+#include "server/app/menu/message_holder/message_holder.h"
 #include "server/core/simtel/simtel_base_station/simtel_base_station.h"
 
 namespace server {
