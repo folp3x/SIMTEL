@@ -9,7 +9,7 @@ template <typename T = float>
   requires std::is_arithmetic_v<T>
 class MenuItemMove : public common::MenuItem {
 private:
-  const std::vector<T> coords = {};
+  const std::vector<T> coords{};
 
 public:
   explicit MenuItemMove(const std::vector<T> &coords_);

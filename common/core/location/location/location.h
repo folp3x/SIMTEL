@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "common/binary/binary_serializer/binary_serializer.h"
-#include "common/json/json_parser/json_parser.h"
 #include "common/types.h"
 #include "common/utils/str/str.h"
 
@@ -28,9 +27,6 @@ private:
 public:
   Location() = default;
   explicit Location(const coords_t<T, S> &coords_);
-
-  static std::expected<Location, std::string>
-  fromJsonStr(const std::string &str);
 
   template <typename Container>
     requires std::ranges::sized_range<Container>

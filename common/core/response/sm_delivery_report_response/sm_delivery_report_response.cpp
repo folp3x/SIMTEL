@@ -1,6 +1,5 @@
 #include "sm_delivery_report_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -17,21 +16,16 @@ nlohmann::json SmDeliveryReportResponse::toJson() const {
   return nlohmann::json{{"mTimsi", mTimsi}, {"smsId", smsId}};
 }
 
-std::optional<std::string>
-SmDeliveryReportResponse::fromJsonStr(const std::string &jsonStr) {
-  auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
-  if (!parsedMTimsi) {
-    return parsedMTimsi.error();
-  }
-  mTimsi = *parsedMTimsi;
+std::unique_ptr<BaseJsonInfo> SmDeliveryReportResponse::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedSmsId = JsonDeserializer::smsIdFromJsonStr(jsonStr, "smsId");
-  if (!parsedSmsId) {
-    return parsedSmsId.error();
-  }
-  smsId = *parsedSmsId;
+  root->addInner("mTimsi",
+                 makeJsonValue<imsi_t>(&mTimsi, Validator::isCorrectImsi));
 
-  return std::nullopt;
+  root->addInner(
+      "smsId", makeJsonValue<unsigned int>(&smsId, Validator::isCorrectSmsId));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

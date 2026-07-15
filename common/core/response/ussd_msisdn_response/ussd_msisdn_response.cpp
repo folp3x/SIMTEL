@@ -1,6 +1,5 @@
 #include "ussd_msisdn_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -16,15 +15,13 @@ nlohmann::json UssdMsisdnResponse::toJson() const {
   return nlohmann::json{{"msisdn", msisdn}};
 }
 
-std::optional<std::string>
-UssdMsisdnResponse::fromJsonStr(const std::string &jsonStr) {
-  auto parsedMsisdn = JsonDeserializer::strFromJsonStr(jsonStr, "msisdn");
-  if (!parsedMsisdn) {
-    return parsedMsisdn.error();
-  }
-  msisdn = *parsedMsisdn;
+std::unique_ptr<BaseJsonInfo> UssdMsisdnResponse::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  return std::nullopt;
+  root->addInner("msisdn",
+                 makeJsonValue<msisdn_t>(&msisdn, Validator::isCorrectMsisdn));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

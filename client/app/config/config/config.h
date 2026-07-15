@@ -16,6 +16,8 @@ private:
   common::coords_t<> loc = {0};
   bool locationSet = false;
 
+  virtual std::unique_ptr<common::BaseJsonInfo> getJsonRootInfo() override;
+
 public:
   virtual bool isInitialized() const override;
 
@@ -29,7 +31,6 @@ public:
   void setIp(const std::string &ip_);
 
   std::string getAddressBookFilePath() const;
-  void setAddressBookFilePath(const std::string &addressBookFilePath_);
 
   common::coords_t<> getLoc() const;
   void setLoc(const common::coords_t<> &loc_);

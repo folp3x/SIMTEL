@@ -21,7 +21,7 @@ private:
 
   std::weak_ptr<SimtelBaseStation> bs;
 
-  common::binary_t buf = {};
+  common::binary_t buf{};
 
   std::shared_ptr<std::mutex> sendMtx = std::make_shared<std::mutex>();
 

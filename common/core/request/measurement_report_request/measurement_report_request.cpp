@@ -1,6 +1,5 @@
 #include "measurement_report_request.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -18,27 +17,19 @@ nlohmann::json MeasurementReportRequest::toJson() const {
   return nlohmann::json{{"imei", imei}, {"imsi", imsi}, {"bsId", bsId}};
 }
 
-std::optional<std::string>
-MeasurementReportRequest::fromJsonStr(const std::string &jsonStr) {
-  auto parsedImei = JsonDeserializer::imeiFromJsonStr(jsonStr, "imei");
-  if (!parsedImei) {
-    return parsedImei.error();
-  }
-  imei = *parsedImei;
+std::unique_ptr<BaseJsonInfo> MeasurementReportRequest::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedImsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "imsi");
-  if (!parsedImsi) {
-    return parsedImsi.error();
-  }
-  imsi = *parsedImsi;
+  root->addInner("imei",
+                 makeJsonValue<imei_t>(&imei, Validator::isCorrectImei));
 
-  auto parsedBsId = JsonDeserializer::bsIdFromJsonStr(jsonStr, "bsId");
-  if (!parsedBsId) {
-    return parsedBsId.error();
-  }
-  bsId = *parsedBsId;
+  root->addInner("imsi",
+                 makeJsonValue<imsi_t>(&imsi, Validator::isCorrectImsi));
 
-  return std::nullopt;
+  root->addInner("bsId",
+                 makeJsonValue<unsigned int>(&bsId, Validator::isCorrectBsId));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

@@ -41,7 +41,7 @@ private:
   bool connected = false;
   std::mutex requestsMtx;
   std::condition_variable requestsCv{};
-  std::queue<RequestInfo> requests = {};
+  std::queue<RequestInfo> requests{};
 
   template <std::derived_from<common::Request> T>
   std::expected<T, std::string> receiveResponse() const;

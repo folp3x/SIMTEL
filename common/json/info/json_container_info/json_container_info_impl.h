@@ -3,32 +3,17 @@
 namespace common {
 template <typename Container>
 JsonContainerInfo<Container>::JsonContainerInfo(
-    const std::string &name,
-    const std::function<void(const Container &)> &successCallback,
-    const std::function<std::string(const Container &)> &checkFn)
-    : JsonFieldInfo<Container>(name, successCallback, checkFn, true) {}
+    Container *value,
+    const std::function<std::string(const T &)> &elemValidateFunc_)
+    : JsonValueInfo<Container>(value), elemValidateFunc(elemValidateFunc_) {}
 
 template <typename Container>
 std::optional<std::string>
-JsonContainerInfo<Container>::parse(const nlohmann::json &json,
-                                    bool finalParse) {
-  auto error = JsonFieldInfo<Container>::parse(json, false);
-  if (error) {
-    return error;
+JsonContainerInfo<Container>::parse(const nlohmann::json &json) {
+  if (!json.is_array()) {
+    return "JSON array expected";
   }
 
-  std::string nameQuoted = this->getName(true);
-
-  nlohmann::json fieldJson = this->getFieldJson(json);
-  auto field = parseContainer(fieldJson);
-  if (!field) {
-    return nameQuoted + ": " + field.error();
-  }
-
-  if (finalParse) {
-    this->successCallback(*field);
-  }
-
-  return std::nullopt;
+  return parseContainer(json);
 }
 } // namespace common

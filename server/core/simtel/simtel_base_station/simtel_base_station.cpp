@@ -23,7 +23,7 @@
 
 namespace server {
 std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
-    SimtelBaseStation::baseStations = {};
+    SimtelBaseStation::baseStations{};
 
 std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
   return "BS_" + std::to_string(id) + ": " + content;
@@ -160,7 +160,8 @@ std::optional<std::string> SimtelBaseStation::handleLocationUpdate(
   auto initialBsPtr = initialBs.lock();
 
   for (const auto &[id, bs] : baseStations) {
-    unsigned int signalLevel = bs->measureSignal(locReq.getLoc());
+    unsigned int signalLevel =
+        bs->measureSignal(common::Location<>{locReq.getCoords()});
 
     if (signalLevel == 0) {
       continue;
@@ -537,7 +538,7 @@ SimtelBaseStation::handleSmTransfer(std::shared_ptr<SimtelUeContext> ctx,
                                                 req.getText());
   if (!smsMoved) {
     ctx->clearBuf();
-    return "SMSC cant move SMS to context";
+    return "SMSC failed to move SMS to context";
   }
 
   ctx->clearBuf();

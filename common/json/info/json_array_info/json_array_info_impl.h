@@ -3,26 +3,25 @@
 namespace common {
 template <typename T, size_t S>
 JsonArrayInfo<T, S>::JsonArrayInfo(
-    const std::string &name,
-    const std::function<void(const std::array<T, S> &)> &successCallback,
-    const std::function<std::string(const std::array<T, S> &)> &checkFn)
-    : JsonContainerInfo<std::array<T, S>>(name, successCallback, checkFn) {}
+    std::array<T, S> *value,
+    const std::function<std::string(const T &)> &elemValidateFunc)
+    : JsonContainerInfo<std::array<T, S>>(value, elemValidateFunc) {}
 
 template <typename T, size_t S>
-std::expected<std::array<T, S>, std::string>
-JsonArrayInfo<T, S>::parseContainer(const nlohmann::json &fieldJson) {
-  std::array<T, S> field{};
+std::optional<std::string>
+JsonArrayInfo<T, S>::parseContainer(const nlohmann::json &json) {
+  constexpr auto elemType = this->template recognizeType<T>();
+  static_assert(elemType.has_value(), "Unsupported type");
 
   for (size_t i = 0; i < S; ++i) {
-    nlohmann::json elemJson = fieldJson[i];
-    nlohmann::json elemType = this->template recognizeType<T>();
-    if (!(hasJsonType(elemJson, elemType))) {
-      return std::unexpected("elements must have a type: '" +
-                             jsonTypeToStr(elemType) + "'");
+    nlohmann::json elemJson = json[i];
+    if (!(utils::hasJsonType(elemJson, *elemType))) {
+      "Expected element of type '" + utils::jsonTypeToStr(*elemType) + "'";
     }
-    field[i] = elemJson.get<T>();
+
+    (*this->value)[i] = elemJson.get<T>();
   }
 
-  return field;
+  return std::nullopt;
 }
 } // namespace common

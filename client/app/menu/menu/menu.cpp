@@ -61,13 +61,14 @@ void Menu::showSignalInfo(const common::Location<> &location,
             << std::endl;
 }
 
-void Menu::showAddressBook(const std::map<char, common::msisdn_t> &book) const {
+void Menu::showAddressBook(const AddressBook &addressBook) const {
   std::cout << "Address book: ";
-  if (book.empty()) {
+  auto records = addressBook.getRecords();
+  if (records.empty()) {
     std::cout << "empty" << std::endl;
   } else {
     std::cout << std::endl;
-    for (const auto &[speedDialNum, msisdn] : book) {
+    for (const auto &[speedDialNum, msisdn] : records) {
       std::cout << speedDialNum << " - " << msisdn << std::endl;
     }
   }

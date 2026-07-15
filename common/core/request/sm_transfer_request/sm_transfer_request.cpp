@@ -1,6 +1,5 @@
 #include "sm_transfer_request.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -31,33 +30,21 @@ nlohmann::json SmTransferRequest::toJson() const {
       {"mTimsi", mTimsi}, {"smsId", smsId}, {"msisdn", msisdn}, {"text", text}};
 }
 
-std::optional<std::string>
-SmTransferRequest::fromJsonStr(const std::string &jsonStr) {
-  auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
-  if (!parsedMTimsi) {
-    return parsedMTimsi.error();
-  }
-  mTimsi = *parsedMTimsi;
+std::unique_ptr<BaseJsonInfo> SmTransferRequest::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedSmsId = JsonDeserializer::smsIdFromJsonStr(jsonStr, "smsId");
-  if (!parsedSmsId) {
-    return parsedSmsId.error();
-  }
-  smsId = *parsedSmsId;
+  root->addInner("mTimsi",
+                 makeJsonValue<imsi_t>(&mTimsi, Validator::isCorrectImsi));
 
-  auto parsedMsisdn = JsonDeserializer::strFromJsonStr(jsonStr, "msisdn");
-  if (!parsedMsisdn) {
-    return parsedMsisdn.error();
-  }
-  msisdn = *parsedMsisdn;
+  root->addInner(
+      "smsId", makeJsonValue<unsigned int>(&smsId, Validator::isCorrectSmsId));
 
-  auto parsedText = JsonDeserializer::strFromJsonStr(jsonStr, "text");
-  if (!parsedText) {
-    return parsedText.error();
-  }
-  text = *parsedText;
+  root->addInner("msisdn",
+                 makeJsonValue<msisdn_t>(&msisdn, Validator::isCorrectMsisdn));
 
-  return std::nullopt;
+  root->addInner("text", makeJsonValue(&text));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

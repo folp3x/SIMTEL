@@ -127,7 +127,7 @@ std::optional<std::string> UeExchange::updateConnection(bool ueActive) {
     if (!error) {
       connected = true;
     }
-    return error;
+    return *error;
   } else {
     signalLevel = 0;
     closeConnection();

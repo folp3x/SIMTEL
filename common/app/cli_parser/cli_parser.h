@@ -19,7 +19,7 @@ protected:
 
   CLI::Option *portOpt = nullptr;
 
-  std::vector<CLI::Option *> configOpts = {};
+  std::vector<CLI::Option *> configOpts{};
 
   CLI::Option *configFileOpt = nullptr;
 

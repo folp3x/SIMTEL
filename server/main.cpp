@@ -2,7 +2,6 @@
 #include "app/cli_parser/cli_parser.h"
 
 #include "app/config/bs_config/bs_config_parser/bs_config_parser.h"
-#include "app/config/config_parser/config_parser.h"
 #include "app/config/epc_config/epc_config_parser/epc_config_parser.h"
 
 int main(int argc, char *argv[]) {
@@ -30,15 +29,12 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    auto configParser = server::ConfigParser::create();
-    auto parsedConfig = configParser->parse(*filePath);
-    if (!parsedConfig) {
-      std::cout << "Error parsing main config file: " << parsedConfig.error()
-                << std::endl;
+    server::config Config;
+    auto error = config->fromJsonFile(*filePath);
+    if (error) {
+      std::cout << "Error parsing main config file: " << *error << std::endl;
       return 1;
     }
-
-    config = cliParser->redefineConfig(*parsedConfig);
 
     auto bsConfigParser =
         server::BsConfigParser::create(config.getMmeConfigs());

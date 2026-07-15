@@ -1,6 +1,5 @@
 #include "rrc_reconfiguration_keep_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -17,21 +16,17 @@ nlohmann::json RrcReconfigurationKeepResponse::toJson() const {
   return nlohmann::json{{"imei", imei}, {"bsId", bsId}};
 }
 
-std::optional<std::string>
-RrcReconfigurationKeepResponse::fromJsonStr(const std::string &jsonStr) {
-  auto parsedImei = JsonDeserializer::imeiFromJsonStr(jsonStr, "imei");
-  if (!parsedImei) {
-    return parsedImei.error();
-  }
-  imei = *parsedImei;
+std::unique_ptr<BaseJsonInfo>
+RrcReconfigurationKeepResponse::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedBsId = JsonDeserializer::bsIdFromJsonStr(jsonStr, "bsId");
-  if (!parsedBsId) {
-    return parsedBsId.error();
-  }
-  bsId = *parsedBsId;
+  root->addInner("imei",
+                 makeJsonValue<imsi_t>(&imei, Validator::isCorrectImei));
 
-  return std::nullopt;
+  root->addInner("bsId",
+                 makeJsonValue<unsigned int>(&bsId, Validator::isCorrectBsId));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

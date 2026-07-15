@@ -12,6 +12,11 @@ protected:
   static constexpr size_t BinaryBytesCount =
       constants::ImsiBinaryBytes + sizeof(smsId);
 
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
+
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
+
 public:
   SmDeliveryReportResponse() = default;
   SmDeliveryReportResponse(const common::imsi_t &mTimsi_, unsigned int smsId_);
@@ -19,10 +24,6 @@ public:
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;
-  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
-
-  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
-  getBinaryValuesInfo() override;
 
   imsi_t getMTimsi() const;
   unsigned int getSmsId() const;

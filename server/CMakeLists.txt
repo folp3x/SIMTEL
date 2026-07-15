@@ -6,7 +6,6 @@ set(SOURCES_LIST
     "app/menu/menu/menu.cpp"
     "app/menu/message_holder/message_holder.cpp"
     "app/config/config/config.cpp"
-    "app/config/config_parser/config_parser.cpp"
     "app/config/bs_config/bs_config_parser/bs_config_parser.cpp"
     "app/config/epc_config/epc_config_parser/epc_config_parser.cpp"
 

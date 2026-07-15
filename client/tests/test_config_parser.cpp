@@ -1,5 +1,3 @@
-#include "client/app/config/config_parser/config_parser.h"
-
 #include <filesystem>
 #include <gtest/gtest.h>
 
@@ -23,7 +21,7 @@ protected:
 };
 
 TEST_F(ConfigParserTest, Parse_NoPortValue) {
-  nlohmann::json json = {};
+  nlohmann::json json{};
   TempFile file{"test.json", json.dump()};
 
   if (!std::filesystem::exists(file.getPath()))

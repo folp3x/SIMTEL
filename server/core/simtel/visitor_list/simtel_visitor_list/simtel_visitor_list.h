@@ -10,7 +10,7 @@ class SimtelVisitorList {
 private:
   const unsigned int mmeId;
 
-  std::unordered_map<common::imsi_t, VlrRecord> records = {};
+  std::unordered_map<common::imsi_t, VlrRecord> records{};
 
   std::string createLogMsg(const std::string &content) const;
 

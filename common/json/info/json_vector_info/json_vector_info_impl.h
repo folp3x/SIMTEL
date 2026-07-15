@@ -3,27 +3,26 @@
 namespace common {
 template <typename T>
 JsonVectorInfo<T>::JsonVectorInfo(
-    const std::string &name,
-    const std::function<void(const std::vector<T> &)> &successCallback,
-    const std::function<std::string(const std::vector<T> &)> &checkFn)
-    : JsonContainerInfo<std::vector<T>>(name, successCallback, checkFn) {}
+    std::vector<T> *value,
+    const std::function<std::string(const T &)> &elemValidateFunc)
+    : JsonContainerInfo<std::vector<T>>(value, elemValidateFunc) {}
 
 template <typename T>
-std::expected<std::vector<T>, std::string>
-JsonVectorInfo<T>::parseContainer(const nlohmann::json &fieldJson) {
-  std::vector<T> field{};
+std::optional<std::string>
+JsonVectorInfo<T>::parseContainer(const nlohmann::json &json) {
+  constexpr auto elemType = this->template recognizeType<T>();
+  static_assert(elemType.has_value(), "Unsupported type");
 
-  for (size_t i = 0; i < fieldJson.size(); ++i) {
-    nlohmann::json elemJson = fieldJson[i];
-    auto elemType = this->template recognizeType<T>();
-    if (!(hasJsonType(elemJson, elemType))) {
-      return std::unexpected("elements must have a type: '" +
-                             jsonTypeToStr(elemType) + "'");
+  for (size_t i = 0; i < json.size(); ++i) {
+    nlohmann::json elemJson = json[i];
+    if (!(utils::hasJsonType(elemJson, *elemType))) {
+      return "Expected element of type '" + utils::jsonTypeToStr(*elemType) +
+             "'";
     }
-    T elem = elemJson.get<T>();
-    field.push_back(elem);
+
+    this->value->push_back(elemJson.get<T>());
   }
 
-  return field;
+  return std::nullopt;
 }
 } // namespace common

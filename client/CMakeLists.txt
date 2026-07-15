@@ -5,7 +5,6 @@ set(SOURCES_LIST
 	"app/app/app.cpp"
 	"app/cli_parser/cli_parser.cpp"
 
-	"app/config/config_parser/config_parser.cpp"
 	"app/config/config/config.cpp"
 
 	"app/menu/menu/menu.cpp"
@@ -20,7 +19,7 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_received/menu_item_received.cpp"
 	"app/menu/menu_item/menu_item_dialog/menu_item_dialog.cpp"
 
-	"app/address_book_parser/address_book_parser.cpp"
+	"app/address_book/address_book.cpp"
 	"core/ue/ue_context/ue_context.cpp"
 	"core/ue/ue_exchange/ue_exchange.cpp"
 

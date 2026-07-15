@@ -11,8 +11,6 @@ void EpcConfigParser::initFields() {
 
 std::expected<EpcConfig, std::string>
 EpcConfigParser::parseJson(const nlohmann::json &json) {
-  config = {};
-
   auto error = parseFields(json);
   if (error) {
     return std::unexpected(*error);

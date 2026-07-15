@@ -1,6 +1,5 @@
 #include "ussd_balance_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/validator/validator.h"
 
 namespace common {
@@ -14,15 +13,10 @@ nlohmann::json UssdBalanceResponse::toJson() const {
   return nlohmann::json{{"balance", balance}};
 }
 
-std::optional<std::string>
-UssdBalanceResponse::fromJsonStr(const std::string &jsonStr) {
-  auto parsedBalance = JsonDeserializer::balanceFromJsonStr(jsonStr, "balance");
-  if (!parsedBalance) {
-    return parsedBalance.error();
-  }
-  balance = *parsedBalance;
-
-  return std::nullopt;
+std::unique_ptr<BaseJsonInfo> UssdBalanceResponse::getJsonRootInfo() {
+  auto root = makeJsonObject();
+  root->addInner("balance", makeJsonValue(&balance));
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

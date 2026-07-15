@@ -51,8 +51,8 @@ std::string App::formChangeMessage(const std::string &paramName,
 }
 
 void App::handleLocationUpdate() {
-  auto req = std::make_unique<common::RrcConnectionRequest>(ctx.getImei(),
-                                                            ctx.getLocation());
+  auto req = std::make_unique<common::RrcConnectionRequest>(
+      ctx.getImei(), ctx.getLocation().getCoords());
   exchange.addRequest(ctx.getState(), std::move(req),
                       [this](std::unique_ptr<common::Request> response,
                              const std::string &error) {
@@ -346,15 +346,15 @@ void App::executeCommand(const std::unique_ptr<common::MenuItem> &cmd,
 }
 
 std::optional<common::msisdn_t> App::findBySpeedDialNum(char num) {
-  auto it = addressBook.find(num);
-  if (it == addressBook.end()) {
+  auto records = addressBook.getRecords();
+  auto it = records.find(num);
+  if (it == records.end()) {
     return std::nullopt;
   }
   return it->second;
 }
 
-App::App(const UeContext &ctx_,
-         const std::map<char, common::msisdn_t> &addressBook_)
+App::App(const UeContext &ctx_, const AddressBook &addressBook_)
     : ctx(ctx_), addressBook(addressBook_), exchange(ctx.getServerAddr()) {
   common::SignalHandler::setHandler(
       SIGINT, [this](int signal) { sigintHandler(signal); });

@@ -2,7 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace common {
+namespace common::utils {
 inline std::string jsonTypeToStr(nlohmann::json::value_t type) {
   switch (type) {
   case nlohmann::json::value_t::object:
@@ -24,19 +24,19 @@ inline std::string jsonTypeToStr(nlohmann::json::value_t type) {
   }
 }
 
-inline bool hasJsonType(const nlohmann::json &field,
+inline bool hasJsonType(const nlohmann::json &value,
                         nlohmann::json::value_t type) {
   switch (type) {
   case nlohmann::json::value_t::number_float:
     // любое число
-    return field.is_number();
+    return value.is_number();
   case nlohmann::json::value_t::number_integer:
     // любое целое число
-    return field.is_number_integer();
+    return value.is_number_integer();
   case nlohmann::json::value_t::number_unsigned:
-    return field.is_number_unsigned();
+    return value.is_number_unsigned();
   default:
-    return field.type() == type;
+    return value.type() == type;
   }
 }
-} // namespace common
+} // namespace common::utils

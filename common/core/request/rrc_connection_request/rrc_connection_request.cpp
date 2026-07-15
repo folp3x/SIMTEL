@@ -1,37 +1,30 @@
 #include "rrc_connection_request.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
 namespace common {
 RrcConnectionRequest::RrcConnectionRequest(const imei_t &imei_,
-                                           const Location<> &loc_)
-    : imei(imei_), loc(loc_) {}
+                                           const coords_t<> &coords_)
+    : imei(imei_), coords(coords_) {}
 
 RequestType RrcConnectionRequest::getType() const {
   return RequestType::RrcConnection;
 }
 
 nlohmann::json RrcConnectionRequest::toJson() const {
-  return nlohmann::json{{"loc", loc.getCoords()}, {"imei", imei}};
+  return nlohmann::json{{"loc", coords}, {"imei", imei}};
 }
 
-std::optional<std::string>
-RrcConnectionRequest::fromJsonStr(const std::string &jsonStr) {
-  auto parsedImei = JsonDeserializer::imeiFromJsonStr(jsonStr, "imei");
-  if (!parsedImei) {
-    return parsedImei.error();
-  }
-  imei = *parsedImei;
+std::unique_ptr<BaseJsonInfo> RrcConnectionRequest::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedLoc = Location<>::fromJsonStr(jsonStr);
-  if (!parsedLoc) {
-    return parsedLoc.error();
-  }
-  loc = *parsedLoc;
+  root->addInner("imei",
+                 makeJsonValue<imei_t>(&imei, Validator::isCorrectImei));
 
-  return std::nullopt;
+  root->addInner("loc", makeJsonArray(&coords));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>
@@ -42,14 +35,12 @@ RrcConnectionRequest::getBinaryValuesInfo() {
       &imei, Validator::isCorrectImei, utils::identifierFromStr,
       utils::imeiToStr));
 
-  valuesInfo.emplace_back(makeBinaryValue<Location<>, coords_t<>>(
-      &loc, nullptr, [](const Location<> &loc) { return loc.getCoords(); },
-      [](const coords_t<> &coords) { return Location<>(coords); }));
+  valuesInfo.emplace_back(makeBinaryValue(&coords));
 
   return valuesInfo;
 }
 
 imei_t RrcConnectionRequest::getImei() const { return imei; }
 
-Location<> RrcConnectionRequest::getLoc() const { return loc; }
+coords_t<> RrcConnectionRequest::getCoords() const { return coords; }
 } // namespace common

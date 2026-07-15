@@ -81,7 +81,7 @@ std::optional<common::NetworkError> SimtelUeContext::receiveData() {
 std::optional<common::NetworkError> SimtelUeContext::sendBufToUe() {
   auto error = sock->sendMessage(buf);
   if (error) {
-    return error;
+    return *error;
   } else {
     clearBuf();
     return std::nullopt;

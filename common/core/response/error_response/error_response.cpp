@@ -1,7 +1,5 @@
 #include "error_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
-
 namespace common {
 ErrorResponse::ErrorResponse(const std::string &description_)
     : description(description_) {}
@@ -12,16 +10,10 @@ nlohmann::json ErrorResponse::toJson() const {
   return nlohmann::json{{"description", description}};
 }
 
-std::optional<std::string>
-ErrorResponse::fromJsonStr(const std::string &jsonStr) {
-  auto parsedDescription =
-      JsonDeserializer::strFromJsonStr(jsonStr, "description");
-  if (!parsedDescription) {
-    return parsedDescription.error();
-  }
-  description = *parsedDescription;
-
-  return std::nullopt;
+std::unique_ptr<BaseJsonInfo> ErrorResponse::getJsonRootInfo() {
+  auto root = makeJsonObject();
+  root->addInner("description", makeJsonValue(&description));
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

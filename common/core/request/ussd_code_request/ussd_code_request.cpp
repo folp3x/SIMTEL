@@ -1,7 +1,5 @@
 #include "ussd_code_request.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
-
 #include "common/utils/num/num.h"
 #include "common/utils/str/str.h"
 
@@ -17,21 +15,15 @@ nlohmann::json UssdCodeRequest::toJson() const {
   return nlohmann::json{{"mTimsi", mTimsi}, {"code", code}};
 }
 
-std::optional<std::string>
-UssdCodeRequest::fromJsonStr(const std::string &jsonStr) {
-  auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
-  if (!parsedMTimsi) {
-    return parsedMTimsi.error();
-  }
-  mTimsi = *parsedMTimsi;
+std::unique_ptr<BaseJsonInfo> UssdCodeRequest::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedCode = JsonDeserializer::ussdCodeFromJsonStr(jsonStr, "code");
-  if (!parsedCode) {
-    return parsedCode.error();
-  }
-  code = *parsedCode;
+  root->addInner("mTimsi",
+                 makeJsonValue<imsi_t>(&mTimsi, Validator::isCorrectImsi));
 
-  return std::nullopt;
+  root->addInner("code", makeJsonValue(&code));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

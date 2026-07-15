@@ -7,6 +7,6 @@
 namespace server {
 struct PcrfConfig {
   double smsPriceRub = 0;
-  std::unordered_map<common::imsi_t, BalanceInfo> balanceInfo = {};
+  std::unordered_map<common::imsi_t, BalanceInfo> balanceInfo{};
 };
 } // namespace server

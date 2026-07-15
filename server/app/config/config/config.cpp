@@ -1,37 +1,82 @@
 #include "config.h"
 
+#include "common/validator/validator.h"
+
 namespace server {
+std::unique_ptr<common::BaseJsonInfo> Config::getJsonRootInfo() {
+  auto root = common::Config::getJsonRootInfo();
+  auto *rootObj = dynamic_cast<common::JsonObjectInfo *>(root.get());
+
+  rootObj->addInner(
+      "bsFilePath",
+      makeJsonValue<std::string>(&bsFilePath, [](const std::string &path) {
+        return common::Validator::jsonFilePathExists(path, "BS");
+      }));
+
+  rootObj->addInner(
+      "epcFilePath",
+      makeJsonValue<std::string>(&epcFilePath, [](const std::string &path) {
+        return common::Validator::jsonFilePathExists(path, "EPC");
+      }));
+
+  auto smscConfigObj = makeJsonObject();
+  smscConfigObj->addInner(
+      "smsTtl_ms",
+      makeJsonValue<unsigned int>(&smscConfig.smsTtlMs, [](unsigned int ttl) {
+        return common::Validator::isPositiveNumber(ttl, "SMS TTL");
+      }));
+
+  rootObj->addInner("smscConfig", std::move(smscConfigObj));
+
+  auto mmeConfigObj = makeJsonObject();
+
+  mmeConfigObj->addInner(
+      "id", makeJsonValue<unsigned int>(&curMmeConfig.id, [](unsigned int id) {
+        return common::Validator::isPositiveNumber(id, "MME id");
+      }));
+
+  mmeConfigObj->addInner(
+      "maxVlrSize",
+      makeJsonValue<size_t>(&curMmeConfig.maxVlrSize, [](size_t size) {
+        return common::Validator::isPositiveNumber(size, "Max VLR size");
+      }));
+
+  rootObj->addInner("mmeConfigs",
+                    makeJsonRepeatObject(std::move(mmeConfigObj), [this]() {
+                      mmeConfigs.push_back(curMmeConfig);
+                    }));
+
+  auto pcrfConfigObj = makeJsonObject();
+  pcrfConfigObj->addInner(
+      "smsPrice_rub",
+      makeJsonValue<double>(&pcrfConfig.smsPriceRub, [](double price) {
+        return common::Validator::isPositiveNumber(price, "SMS price");
+      }));
+
+  auto balanceInfoObj = makeJsonObject();
+
+  balanceInfoObj->addInner(
+      "imsi", makeJsonValue<common::imsi_t>(&curBalanceInfo.imsi,
+                                            common::Validator::isCorrectImsi));
+
+  balanceInfoObj->addInner("balance_rub",
+                           makeJsonValue(&curBalanceInfo.balanceRub));
+
+  pcrfConfigObj->addInner(
+      "balanceInfo", makeJsonRepeatObject(std::move(balanceInfoObj), [this]() {
+        pcrfConfig.balanceInfo[curBalanceInfo.imsi] = curBalanceInfo;
+      }));
+
+  rootObj->addInner("pcrfConfig", std::move(pcrfConfigObj));
+
+  return std::unique_ptr<common::BaseJsonInfo>(rootObj);
+}
+
 std::string Config::getBsFilePath() const { return bsFilePath; }
-
-void Config::setBsFilePath(const std::string &bsFilePath_) {
-  bsFilePath = bsFilePath_;
-}
-
 std::string Config::getEpcFilePath() const { return epcFilePath; }
-
-void Config::setEpcFilePath(const std::string &epcFilePath_) {
-  epcFilePath = epcFilePath_;
-}
 
 std::vector<MmeConfig> Config::getMmeConfigs() const { return mmeConfigs; }
 
-void Config::addMmeConfig(const MmeConfig &config) {
-  mmeConfigs.push_back(config);
-}
-
 SmscConfig Config::getSmscConfig() const { return smscConfig; }
-
 PcrfConfig Config::getPcrfConfig() const { return pcrfConfig; }
-
-void Config::setSmscTtlMs(unsigned int smscTtlMs) {
-  smscConfig.smsTtlMs = smscTtlMs;
-}
-
-void Config::setPcrfSmsPriceRub(double pcrfSmsPriceRub) {
-  pcrfConfig.smsPriceRub = pcrfSmsPriceRub;
-}
-
-void Config::addPcrfBalanceInfo(const BalanceInfo &info) {
-  pcrfConfig.balanceInfo.emplace(info.imsi, info);
-}
 } // namespace server

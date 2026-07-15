@@ -1,6 +1,5 @@
 #include "sm_delivery_error_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/network/network.h"
 
 namespace common {
@@ -19,21 +18,12 @@ nlohmann::json SmDeliveryErrorResponse::toJson() const {
   return json;
 }
 
-std::optional<std::string>
-SmDeliveryErrorResponse::fromJsonStr(const std::string &jsonStr) {
-  auto error = SmDeliveryReportResponse::fromJsonStr(jsonStr);
-  if (error) {
-    return *error;
-  }
+std::unique_ptr<BaseJsonInfo> SmDeliveryErrorResponse::getJsonRootInfo() {
+  auto root = SmDeliveryReportResponse::getJsonRootInfo();
+  auto *rootObj = dynamic_cast<JsonObjectInfo *>(root.get());
 
-  auto parsedDescription =
-      JsonDeserializer::strFromJsonStr(jsonStr, "description");
-  if (!parsedDescription) {
-    return parsedDescription.error();
-  }
-  description = *parsedDescription;
-
-  return std::nullopt;
+  rootObj->addInner("description", makeJsonValue(&description));
+  return std::unique_ptr<BaseJsonInfo>(rootObj);
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

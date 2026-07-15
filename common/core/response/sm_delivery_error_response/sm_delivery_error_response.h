@@ -15,7 +15,8 @@ public:
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;
-  virtual std::optional<std::string> fromJsonStr(const std::string &jsonStr);
+
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
 
   virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
   getBinaryValuesInfo() override;

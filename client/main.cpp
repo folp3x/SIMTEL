@@ -1,7 +1,5 @@
-#include "app/address_book_parser/address_book_parser.h"
 #include "app/app/app.h"
 #include "app/cli_parser/cli_parser.h"
-#include "app/config/config_parser/config_parser.h"
 
 int main(int argc, char *argv[]) {
   try {
@@ -24,15 +22,11 @@ int main(int argc, char *argv[]) {
     client::Config config{};
     auto filePath = cliParser->getConfigFilePath();
     if (filePath) {
-      auto configParser = client::ConfigParser::create();
-      auto parsedConfig = configParser->parse(*filePath);
-      if (!parsedConfig) {
-        std::cout << "Error parsing config file: " << parsedConfig.error()
-                  << std::endl;
+      auto error = config.fromJsonFile(*filePath);
+      if (error) {
+        std::cout << "Error parsing config file: " << *error << std::endl;
         return 1;
       }
-
-      config = std::move(*parsedConfig);
     } else if (!cliParser->allConfigOptsSet()) {
       std::cout
           << "If --config is not specified all config options are required"
@@ -47,16 +41,10 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    auto addressBookParser = client::AddressBookParser::create();
-    auto parsedAddressBook =
-        addressBookParser->parse(config.getAddressBookFilePath());
-
-    std::map<char, common::msisdn_t> addressBook;
-    if (parsedAddressBook) {
-      addressBook = std::move(*parsedAddressBook);
-    } else {
-      std::cout << "Error loading address book: " << parsedAddressBook.error()
-                << std::endl;
+    client::AddressBook addressBook{};
+    auto error = addressBook.fromJsonFile(config.getAddressBookFilePath());
+    if (error) {
+      std::cout << "Error while loading address book: " << *error << std::endl;
     }
 
     common::Location<> location(config.getLoc());

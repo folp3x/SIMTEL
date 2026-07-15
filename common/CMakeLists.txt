@@ -11,7 +11,6 @@ set(SOURCES_LIST
 	"network/network_address/network_address.cpp"
 	"network/socket/socket/socket.cpp"
 	"binary/binary_serializer/binary_serializer.cpp"
-	"network/json_deserializer/json_deserializer.cpp"
 
 	"app/config/config/config.cpp"
 	"app/menu/menu_item/menu_item_empty/menu_item_empty.cpp"
@@ -43,8 +42,8 @@ set(SOURCES_LIST
 	"core/response/ussd_msisdn_response/ussd_msisdn_response.cpp"
 
 	"json/info/json_object_info/json_object_info.cpp"
-	"json/info/json_object_array_info/json_object_array_info.cpp"
-	"json/info/json_base_info/json_base_info.cpp"
+	"json/info/json_repeat_object_info/json_repeat_object_info.cpp"
+	"json/json_parsable/json_parsable.cpp"
 
 	"binary/binary_serializable/binary_serializable.cpp"
 )

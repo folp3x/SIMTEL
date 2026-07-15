@@ -33,7 +33,7 @@ private:
 
   mutable std::mutex connectedUeMtx;
   std::unordered_map<common::imsi_t, std::shared_ptr<SimtelUeContext>>
-      connectedUe = {};
+      connectedUe{};
 
   static std::optional<std::string>
   handleLocationUpdate(const common::RrcConnectionRequest &req,

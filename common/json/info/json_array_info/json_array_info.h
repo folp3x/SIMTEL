@@ -9,15 +9,13 @@ namespace common {
 template <typename T, size_t S>
 class JsonArrayInfo : public JsonContainerInfo<std::array<T, S>> {
 private:
-  virtual std::expected<std::array<T, S>, std::string>
-  parseContainer(const nlohmann::json &fieldJson) override;
+  virtual std::optional<std::string>
+  parseContainer(const nlohmann::json &json) override;
 
 public:
   JsonArrayInfo(
-      const std::string &name,
-      const std::function<void(const std::array<T, S> &)> &successCallback,
-      const std::function<std::string(const std::array<T, S> &)> &checkFn =
-          nullptr);
+      std::array<T, S> *value,
+      const std::function<std::string(const T &)> &elemValidateFunc = nullptr);
 };
 } // namespace common
 

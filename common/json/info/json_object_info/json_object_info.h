@@ -1,19 +1,16 @@
 #pragma once
 
-#include "common/json/info/json_base_info/json_base_info.h"
+#include "common/json/info/base_json_info/base_json_info.h"
 
 namespace common {
 // класс с информацией для парсинга JSON-объекта
-class JsonObjectInfo : public JsonBaseInfo {
+class JsonObjectInfo : public BaseJsonInfo {
 private:
-  std::vector<std::unique_ptr<JsonBaseInfo>> innerFields = {};
+  std::unordered_map<std::string, std::unique_ptr<BaseJsonInfo>> innerFields{};
 
 public:
-  explicit JsonObjectInfo(const std::string &name);
+  virtual std::optional<std::string> parse(const nlohmann::json &json) override;
 
-  virtual std::optional<std::string> parse(const nlohmann::json &json,
-                                           bool finalParse = true) override;
-
-  void addInner(std::unique_ptr<JsonBaseInfo> field);
+  void addInner(const std::string &name, std::unique_ptr<BaseJsonInfo> field);
 };
 } // namespace common

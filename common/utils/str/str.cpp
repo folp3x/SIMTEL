@@ -38,7 +38,7 @@ bool allDigits(std::string_view str) {
 }
 
 std::vector<std::string> split(const std::string &str) {
-  std::vector<std::string> tokens = {};
+  std::vector<std::string> tokens{};
   std::string curToken = "";
   for (auto ch : str) {
     if (std::isspace(ch)) {

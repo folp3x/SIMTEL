@@ -1,6 +1,5 @@
 #include "rrc_reconfiguration_handover_response.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -17,21 +16,17 @@ nlohmann::json RrcReconfigurationHandoverResponse::toJson() const {
   return nlohmann::json{{"mTimsi", mTimsi}, {"bsId", bsId}};
 }
 
-std::optional<std::string>
-RrcReconfigurationHandoverResponse::fromJsonStr(const std::string &jsonStr) {
-  auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
-  if (!parsedMTimsi) {
-    return parsedMTimsi.error();
-  }
-  mTimsi = *parsedMTimsi;
+std::unique_ptr<BaseJsonInfo>
+RrcReconfigurationHandoverResponse::getJsonRootInfo() {
+  auto root = makeJsonObject();
 
-  auto parsedBsId = JsonDeserializer::bsIdFromJsonStr(jsonStr, "bsId");
-  if (!parsedBsId) {
-    return parsedBsId.error();
-  }
-  bsId = *parsedBsId;
+  root->addInner("mTimsi",
+                 makeJsonValue<imsi_t>(&mTimsi, Validator::isCorrectImsi));
 
-  return std::nullopt;
+  root->addInner("bsId",
+                 makeJsonValue<unsigned int>(&bsId, Validator::isCorrectBsId));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

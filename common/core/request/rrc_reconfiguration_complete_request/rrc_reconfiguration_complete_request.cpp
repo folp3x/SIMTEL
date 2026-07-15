@@ -1,6 +1,5 @@
 #include "rrc_reconfiguration_complete_request.h"
 
-#include "common/network/json_deserializer/json_deserializer.h"
 #include "common/utils/str/str.h"
 #include "common/validator/validator.h"
 
@@ -17,15 +16,13 @@ nlohmann::json RrcReconfigurationCompleteRequest::toJson() const {
   return nlohmann::json{{"mTimsi", mTimsi}};
 }
 
-std::optional<std::string>
-RrcReconfigurationCompleteRequest::fromJsonStr(const std::string &jsonStr) {
-  auto parsedMTimsi = JsonDeserializer::imsiFromJsonStr(jsonStr, "mTimsi");
-  if (!parsedMTimsi) {
-    return parsedMTimsi.error();
-  }
-  mTimsi = *parsedMTimsi;
+std::unique_ptr<BaseJsonInfo>
+RrcReconfigurationCompleteRequest::getJsonRootInfo() {
+  auto root = makeJsonObject();
+  root->addInner("mTimsi",
+                 makeJsonValue<imsi_t>(&mTimsi, Validator::isCorrectImsi));
 
-  return std::nullopt;
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

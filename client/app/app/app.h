@@ -8,8 +8,11 @@
 #include "client/app/menu/menu_item/menu_item_dialog/menu_item_dialog.h"
 #include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "client/app/menu/menu_item/menu_item_protocol/menu_item_protocol.h"
+
 #include "client/app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 #include "client/app/menu/menu_item/menu_item_ussd_code/menu_item_ussd_code.h"
+
+#include "client/app/address_book/address_book.h"
 
 #include "client/core/sms/sms/sms.h"
 
@@ -40,7 +43,7 @@ private:
   std::mutex messagesMtx;
   std::queue<common::MenuMessage> messages{};
 
-  std::map<char, common::msisdn_t> addressBook{};
+  AddressBook addressBook{};
 
   std::mutex smsListMtx;
   std::vector<Sms> smsList{};
@@ -93,8 +96,7 @@ private:
   void setSentSmsStatus(unsigned int smsId, SmsStatus status);
 
 public:
-  App(const UeContext &ctx_,
-      const std::map<char, common::msisdn_t> &addressBook_);
+  App(const UeContext &ctx_, const AddressBook &addressBook_);
 
   void run();
 };

@@ -47,10 +47,8 @@ void BsConfigParser::initFields() {
                                                    "Max connections");
       }));
 
-  addInfo(makeParsedObjectArray("", std::move(bsConfigObj), [this]() {
-    configs.push_back(curConfig);
-    curConfig = {};
-  }));
+  addInfo(makeParsedObjectArray("", std::move(bsConfigObj),
+                                [this]() { configs.push_back(curConfig); }));
 }
 
 std::expected<std::vector<BsConfig>, std::string>

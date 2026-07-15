@@ -52,21 +52,4 @@ template <typename T, size_t S>
 size_t Location<T, S>::getCoordsCount() const {
   return coords.size();
 }
-
-template <typename T, size_t S>
-  requires std::is_arithmetic_v<T>
-std::expected<Location<T, S>, std::string>
-Location<T, S>::fromJsonStr(const std::string &str) {
-  Location<T, S> loc{};
-  auto locInfo =
-      std::make_unique<JsonArrayInfo<float, constants::LocationCoordsCount>>(
-          "loc", [&](const coords_t<> &coords) { loc.move(coords); });
-
-  auto error = JsonParser<coords_t<>>::parseField(std::move(locInfo), str);
-  if (error) {
-    return std::unexpected(*error);
-  }
-
-  return loc;
-}
 } // namespace common

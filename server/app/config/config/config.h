@@ -11,6 +11,9 @@
 namespace server {
 class Config : public common::Config {
 private:
+  MmeConfig curMmeConfig{};
+  BalanceInfo curBalanceInfo{};
+
   std::vector<MmeConfig> mmeConfigs{};
   SmscConfig smscConfig{};
   PcrfConfig pcrfConfig{};
@@ -18,21 +21,15 @@ private:
   std::string bsFilePath = "";
   std::string epcFilePath = "";
 
+  virtual std::unique_ptr<common::BaseJsonInfo> getJsonRootInfo() override;
+
 public:
   std::string getBsFilePath() const;
-  void setBsFilePath(const std::string &bsFilePath_);
-
   std::string getEpcFilePath() const;
-  void setEpcFilePath(const std::string &epcFilePath_);
 
   std::vector<MmeConfig> getMmeConfigs() const;
-  void addMmeConfig(const MmeConfig &config);
 
   SmscConfig getSmscConfig() const;
-  void setSmscTtlMs(unsigned int smscTtlMs);
-
   PcrfConfig getPcrfConfig() const;
-  void setPcrfSmsPriceRub(double pcrfSmsPriceRub);
-  void addPcrfBalanceInfo(const BalanceInfo &info);
 };
 } // namespace server
