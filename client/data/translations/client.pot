@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-16 16:55+0300\n"
+"POT-Creation-Date: 2026-07-16 21:10+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,10 +17,310 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: core/ue/ue_active/ue_active.h:10
+#: core/ue/ue_exchange/ue_exchange.h:27
+msgid "Unexpected response"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:73
+msgid "Not connected"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:95
+msgid "Failed to send sms"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:106
+msgid "Failed to send SMS delivery acknowledge"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:113
+msgid "Unknown request"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:147
+msgid "Failed to send location"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:154
+msgid "Failed to receive signal level"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:165
+msgid "BS not found"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:183
+msgid "Failed to send chosen BS id"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:226
+msgid "Unexpected request"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:230
+msgid "Unknown BS responded"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:240
+msgid "Failed to send configure confirm"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:247
+msgid "Failed to receive accept response"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:356
+msgid "Failed to send ussd"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:363
+msgid "Failed to receive ussd response"
+msgstr ""
+
+#: core/ue/ue_exchange/ue_exchange.cpp:370
+msgid "Failed to process command"
+msgstr ""
+
+#: core/ue/ue_active/ue_active.h:9
 msgid "active"
 msgstr ""
 
-#: core/ue/ue_active/ue_active.h:10
+#: core/ue/ue_active/ue_active.h:9
 msgid "not active"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:8
+msgid "exit program"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:9
+msgid "set status"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:10
+msgid "change location"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:12
+msgid "set data transfer method"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:13
+msgid "send sms"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:14
+msgid "show all sent sms"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:15
+msgid "show all received sms"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:16
+msgid "show sms converstaion"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:17
+msgid "send ussd command"
+msgstr ""
+
+#: app/menu/command_info/command_info.h:18
+msgid "show ussd codes"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:28
+msgid "Write content (empty line means end of sms)"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:44
+msgid "state"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:52
+msgid "protocol"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:61
+msgid "no signal"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:62 app/app/app.cpp:131
+msgid "Location"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:62
+msgid "signal"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:67
+msgid "Address book"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:70
+msgid "empty"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:80
+msgid "To"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:81 app/menu/menu/menu.cpp:115
+msgid "at"
+msgstr ""
+
+#: app/menu/menu/menu.cpp:115
+msgid "From"
+msgstr ""
+
+#: app/menu/command_parser/command_parser.h:30
+msgid "Extra arguments ignored"
+msgstr ""
+
+#: app/menu/command_parser/command_parser.h:31
+msgid "Missing argument"
+msgstr ""
+
+#: app/menu/command_parser/command_parser.h:32
+msgid "Invalid argument"
+msgstr ""
+
+#: app/app/app.cpp:48
+msgid "changed to"
+msgstr ""
+
+#: app/app/app.cpp:48
+msgid "already set to"
+msgstr ""
+
+#: app/app/app.cpp:74
+msgid "Connected. m-timsi set"
+msgstr ""
+
+#: app/app/app.cpp:79
+msgid "Connected. New m-timsi received, but it is already assigned"
+msgstr ""
+
+#: app/app/app.cpp:82
+msgid "Confirmed m-timsi"
+msgstr ""
+
+#: app/app/app.cpp:89
+msgid "BS not changed"
+msgstr ""
+
+#: app/app/app.cpp:99
+msgid "Connection error"
+msgstr ""
+
+#: app/app/app.cpp:111
+msgid "State"
+msgstr ""
+
+#: app/app/app.cpp:124
+msgid "No signal. Try to reconnect (active 0, active 1)"
+msgstr ""
+
+#: app/app/app.cpp:134
+msgid "Location coords count is invalid"
+msgstr ""
+
+#: app/app/app.cpp:143
+msgid "Invalid protocol"
+msgstr ""
+
+#: app/app/app.cpp:153
+msgid "Protocol"
+msgstr ""
+
+#: app/app/app.cpp:167
+msgid "Unknown speed dial num"
+msgstr ""
+
+#: app/app/app.cpp:182
+msgid "SMS content cant be empty"
+msgstr ""
+
+#: app/app/app.cpp:202
+msgid "SMS sent to"
+msgstr ""
+
+#: app/app/app.cpp:231
+msgid "No dialog"
+msgstr ""
+
+#: app/app/app.cpp:248
+msgid "No received sms"
+msgstr ""
+
+#: app/app/app.cpp:265
+msgid "No sent sms"
+msgstr ""
+
+#: app/app/app.cpp:277
+msgid "Sending USSD..."
+msgstr ""
+
+#: app/app/app.cpp:290
+msgid "Balance"
+msgstr ""
+
+#: app/app/app.cpp:295
+msgid "rub"
+msgstr ""
+
+#: app/app/app.cpp:299
+msgid "Phone number"
+msgstr ""
+
+#: app/app/app.cpp:323
+msgid "Exiting app..."
+msgstr ""
+
+#: app/app/app.cpp:440
+msgid "Unknown m-timsi in delivery response"
+msgstr ""
+
+#: app/app/app.cpp:456
+msgid "SMS received from"
+msgstr ""
+
+#: app/app/app.cpp:473
+msgid "SMS not delivered"
+msgstr ""
+
+#: app/app/app.h:30
+msgid "Error"
+msgstr ""
+
+#: app/app/app.h:32
+msgid "No signal"
+msgstr ""
+
+#: utils/str.h:9
+msgid "pending..."
+msgstr ""
+
+#: utils/str.h:11
+msgid "V (delivered)"
+msgstr ""
+
+#: utils/str.h:13
+msgid "X (not delivered)"
+msgstr ""
+
+#: utils/str.h:15
+msgid "unknown"
+msgstr ""
+
+#: main.cpp:47
+msgid "Error parsing config file"
+msgstr ""
+
+#: main.cpp:53
+msgid "If --config is not specified all config options are required"
+msgstr ""
+
+#: main.cpp:64
+msgid "Error while loading address book"
 msgstr ""

@@ -5,6 +5,10 @@
 
 #include <stdexcept>
 
+#include <iomanip>
+#include <locale>
+#include <sstream>
+
 #include <string>
 #include <vector>
 

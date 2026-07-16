@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
         setlocale(LC_ALL, DefaultLocale);
       } else {
         setlocale(LC_ALL, locale->c_str());
+
         bindtextdomain(AppName, "./data/translations");
         textdomain(AppName);
       }

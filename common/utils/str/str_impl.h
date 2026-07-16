@@ -4,35 +4,19 @@ namespace common::utils {
 template <typename T>
   requires std::is_floating_point_v<T>
 std::string toStr(T num, std::optional<unsigned int> precision_, bool fixed) {
-  if (!precision_) {
-    return std::to_string(num);
-  } else {
-    unsigned int precision = *precision_;
+  std::stringstream stream;
+  stream.imbue(std::locale());
 
-    std::string formatStr = "%." + std::to_string(precision) + "f";
-    size_t size = snprintf(nullptr, 0, formatStr.c_str(), num) + 1;
-    std::string buf(size, '\0');
-    snprintf(buf.data(), size, formatStr.c_str(), num);
-    // удаление лишнего \0
-    buf.pop_back();
-
+  if (precision_) {
     if (fixed) {
-      return buf;
-    }
-
-    // удаление нулей в конце дробной части
-    size_t lastNonZeroInd = buf.find_last_not_of('0');
-    if (lastNonZeroInd != std::string::npos && buf[lastNonZeroInd] == '.') {
-      // в дробной части только нули
-      buf.erase(lastNonZeroInd);
-    } else if (lastNonZeroInd != std::string::npos) {
-      buf.erase(lastNonZeroInd + 1);
+      stream << std::fixed << std::setprecision(*precision_);
     } else {
-      buf = "";
+      stream << std::setprecision(*precision_);
     }
-
-    return buf;
   }
+
+  stream << num;
+  return stream.str();
 }
 
 template <std::input_iterator Iterator, typename U>

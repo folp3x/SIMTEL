@@ -41,7 +41,7 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
                       common::Protocol protocol) const {
   std::cout << "IMSI: " << imsi << ", ";
 
-  std::cout << _("state") << " ";
+  std::cout << _("state") << ": ";
   std::string statusStr = ueActiveToStr(inActive);
   if (inActive) {
     common::utils::printColored(statusStr, rang::fg::green, "");
