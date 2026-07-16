@@ -18,8 +18,9 @@ set(SOURCES_LIST
 	"app/menu/menu_item/menu_item_sent/menu_item_sent.cpp"
 	"app/menu/menu_item/menu_item_received/menu_item_received.cpp"
 	"app/menu/menu_item/menu_item_dialog/menu_item_dialog.cpp"
-
 	"app/address_book/address_book.cpp"
+	"app/locale/locale.cpp"
+
 	"core/ue/ue_context/ue_context.cpp"
 	"core/ue/ue_exchange/ue_exchange.cpp"
 
@@ -46,6 +47,12 @@ add_custom_command(TARGET ${APP_TARGET_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory 
         "${CMAKE_CURRENT_SOURCE_DIR}/data" 
         "$<TARGET_FILE_DIR:${APP_TARGET_NAME}>/data"
+)
+
+add_custom_command(TARGET ${APP_TARGET_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory 
+        "${CMAKE_CURRENT_SOURCE_DIR}/translations" 
+        "$<TARGET_FILE_DIR:${APP_TARGET_NAME}>/translations"
 )
 
 if(BUILD_CLIENT_TESTS)

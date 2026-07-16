@@ -1,8 +1,11 @@
 #include "app/app/app.h"
 #include "app/cli_parser/cli_parser.h"
+#include "app/locale/locale.h"
 
 int main(int argc, char *argv[]) {
   try {
+    const char *AppName = "client";
+
     auto cliParser = client::CliParser::create();
 
     std::string msg = "";
@@ -17,6 +20,23 @@ int main(int argc, char *argv[]) {
     if (!parsed) {
       std::cout << msg << std::endl;
       return 1;
+    }
+
+    const char *DefaultLocale = "en_EN.UTF-8";
+    auto localeAlias = cliParser->getLocaleAlias();
+
+    if (!localeAlias) {
+      setlocale(LC_ALL, DefaultLocale);
+    } else {
+      auto locale = client::localeNameFromAlias(*localeAlias);
+      if (!locale) {
+        std::cout << "Unsupported locale" << std::endl;
+        setlocale(LC_ALL, DefaultLocale);
+      } else {
+        setlocale(LC_ALL, locale->c_str());
+        bindtextdomain(AppName, "./translations");
+        textdomain(AppName);
+      }
     }
 
     client::Config config{};

@@ -1,5 +1,6 @@
 #include "cli_parser.h"
 
+#include "client/app/locale/locale.h"
 #include "common/validator/validator.h"
 
 namespace client {
@@ -47,6 +48,10 @@ void CliParser::initOptions() {
   configOpts.push_back(ipOpt);
 
   initLocOpt();
+
+  localeOpt = cliApp.add_option("--lang", localeAlias, "Set language");
+  localeOpt->check(isSupportedLocale);
+  localeOpt->type_name("en, ru, etc.");
 }
 
 std::unique_ptr<CliParser> CliParser::create() {
@@ -69,5 +74,10 @@ Config CliParser::redefineConfig(const Config &definedConfig) const {
     redefinedConfig.setLoc(config.getLoc());
 
   return redefinedConfig;
+}
+
+std::optional<std::string> CliParser::getLocaleAlias() const {
+  bool set = isOptSet(localeOpt);
+  return set ? std::optional{localeAlias} : std::nullopt;
 }
 } // namespace client

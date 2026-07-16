@@ -13,6 +13,9 @@ private:
   CLI::Option *imsiOpt = nullptr;
   CLI::Option *ipOpt = nullptr;
   CLI::Option *locOpt = nullptr;
+  CLI::Option *localeOpt = nullptr;
+
+  std::string localeAlias = "";
 
   void initLocOpt();
 
@@ -22,5 +25,7 @@ public:
   static std::unique_ptr<CliParser> create();
 
   virtual Config redefineConfig(const Config &definedConfig) const override;
+
+  std::optional<std::string> getLocaleAlias() const;
 };
 } // namespace client
