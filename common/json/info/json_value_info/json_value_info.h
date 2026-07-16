@@ -5,6 +5,7 @@
 
 #include "common/json/info/base_json_info/base_json_info.h"
 #include "common/utils/json/json.h"
+#include "common/utils/str/str.h"
 
 namespace common {
 // класс с информацией для парсинга простого JSON-поля из объекта

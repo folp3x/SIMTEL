@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 namespace server {
-static std::unordered_map<std::string, SubscriberStatus> statuses = {
+static const std::unordered_map<std::string, SubscriberStatus> statuses = {
     {"active", SubscriberStatus::Active}, {"banned", SubscriberStatus::Banned}};
 
 std::optional<SubscriberStatus>

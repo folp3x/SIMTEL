@@ -7,6 +7,11 @@ class SmDeliveryErrorResponse : public SmDeliveryReportResponse {
 private:
   std::string description = "";
 
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
+
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
+
 public:
   SmDeliveryErrorResponse() = default;
   SmDeliveryErrorResponse(const imsi_t &mTimsi, unsigned int smsId,
@@ -15,11 +20,6 @@ public:
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;
-
-  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
-
-  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
-  getBinaryValuesInfo() override;
 
   std::string getDescription() const;
 };

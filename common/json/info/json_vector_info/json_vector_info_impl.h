@@ -16,8 +16,8 @@ JsonVectorInfo<T>::parseContainer(const nlohmann::json &json) {
   for (size_t i = 0; i < json.size(); ++i) {
     nlohmann::json elemJson = json[i];
     if (!(utils::hasJsonType(elemJson, *elemType))) {
-      return "Expected element of type '" + utils::jsonTypeToStr(*elemType) +
-             "'";
+      std::string typeStr = utils::jsonTypeToStr(*elemType);
+      return "Expected element of type " + utils::quoted(typeStr);
     }
 
     this->value->push_back(elemJson.get<T>());

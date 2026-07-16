@@ -9,6 +9,11 @@ private:
   imei_t imsi = "";
   unsigned int bsId = 0;
 
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
+
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
+
 public:
   MeasurementReportRequest() = default;
   MeasurementReportRequest(const imei_t &imei_, const imsi_t &imsi_,
@@ -17,11 +22,6 @@ public:
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;
-
-  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
-
-  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
-  getBinaryValuesInfo() override;
 
   imei_t getImei() const;
   imei_t getImsi() const;

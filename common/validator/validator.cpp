@@ -141,11 +141,6 @@ std::string Validator::isCorrectSignal(unsigned int signal) {
   return "";
 }
 
-std::string Validator::isPositiveNumber(double number,
-                                        const std::string &name) {
-  return (number > 0) ? "" : name + " must be a positive number";
-}
-
 std::string Validator::isCorrectBsId(unsigned int bsId) {
   return isPositiveNumber(bsId, "BS id");
 }

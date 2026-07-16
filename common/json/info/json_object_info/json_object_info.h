@@ -2,6 +2,8 @@
 
 #include "common/json/info/base_json_info/base_json_info.h"
 
+#include "common/utils/str/str.h"
+
 namespace common {
 // класс с информацией для парсинга JSON-объекта
 class JsonObjectInfo : public BaseJsonInfo {

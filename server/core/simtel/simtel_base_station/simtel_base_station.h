@@ -18,8 +18,9 @@
 namespace server {
 class SimtelBaseStation {
 private:
-  static std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
-      baseStations;
+  inline static std::unordered_map<unsigned int,
+                                   std::shared_ptr<SimtelBaseStation>>
+      baseStations{};
 
   static constexpr unsigned int ConnectionHandleReceiveTimeoutMsec = 10000;
 

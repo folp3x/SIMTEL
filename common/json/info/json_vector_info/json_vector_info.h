@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "common/utils/str/str.h"
+
 namespace common {
 // класс с информацией для парсинга вектора из JSON
 template <typename T>

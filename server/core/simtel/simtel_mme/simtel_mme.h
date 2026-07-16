@@ -14,14 +14,15 @@
 namespace server {
 class SimtelMme {
 private:
-  static constexpr uint64_t MaxMtimsi = 999'999'999'999'999;
+  static constexpr uint64_t MinMTimsi = 1;
+  static constexpr uint64_t MaxMTimsi = 999'999'999'999'999;
   static constexpr std::chrono::milliseconds SendSmsSleepTime{1000};
   static constexpr std::chrono::milliseconds SendReportSleepTime{1000};
 
   const unsigned int id = 0;
   const unsigned int maxVlrSize = 0;
 
-  inline static uint64_t curMTimsi = 1;
+  inline static uint64_t curMTimsi = MinMTimsi;
 
   SimtelVisitorList vlr;
 

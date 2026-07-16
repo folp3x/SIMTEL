@@ -125,8 +125,8 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
     return std::unexpected("UE is banned by IMEI");
   }
 
-  auto hlrRecords = findInHlr(sqlite_orm::where(
-      sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi)));
+  auto hlrRecords =
+      findInHlr(sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
   if (!hlrRecords) {
     return std::unexpected(hlrRecords.error());
   }
@@ -141,8 +141,8 @@ SimtelRegister::handleAuthInfoRequest(const common::imsi_t &imsi,
 std::expected<std::optional<unsigned int>, std::string>
 SimtelRegister::handleUpdateLocationRequest(const common::imsi_t &imsi,
                                             unsigned int mmeId) {
-  auto records = findInHlr(sqlite_orm::where(
-      sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi)));
+  auto records =
+      findInHlr(sqlite_orm::where(sqlite_orm::c(&HlrRecord::imsi) == imsi));
   if (!records) {
     return std::unexpected(records.error());
   }

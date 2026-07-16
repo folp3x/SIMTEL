@@ -1,15 +1,12 @@
+#include "client/app/config/config/config.h"
+
 #include <filesystem>
 #include <gtest/gtest.h>
 
 #include "test_utils/temp_file/temp_file.h"
 
-class ConfigParserTest : public testing::Test {
+class ConfigParseTest : public testing::Test {
 protected:
-  std::unique_ptr<client::ConfigParser> parser = client::ConfigParser::create();
-
-  std::string msg = "";
-  bool helpCalled = false;
-
   nlohmann::json getValidJson() {
     return nlohmann::json{{"ip", "127.0.0.1"},
                           {"port", 49152},
@@ -20,43 +17,46 @@ protected:
   }
 };
 
-TEST_F(ConfigParserTest, Parse_NoPortValue) {
+TEST_F(ConfigParseTest, Parse_NoPortValue) {
   nlohmann::json json{};
   TempFile file{"test.json", json.dump()};
 
   if (!std::filesystem::exists(file.getPath()))
     GTEST_SKIP() << "Error creating temp file, skipping test";
 
-  auto result = parser->parse(file.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile(file.getPath());
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }
 
-TEST_F(ConfigParserTest, Parse_NonNumericPortValue) {
+TEST_F(ConfigParseTest, Parse_NonNumericPortValue) {
   nlohmann::json json = {"port", "65535"};
   TempFile file{"test.json", json.dump()};
 
   if (!std::filesystem::exists(file.getPath()))
     GTEST_SKIP() << "Error creating temp file, skipping test";
 
-  auto result = parser->parse(file.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile(file.getPath());
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }
 
-TEST_F(ConfigParserTest, Parse_NonIntegerPortValue) {
+TEST_F(ConfigParseTest, Parse_NonIntegerPortValue) {
   nlohmann::json json = {"port", 65535.1};
   TempFile file{"test.json", json.dump()};
 
   if (!std::filesystem::exists(file.getPath()))
     GTEST_SKIP() << "Error creating temp file, skipping test";
 
-  auto result = parser->parse(file.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile(file.getPath());
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }
 
-TEST_F(ConfigParserTest, Parse_CorrectJson) {
+TEST_F(ConfigParseTest, Parse_CorrectJson) {
   nlohmann::json json = getValidJson();
   TempFile configFile{"test.json", json.dump()};
 
@@ -68,11 +68,11 @@ TEST_F(ConfigParserTest, Parse_CorrectJson) {
   if (!std::filesystem::exists(addressBookFile.getPath()))
     GTEST_SKIP() << "Error creating temp address book file, skipping test";
 
-  auto result = parser->parse(configFile.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile(configFile.getPath());
 
-  ASSERT_TRUE(result.has_value());
+  ASSERT_FALSE(error.has_value());
 
-  client::Config config = *result;
   bool locParsed = config.getLoc() == common::coords_t<float>{1.1};
 
   EXPECT_TRUE(config.getIp() == "127.0.0.1");
@@ -83,37 +83,39 @@ TEST_F(ConfigParserTest, Parse_CorrectJson) {
   EXPECT_TRUE(locParsed);
 }
 
-TEST_F(ConfigParserTest, Parse_NoFile) {
-  auto result = parser->parse("123");
+TEST_F(ConfigParseTest, Parse_NoFile) {
+  client::Config config;
+  auto error = config.fromJsonFile("123");
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }
 
-TEST_F(ConfigParserTest, Parse_EmptyJson) {
-  nlohmann::json json = getValidJson();
+TEST_F(ConfigParseTest, Parse_EmptyJson) {
   TempFile file{"test.json", ""};
 
   if (!std::filesystem::exists(file.getPath()))
     GTEST_SKIP() << "Error creating temp file, skipping test";
 
-  auto result = parser->parse(file.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile("123");
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }
 
-TEST_F(ConfigParserTest, Parse_InvalidJson) {
+TEST_F(ConfigParseTest, Parse_InvalidJson) {
   nlohmann::json json = getValidJson();
   TempFile file{"test.json", json.dump().substr(1)};
 
   if (!std::filesystem::exists(file.getPath()))
     GTEST_SKIP() << "Error creating temp file, skipping test";
 
-  auto result = parser->parse(file.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile("123");
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }
 
-TEST_F(ConfigParserTest, Parse_MissingIP) {
+TEST_F(ConfigParseTest, Parse_MissingIP) {
   nlohmann::json json = getValidJson();
   json.erase("ip");
   TempFile file{"test.json", json.dump()};
@@ -121,7 +123,8 @@ TEST_F(ConfigParserTest, Parse_MissingIP) {
   if (!std::filesystem::exists(file.getPath()))
     GTEST_SKIP() << "Error creating temp file, skipping test";
 
-  auto result = parser->parse(file.getPath());
+  client::Config config;
+  auto error = config.fromJsonFile("123");
 
-  EXPECT_FALSE(result.has_value());
+  EXPECT_TRUE(error.has_value());
 }

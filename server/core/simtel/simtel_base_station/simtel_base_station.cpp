@@ -22,9 +22,6 @@
 #include "common/utils/network/network.h"
 
 namespace server {
-std::unordered_map<unsigned int, std::shared_ptr<SimtelBaseStation>>
-    SimtelBaseStation::baseStations{};
-
 std::string SimtelBaseStation::createLogMsg(const std::string &content) const {
   return "BS_" + std::to_string(id) + ": " + content;
 }

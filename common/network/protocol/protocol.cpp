@@ -9,13 +9,13 @@ struct ProtocolInfo {
   uint8_t networkId;
 };
 
-const std::unordered_map<Protocol, ProtocolInfo> protocols = {
+static const std::unordered_map<Protocol, ProtocolInfo> protocols = {
     {Protocol::Json, {"json", 1}}, {Protocol::Binary, {"binary", 0}}};
 
-const std::unordered_map<std::string_view, std::string> aliases = {
+static const std::unordered_map<std::string_view, std::string> aliases = {
     {"b", "binary"}, {"j", "json"}};
 
-auto findProtocolByName(std::string_view name) {
+static auto findProtocolByName(std::string_view name) {
   size_t hash = utils::getHash(name);
   auto it = protocols.find(static_cast<Protocol>(hash));
   return it;

@@ -50,8 +50,13 @@ public:
   static std::string
   isCorrectSpeedDialNumStr(const std::string &speedDialNumStr);
   static std::string isCorrectSignal(unsigned int signal);
-  static std::string isPositiveNumber(double number, const std::string &name);
+
+  template <typename T>
+  static std::string isPositiveNumber(T number, const std::string &name);
+
   static std::string isCorrectBsId(unsigned int bsId);
   static std::string isCorrectSmsId(unsigned int smsId);
 };
 } // namespace common
+
+#include "validator_impl.h"

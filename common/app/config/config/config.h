@@ -5,17 +5,13 @@
 namespace common {
 class Config : public common::JsonParsable {
 private:
-  static constexpr int InvalidPort = -1;
-
-  int port = InvalidPort;
+  int port = 0;
 
 protected:
   virtual std::unique_ptr<common::BaseJsonInfo> getJsonRootInfo() override;
 
 public:
   virtual ~Config() = default;
-
-  virtual bool isInitialized() const;
 
   int getPort() const;
   void setPort(int port_);

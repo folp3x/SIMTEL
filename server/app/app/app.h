@@ -4,7 +4,7 @@
 
 #include "server/app/config/bs_config/bs_config/bs_config.h"
 #include "server/app/config/config/config.h"
-#include "server/app/config/epc_config/epc_config/epc_config.h"
+#include "server/app/config/epc_config/epc_config.h"
 
 #include "server/app/menu/menu/menu.h"
 

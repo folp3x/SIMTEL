@@ -36,10 +36,6 @@ int main(int argc, char *argv[]) {
 
     // переопределение опций из файла опциями командной строки
     config = cliParser->redefineConfig(config);
-    if (!config.isInitialized()) {
-      std::cout << "Some config fields are not initialized" << std::endl;
-      return 1;
-    }
 
     client::AddressBook addressBook{};
     auto error = addressBook.fromJsonFile(config.getAddressBookFilePath());

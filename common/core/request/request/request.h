@@ -16,8 +16,14 @@ class Request : public BinarySerializable, public JsonParsable {
 private:
   std::expected<SocketMessage, std::string>
   msgFromReqBytes(const binary_t &binary, Protocol &protocol) const;
+
   std::expected<binary_t, std::string>
   reqToMsgBytes(Protocol protocol, const binary_t &content) const;
+
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() = 0;
+
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() = 0;
 
 public:
   virtual ~Request() = default;
@@ -27,11 +33,6 @@ public:
   virtual std::string toStr() const;
 
   virtual nlohmann::json toJson() const = 0;
-
-  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
-  getBinaryValuesInfo() = 0;
-
-  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() = 0;
 
   virtual std::expected<binary_t, std::string> toBytes(Protocol protocol);
   virtual std::optional<std::string> fromBytes(const binary_t &bytes,

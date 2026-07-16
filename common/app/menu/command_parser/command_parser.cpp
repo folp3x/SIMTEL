@@ -23,8 +23,8 @@ CommandParser::parseCommand(const std::string &str,
   auto it = argsParsers.find(commandName);
   if (it == argsParsers.end()) {
     // если для команды нет обработчика
-    return std::make_unique<MenuItemInvalid>("Unknown command '" + commandName +
-                                             "'");
+    return std::make_unique<MenuItemInvalid>("Unknown command " +
+                                             utils::quoted(commandName));
   }
 
   auto cmd = it->second(str, tokens, extraMsg);

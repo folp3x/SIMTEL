@@ -12,11 +12,7 @@ std::expected<uint16_t, std::string> parsePort(const std::string &port);
 template <typename... Binaries>
 binary_t mergeBinary(const Binaries &...binaries);
 
-inline bool isNoConnectedError(NetworkError error) {
-  return error.type == NetworkErrorType::ConnectionClosed ||
-         error.type == NetworkErrorType::ConnectionReset ||
-         error.type == NetworkErrorType::BadFileDescriptor;
-}
+inline bool isNoConnectedError(NetworkError error);
 } // namespace common::utils
 
 #include "network_impl.h"

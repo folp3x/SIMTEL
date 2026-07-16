@@ -552,12 +552,14 @@ void SimtelMme::trySendSms(const common::msisdn_t &msisdn_s, unsigned int smsId,
 }
 
 common::imsi_t SimtelMme::generateMTimsi() {
-  curMTimsi++;
-  if (curMTimsi > MaxMtimsi) {
-    curMTimsi = 0;
+  if (curMTimsi > MaxMTimsi) {
+    curMTimsi = MinMTimsi;
   }
 
-  return common::utils::imsiToStr(curMTimsi);
+  common::imsi_t generated = common::utils::imsiToStr(curMTimsi);
+  curMTimsi++;
+
+  return generated;
 }
 
 std::shared_ptr<SimtelBaseStation>

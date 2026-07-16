@@ -1,8 +1,6 @@
 #include "signal_handler.h"
 
 namespace common {
-std::unordered_map<int, std::function<void(int)>> SignalHandler::handlers{};
-
 SignalHandler &SignalHandler::getInstance() {
   static SignalHandler instance;
   return instance;

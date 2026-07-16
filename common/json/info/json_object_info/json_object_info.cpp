@@ -9,7 +9,7 @@ std::optional<std::string> JsonObjectInfo::parse(const nlohmann::json &json) {
   for (const auto &field : innerFields) {
     std::string name = field.first;
     if (!json.contains(name)) {
-      return "'" + name + "'" + " field is required";
+      return utils::quoted(name) + " field is required";
     }
 
     auto error = field.second->parse(json[name]);

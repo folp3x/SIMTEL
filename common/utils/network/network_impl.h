@@ -10,4 +10,10 @@ binary_t mergeBinary(const Binaries &...binaries) {
 
   return result;
 }
+
+bool isNoConnectedError(NetworkError error) {
+  return error.type == NetworkErrorType::ConnectionClosed ||
+         error.type == NetworkErrorType::ConnectionReset ||
+         error.type == NetworkErrorType::BadFileDescriptor;
+}
 } // namespace common::utils

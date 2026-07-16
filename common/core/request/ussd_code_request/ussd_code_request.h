@@ -8,6 +8,11 @@ private:
   imsi_t mTimsi = "";
   uint8_t code = 0;
 
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
+
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
+
 public:
   UssdCodeRequest() = default;
   UssdCodeRequest(const imsi_t &mTimsi_, uint8_t code_);
@@ -15,11 +20,6 @@ public:
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;
-
-  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
-
-  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
-  getBinaryValuesInfo() override;
 
   imsi_t getMTimsi() const;
   uint8_t getCode() const;

@@ -16,7 +16,8 @@ JsonArrayInfo<T, S>::parseContainer(const nlohmann::json &json) {
   for (size_t i = 0; i < S; ++i) {
     nlohmann::json elemJson = json[i];
     if (!(utils::hasJsonType(elemJson, *elemType))) {
-      "Expected element of type '" + utils::jsonTypeToStr(*elemType) + "'";
+      std::string typeStr = utils::jsonTypeToStr(*elemType);
+      return "Expected element of type " + utils::quoted(typeStr);
     }
 
     (*this->value)[i] = elemJson.get<T>();

@@ -54,6 +54,8 @@ std::string addLeadingZeroes(const std::string &str, size_t length);
 
 template <typename T>
 std::optional<T> toOptional(const std::expected<T, std::string> &result);
+
+std::string quoted(const std::string &str);
 } // namespace common::utils
 
 #include "str_impl.h"

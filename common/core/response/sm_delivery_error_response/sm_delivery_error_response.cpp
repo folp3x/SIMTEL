@@ -20,10 +20,11 @@ nlohmann::json SmDeliveryErrorResponse::toJson() const {
 
 std::unique_ptr<BaseJsonInfo> SmDeliveryErrorResponse::getJsonRootInfo() {
   auto root = SmDeliveryReportResponse::getJsonRootInfo();
-  auto *rootObj = dynamic_cast<JsonObjectInfo *>(root.get());
+  auto *rootPtr = dynamic_cast<JsonObjectInfo *>(root.get());
 
-  rootObj->addInner("description", makeJsonValue(&description));
-  return std::unique_ptr<BaseJsonInfo>(rootObj);
+  rootPtr->addInner("description", makeJsonValue(&description));
+
+  return root;
 }
 
 std::vector<std::unique_ptr<BaseBinaryInfo>>

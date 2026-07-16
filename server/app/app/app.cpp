@@ -26,11 +26,11 @@ App::App(const common::NetworkAddress &addr, size_t maxUeThreadsCount,
          const std::vector<MmeConfig> &mmeConfigs, const SmscConfig &smscConfig,
          const std::vector<BsConfig> &bsConfigs, const EpcConfig &epcConfig,
          const PcrfConfig &pcrfConfig)
-    : ttlManager(
-          std::make_shared<TtlManager>(epcConfig.ttlSec, TtlWarningPeriodSec)),
+    : ttlManager(std::make_shared<TtlManager>(epcConfig.getTtlSec(),
+                                              TtlWarningPeriodSec)),
       listener(addr, maxUeThreadsCount),
-      reg(std::make_shared<SimtelRegister>(epcConfig.hlrSqliteFilePath,
-                                           epcConfig.eirSqliteFilePath)),
+      reg(std::make_shared<SimtelRegister>(epcConfig.getHlrSqliteFilePath(),
+                                           epcConfig.getEirSqliteFilePath())),
       smsc(std::make_unique<SimtelSmsc>(smscConfig)),
       pcrf(std::make_shared<SimtelPcrf>(pcrfConfig.smsPriceRub,
                                         pcrfConfig.balanceInfo)) {

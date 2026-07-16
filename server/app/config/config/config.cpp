@@ -5,15 +5,15 @@
 namespace server {
 std::unique_ptr<common::BaseJsonInfo> Config::getJsonRootInfo() {
   auto root = common::Config::getJsonRootInfo();
-  auto *rootObj = dynamic_cast<common::JsonObjectInfo *>(root.get());
+  auto *rootPtr = dynamic_cast<common::JsonObjectInfo *>(root.get());
 
-  rootObj->addInner(
+  rootPtr->addInner(
       "bsFilePath",
       makeJsonValue<std::string>(&bsFilePath, [](const std::string &path) {
         return common::Validator::jsonFilePathExists(path, "BS");
       }));
 
-  rootObj->addInner(
+  rootPtr->addInner(
       "epcFilePath",
       makeJsonValue<std::string>(&epcFilePath, [](const std::string &path) {
         return common::Validator::jsonFilePathExists(path, "EPC");
@@ -26,7 +26,7 @@ std::unique_ptr<common::BaseJsonInfo> Config::getJsonRootInfo() {
         return common::Validator::isPositiveNumber(ttl, "SMS TTL");
       }));
 
-  rootObj->addInner("smscConfig", std::move(smscConfigObj));
+  rootPtr->addInner("smscConfig", std::move(smscConfigObj));
 
   auto mmeConfigObj = makeJsonObject();
 
@@ -41,7 +41,7 @@ std::unique_ptr<common::BaseJsonInfo> Config::getJsonRootInfo() {
         return common::Validator::isPositiveNumber(size, "Max VLR size");
       }));
 
-  rootObj->addInner("mmeConfigs",
+  rootPtr->addInner("mmeConfigs",
                     makeJsonRepeatObject(std::move(mmeConfigObj), [this]() {
                       mmeConfigs.push_back(curMmeConfig);
                     }));
@@ -67,9 +67,9 @@ std::unique_ptr<common::BaseJsonInfo> Config::getJsonRootInfo() {
         pcrfConfig.balanceInfo[curBalanceInfo.imsi] = curBalanceInfo;
       }));
 
-  rootObj->addInner("pcrfConfig", std::move(pcrfConfigObj));
+  rootPtr->addInner("pcrfConfig", std::move(pcrfConfigObj));
 
-  return std::unique_ptr<common::BaseJsonInfo>(rootObj);
+  return root;
 }
 
 std::string Config::getBsFilePath() const { return bsFilePath; }

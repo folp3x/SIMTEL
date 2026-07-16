@@ -9,6 +9,11 @@ private:
   unsigned int smsId = 0;
   msisdn_t msisdn = "";
 
+  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
+
+  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
+  getBinaryValuesInfo() override;
+
 public:
   SmDeliveryAckRequest() = default;
   SmDeliveryAckRequest(const imsi_t &mTimsi_, unsigned int smsId_,
@@ -17,11 +22,6 @@ public:
   virtual RequestType getType() const override;
 
   virtual nlohmann::json toJson() const;
-
-  virtual std::unique_ptr<BaseJsonInfo> getJsonRootInfo() override;
-
-  virtual std::vector<std::unique_ptr<BaseBinaryInfo>>
-  getBinaryValuesInfo() override;
 
   imsi_t getMTimsi() const;
   unsigned int getSmsId() const;

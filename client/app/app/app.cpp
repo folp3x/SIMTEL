@@ -51,6 +51,7 @@ std::string App::formChangeMessage(const std::string &paramName,
 }
 
 void App::handleLocationUpdate() {
+  std::cout << "handle location update" << std::endl;
   auto req = std::make_unique<common::RrcConnectionRequest>(
       ctx.getImei(), ctx.getLocation().getCoords());
   exchange.addRequest(ctx.getState(), std::move(req),

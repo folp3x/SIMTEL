@@ -3,7 +3,7 @@
 namespace common {
 RequestType EmptyRequest::getType() const { return RequestType::Empty; }
 
-nlohmann::json EmptyRequest::toJson() const { return nlohmann::json{}; }
+nlohmann::json EmptyRequest::toJson() const { return nlohmann::json::object(); }
 
 std::unique_ptr<BaseJsonInfo> EmptyRequest::getJsonRootInfo() {
   return makeJsonObject();

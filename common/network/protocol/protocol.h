@@ -11,7 +11,6 @@ enum class Protocol : size_t {
   Binary = utils::getHash("binary"),
 };
 
-static auto findProtocolByName(std::string_view name);
 std::optional<std::string> protocolNameFromAlias(std::string_view alias);
 
 std::string protocolToStr(Protocol protocol);

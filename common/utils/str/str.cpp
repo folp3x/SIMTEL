@@ -85,6 +85,8 @@ std::string firstWord(const std::string &str) {
   return curToken;
 }
 
+std::string quoted(const std::string &str) { return "'" + str + "'"; }
+
 std::string ignoreWords(const std::string &str, size_t count) {
   if (count == 0) {
     return str;

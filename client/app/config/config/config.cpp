@@ -5,32 +5,27 @@
 namespace client {
 std::unique_ptr<common::BaseJsonInfo> Config::getJsonRootInfo() {
   auto root = common::Config::getJsonRootInfo();
-  auto *rootObj = dynamic_cast<common::JsonObjectInfo *>(root.get());
+  auto *rootPtr = dynamic_cast<common::JsonObjectInfo *>(root.get());
 
-  rootObj->addInner("imei", makeJsonValue<common::imei_t>(
+  rootPtr->addInner("imei", makeJsonValue<common::imei_t>(
                                 &imei, common::Validator::isCorrectImei));
 
-  rootObj->addInner("imsi", makeJsonValue<common::imsi_t>(
+  rootPtr->addInner("imsi", makeJsonValue<common::imsi_t>(
                                 &imsi, common::Validator::isCorrectImsi));
 
-  rootObj->addInner(
+  rootPtr->addInner(
       "ip", makeJsonValue<std::string>(&ip, common::Validator::isCorrectIpStr));
 
-  rootObj->addInner("addressBookFilePath",
+  rootPtr->addInner("addressBookFilePath",
                     makeJsonValue<std::string>(
                         &addressBookFilePath, [](const std::string &filePath) {
                           return common::Validator::jsonFilePathExists(
                               filePath, "Address book");
                         }));
 
-  rootObj->addInner("loc", makeJsonArray(&loc));
+  rootPtr->addInner("loc", makeJsonArray(&loc));
 
-  return std::unique_ptr<common::BaseJsonInfo>(rootObj);
-}
-
-bool Config::isInitialized() const {
-  return common::Config::isInitialized() && !imei.empty() && !imsi.empty() &&
-         !ip.empty() && locationSet;
+  return root;
 }
 
 std::string Config::getImei() const { return imei; }
@@ -50,8 +45,5 @@ std::string Config::getAddressBookFilePath() const {
 }
 common::coords_t<> Config::getLoc() const { return loc; }
 
-void Config::setLoc(const common::coords_t<> &loc_) {
-  loc = loc_;
-  locationSet = true;
-}
+void Config::setLoc(const common::coords_t<> &loc_) { loc = loc_; }
 } // namespace client

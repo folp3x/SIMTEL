@@ -14,13 +14,10 @@ private:
   std::string addressBookFilePath = "";
 
   common::coords_t<> loc = {0};
-  bool locationSet = false;
 
   virtual std::unique_ptr<common::BaseJsonInfo> getJsonRootInfo() override;
 
 public:
-  virtual bool isInitialized() const override;
-
   std::string getImei() const;
   void setImei(const common::imei_t &imei_);
 

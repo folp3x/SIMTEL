@@ -1,8 +1,7 @@
 #include "app/app/app.h"
 #include "app/cli_parser/cli_parser.h"
 
-#include "app/config/bs_config/bs_config_parser/bs_config_parser.h"
-#include "app/config/epc_config/epc_config_parser/epc_config_parser.h"
+#include "app/config/bs_config/bs_config_list/bs_config_list.h"
 
 int main(int argc, char *argv[]) {
   try {
@@ -22,39 +21,39 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    server::Config config{};
     auto filePath = cliParser->getConfigFilePath();
     if (!filePath) {
       std::cout << "Error: path to config file not specified" << std::endl;
       return 1;
     }
 
-    server::config Config;
-    auto error = config->fromJsonFile(*filePath);
-    if (error) {
-      std::cout << "Error parsing main config file: " << *error << std::endl;
-      return 1;
-    }
-
-    auto bsConfigParser =
-        server::BsConfigParser::create(config.getMmeConfigs());
-    auto bsConfigs = bsConfigParser->parse(config.getBsFilePath());
-    if (!bsConfigs) {
-      std::cout << "Error parsing BS config file: " << bsConfigs.error()
+    server::Config config;
+    auto configError = config.fromJsonFile(*filePath);
+    if (configError) {
+      std::cout << "Error parsing main config file: " << *configError
                 << std::endl;
       return 1;
     }
 
-    auto epcConfigParser = server::EpcConfigParser::create();
-    auto epcConfig = epcConfigParser->parse(config.getEpcFilePath());
-    if (!epcConfig) {
-      std::cout << "Error parsing EPC config file: " << epcConfig.error()
+    server::BsConfigList bsConfigList{config.getMmeConfigs()};
+    auto bsConfigError = bsConfigList.fromJsonFile(config.getBsFilePath());
+    if (bsConfigError) {
+      std::cout << "Error parsing BS config file: " << *bsConfigError
                 << std::endl;
       return 1;
     }
 
+    server::EpcConfig epcConfig;
+    auto epcConfigError = epcConfig.fromJsonFile(config.getEpcFilePath());
+    if (epcConfigError) {
+      std::cout << "Error parsing EPC config file: " << *epcConfigError
+                << std::endl;
+      return 1;
+    }
+
+    auto bsConfigs = bsConfigList.getConfigs();
     size_t maxUeThreadsCount = 0;
-    for (const auto &config : *bsConfigs) {
+    for (const auto &config : bsConfigs) {
       maxUeThreadsCount += config.maxConnections;
     }
 
@@ -64,8 +63,8 @@ int main(int argc, char *argv[]) {
                     maxUeThreadsCount,
                     config.getMmeConfigs(),
                     config.getSmscConfig(),
-                    *bsConfigs,
-                    *epcConfig,
+                    bsConfigs,
+                    epcConfig,
                     config.getPcrfConfig()};
     app.run();
 

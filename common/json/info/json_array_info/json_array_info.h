@@ -4,6 +4,8 @@
 
 #include <array>
 
+#include "common/utils/str/str.h"
+
 namespace common {
 // класс с информацией для парсинга масства из JSON
 template <typename T, size_t S>

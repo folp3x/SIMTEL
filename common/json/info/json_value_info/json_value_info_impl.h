@@ -31,7 +31,8 @@ std::optional<std::string> JsonValueInfo<T>::parse(const nlohmann::json &json) {
 
   if (valueType) {
     if (!utils::hasJsonType(json, *valueType)) {
-      return "Expected value of type'" + utils::jsonTypeToStr(*valueType) + "'";
+      std::string typeStr = utils::jsonTypeToStr(*valueType);
+      return "Expected value of type " + utils::quoted(typeStr);
     }
 
     T parsed = json.template get<T>();

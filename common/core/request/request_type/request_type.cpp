@@ -5,7 +5,7 @@
 #include "common/network/socket/socket_message/socket_message.h"
 
 namespace common {
-static std::unordered_map<RequestType, std::string> types = {
+static const std::unordered_map<RequestType, std::string> types = {
     {RequestType::Empty, "Empty"},
     {RequestType::Error, "Error"},
     {RequestType::RrcConnection, "Rrc_Connection"},

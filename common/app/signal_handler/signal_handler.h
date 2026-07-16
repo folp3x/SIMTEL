@@ -9,7 +9,7 @@ class SignalHandler {
 private:
   static SignalHandler &getInstance();
 
-  static std::unordered_map<int, std::function<void(int)>> handlers;
+  inline static std::unordered_map<int, std::function<void(int)>> handlers{};
 
   static void staticHandler(int signal);
 
