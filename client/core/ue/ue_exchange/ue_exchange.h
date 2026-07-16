@@ -4,8 +4,10 @@
 #include <functional>
 #include <queue>
 
+#include "client/app/locale/macro.h"
 #include "client/core/ue/ue_state/ue_state.h"
 #include "client/network/socket/socket.h"
+
 #include "common/core/request/request/request.h"
 #include "common/core/request/ussd_code_request/ussd_code_request.h"
 
@@ -20,6 +22,9 @@ private:
     std::unique_ptr<common::Request> req;
     callback_t callback{};
   };
+
+  inline static const std::string UnexpectedResponseMsg =
+      _("Unexpected response");
 
   static constexpr std::chrono::milliseconds ReceiveFromBsSleepTime{1000};
   static constexpr unsigned int ReceiveFromBsTimeoutMsec = 100;

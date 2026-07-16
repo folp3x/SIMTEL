@@ -20,7 +20,7 @@ CommandParser::parseExitArgs(const std::string &initialStr,
                              const std::vector<std::string> &args,
                              std::string &extraMsg) {
   if (args.size() > MenuItemExit::getArgsCount()) {
-    extraMsg = "Extra arguments ignored";
+    extraMsg = ExtraArgsMsg;
   }
 
   return std::make_unique<MenuItemExit>();
@@ -31,7 +31,7 @@ CommandParser::parseActiveArgs(const std::string &initialStr,
                                const std::vector<std::string> &args,
                                std::string &extraMsg) {
   if (args.empty()) {
-    return std::make_unique<common::MenuItemInvalid>("Missing argument");
+    return std::make_unique<common::MenuItemInvalid>(MissingArgMsg);
   }
 
   std::string isActiveStr = args[0];
@@ -39,12 +39,12 @@ CommandParser::parseActiveArgs(const std::string &initialStr,
   auto isActiveValue = common::utils::parseBool(isActiveStr);
   if (isActiveValue) {
     if (args.size() > MenuItemActive::getArgsCount()) {
-      extraMsg = "Extra arguments ignored";
+      extraMsg = ExtraArgsMsg;
     }
     return std::make_unique<MenuItemActive>(*isActiveValue);
   }
 
-  return std::make_unique<common::MenuItemInvalid>("Invalid argument");
+  return std::make_unique<common::MenuItemInvalid>(InvalidArgMsg);
 }
 
 std::unique_ptr<common::MenuItem>
@@ -55,7 +55,7 @@ CommandParser::parseUssdCodeArgs(const std::string &initialStr,
 
   size_t minLength = UssdPrefixLength + 1 + UssdPostfixLength;
   if (command.size() < minLength) {
-    return std::make_unique<common::MenuItemInvalid>("Missing argument");
+    return std::make_unique<common::MenuItemInvalid>(MissingArgMsg);
   }
 
   size_t lastCodeChInd = command.size() - 1 - UssdPostfixLength;
@@ -66,7 +66,7 @@ CommandParser::parseUssdCodeArgs(const std::string &initialStr,
     return std::make_unique<MenuItemUssdCode>(*code);
   }
 
-  return std::make_unique<common::MenuItemInvalid>("Invalid argument");
+  return std::make_unique<common::MenuItemInvalid>(InvalidArgMsg);
 }
 
 std::unique_ptr<common::MenuItem>
@@ -98,7 +98,7 @@ CommandParser::parseProtocolArgs(const std::string &initialStr,
                                  const std::vector<std::string> &args,
                                  std::string &extraMsg) {
   if (args.empty()) {
-    return std::make_unique<common::MenuItemInvalid>("Missing argument");
+    return std::make_unique<common::MenuItemInvalid>(MissingArgMsg);
   }
 
   std::string value = args[0];
@@ -111,11 +111,11 @@ CommandParser::parseProtocolArgs(const std::string &initialStr,
 
   if (common::isCorrectProtocolStr(name)) {
     if (args.size() > MenuItemProtocol::getArgsCount()) {
-      extraMsg = "Extra arguments ignored";
+      extraMsg = ExtraArgsMsg;
     }
     return std::make_unique<MenuItemProtocol>(name);
   }
-  return std::make_unique<common::MenuItemInvalid>("Invalid argument");
+  return std::make_unique<common::MenuItemInvalid>(InvalidArgMsg);
 }
 
 std::unique_ptr<common::MenuItem>
@@ -123,7 +123,7 @@ CommandParser::parseSmsArgs(const std::string &initialStr,
                             const std::vector<std::string> &args,
                             std::string &extraMsg) {
   if (args.empty()) {
-    return std::make_unique<common::MenuItemInvalid>("Missing argument");
+    return std::make_unique<common::MenuItemInvalid>(MissingArgMsg);
   }
 
   auto cmd = std::make_unique<MenuItemSMS>();
@@ -157,7 +157,7 @@ CommandParser::parseDialogArgs(const std::string &initialStr,
                                const std::vector<std::string> &args,
                                std::string &extraMsg) {
   if (args.empty()) {
-    return std::make_unique<common::MenuItemInvalid>("Missing argument");
+    return std::make_unique<common::MenuItemInvalid>(MissingArgMsg);
   }
 
   auto cmd = std::make_unique<MenuItemDialog>();
@@ -182,7 +182,7 @@ CommandParser::parseDialogArgs(const std::string &initialStr,
   }
 
   if (args.size() > MenuItemDialog::getArgsCount()) {
-    extraMsg = "Extra arguments ignored";
+    extraMsg = ExtraArgsMsg;
   }
   return cmd;
 }

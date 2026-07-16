@@ -6,13 +6,13 @@ namespace client::utils {
 inline std::string smsStatusToStr(SmsStatus status) {
   switch (status) {
   case SmsStatus::Pending:
-    return "pending...";
+    return _("pending...");
   case SmsStatus::Delivered:
-    return "V (delivered)";
+    return _("V (delivered)");
   case SmsStatus::NotDelivered:
-    return "X (not delivered)";
+    return _("X (not delivered)");
   default:
-    return "unknown";
+    return _("unknown");
   }
 }
 } // namespace client::utils

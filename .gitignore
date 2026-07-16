@@ -34,3 +34,9 @@ CMakePresets.json
 # Logs
 **/logs/
 *.log
+
+# Notes
+**/notes.txt
+
+# Compiled translations
+.mo

@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
         setlocale(LC_ALL, DefaultLocale);
       } else {
         setlocale(LC_ALL, locale->c_str());
-        bindtextdomain(AppName, "./translations");
+        bindtextdomain(AppName, "./data/translations");
         textdomain(AppName);
       }
     }
@@ -44,12 +44,13 @@ int main(int argc, char *argv[]) {
     if (filePath) {
       auto error = config.fromJsonFile(*filePath);
       if (error) {
-        std::cout << "Error parsing config file: " << *error << std::endl;
+        std::cout << _("Error parsing config file") << ": " << *error
+                  << std::endl;
         return 1;
       }
     } else if (!cliParser->allConfigOptsSet()) {
       std::cout
-          << "If --config is not specified all config options are required"
+          << _("If --config is not specified all config options are required")
           << std::endl;
       return 1;
     }
@@ -60,7 +61,8 @@ int main(int argc, char *argv[]) {
     client::AddressBook addressBook{};
     auto error = addressBook.fromJsonFile(config.getAddressBookFilePath());
     if (error) {
-      std::cout << "Error while loading address book: " << *error << std::endl;
+      std::cout << _("Error while loading address book") << ": " << *error
+                << std::endl;
     }
 
     common::Location<> location(config.getLoc());

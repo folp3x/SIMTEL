@@ -27,6 +27,10 @@ class App {
 private:
   static constexpr unsigned int MaxSmsId = 9999;
 
+  inline static const std::string ErrorMsgPrefixText = _("Error");
+  inline static const std::string ErrorMsgPrefix = ErrorMsgPrefixText + ": ";
+  inline static const std::string NoSignalMsg = _("No signal");
+
   std::vector<UssdInfo> ussdInfo = {
       {common::UssdCode::GetBalance, "get balance"},
       {common::UssdCode::GetPhoneNumber, "get phone number"}};

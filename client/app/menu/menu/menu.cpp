@@ -25,7 +25,8 @@ rang::fg Menu::getSmsStatusColor(SmsStatus status) const {
 std::string Menu::getSmsContent() const {
   std::string content;
   std::string line;
-  std::cout << "Write content (empty line means end of sms):" << std::endl;
+  std::cout << _("Write content (empty line means end of sms)") << ": "
+            << std::endl;
   while (std::getline(std::cin, line)) {
     if (line.empty()) {
       break;
@@ -38,9 +39,9 @@ std::string Menu::getSmsContent() const {
 
 void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
                       common::Protocol protocol) const {
-  std::cout << "IMSI: " << imsi;
+  std::cout << "IMSI: " << imsi << ", ";
 
-  std::cout << ", state: ";
+  std::cout << _("state") << " ";
   std::string statusStr = ueActiveToStr(inActive);
   if (inActive) {
     common::utils::printColored(statusStr, rang::fg::green, "");
@@ -48,7 +49,8 @@ void Menu::showStatus(bool inActive, const common::imsi_t &imsi,
     common::utils::printColored(statusStr, rang::fg::red, "");
   }
 
-  std::cout << ", protocol: " << common::protocolToStr(protocol) << std::endl;
+  std::cout << ", " << _("protocol") << ": " << common::protocolToStr(protocol)
+            << std::endl;
 }
 
 void Menu::showSignalInfo(const common::Location<> &location,
@@ -56,16 +58,16 @@ void Menu::showSignalInfo(const common::Location<> &location,
   std::string levelStr =
       (signalLevel > 0) ? std::to_string(signalLevel) + "/" +
                               std::to_string(common::constants::MaxSignalLevel)
-                        : "no signal";
-  std::cout << "Location: " << location.toStr() << ", signal: " << levelStr
-            << std::endl;
+                        : _("no signal");
+  std::cout << _("Location") << ": " << location.toStr() << ", " << _("signal")
+            << ": " << levelStr << std::endl;
 }
 
 void Menu::showAddressBook(const AddressBook &addressBook) const {
-  std::cout << "Address book: ";
+  std::cout << _("Address book") << ": ";
   auto records = addressBook.getRecords();
   if (records.empty()) {
-    std::cout << "empty" << std::endl;
+    std::cout << _("empty") << std::endl;
   } else {
     std::cout << std::endl;
     for (const auto &[speedDialNum, msisdn] : records) {
@@ -75,9 +77,12 @@ void Menu::showAddressBook(const AddressBook &addressBook) const {
 }
 
 void Menu::showSentSms(const Sms &sms, bool alignRight) const {
-  std::string leftHeaderPart =
-      "To " + sms.receiver + " at " + common::utils::formatTime(sms.timeSent);
+  std::string leftHeaderPart = _("To");
+  leftHeaderPart += " " + sms.receiver + " " + _("at");
+  leftHeaderPart += " " + common::utils::formatTime(sms.timeSent);
+
   std::string statusStr = " " + utils::smsStatusToStr(sms.status);
+
   std::string headerEnding = ":";
 
   size_t fullHeaderLength =
@@ -107,7 +112,7 @@ void Menu::showSentSms(const Sms &sms, bool alignRight) const {
 }
 
 void Menu::showReceivedSms(const Sms &sms) const {
-  std::cout << "From " << sms.sender << " at ";
+  std::cout << _("From") << " " << sms.sender << " " << _("at") << " ";
   std::cout << common::utils::formatTime(sms.timeReceived) << ":" << std::endl;
   std::cout << sms.content << std::endl;
 }

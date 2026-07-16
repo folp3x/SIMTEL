@@ -49,12 +49,6 @@ add_custom_command(TARGET ${APP_TARGET_NAME} POST_BUILD
         "$<TARGET_FILE_DIR:${APP_TARGET_NAME}>/data"
 )
 
-add_custom_command(TARGET ${APP_TARGET_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory 
-        "${CMAKE_CURRENT_SOURCE_DIR}/translations" 
-        "$<TARGET_FILE_DIR:${APP_TARGET_NAME}>/translations"
-)
-
 if(BUILD_CLIENT_TESTS)
     add_subdirectory(tests)
 endif()

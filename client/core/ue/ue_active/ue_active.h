@@ -1,9 +1,8 @@
 #pragma once
 
-#include <libintl.h>
 #include <string>
 
-#define _(str) gettext(str)
+#include "client/app/locale/macro.h"
 
 namespace client {
 inline std::string ueActiveToStr(bool inActive) {

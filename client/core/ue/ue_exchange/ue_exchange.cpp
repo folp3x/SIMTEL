@@ -70,7 +70,7 @@ void UeExchange::sendRequests() {
 
     if (info.req->getType() != common::RequestType::RrcConnection &&
         signalLevel == 0) {
-      info.callback(nullptr, "Not connected");
+      info.callback(nullptr, _("Not connected"));
       continue;
     }
 
@@ -92,7 +92,9 @@ void UeExchange::sendRequests() {
     case common::RequestType::SmTransfer: {
       auto sendError = sendRequest(std::move(info.req));
       if (sendError) {
-        callback(nullptr, "Failed to send sms - " + *sendError);
+        std::string errorMsg = _("Failed to send sms");
+        errorMsg += ": " + *sendError;
+        callback(nullptr, errorMsg);
       } else {
         callback(nullptr, "");
       }
@@ -101,12 +103,14 @@ void UeExchange::sendRequests() {
     case common::RequestType::SmDeliveryAck: {
       auto sendError = sendRequest(std::move(info.req));
       if (sendError) {
-        callback(nullptr, "Failed to send sms deelivery ack - " + *sendError);
+        std::string errorMsg = _("Failed to send SMS delivery acknowledge");
+        errorMsg += ": " + *sendError;
+        callback(nullptr, errorMsg);
       }
       break;
     }
     default:
-      callback(nullptr, "Unknown request type");
+      callback(nullptr, _("Unknown request"));
     }
   }
 }
@@ -140,12 +144,14 @@ std::expected<std::unique_ptr<common::Request>, std::string>
 UeExchange::handleLocationUpdate(RequestInfo info) {
   auto locationSendError = sendRequest(std::move(info.req));
   if (locationSendError) {
-    return std::unexpected("Failed to send location - " + *locationSendError);
+    std::string errorMsg = _("Failed to send location");
+    errorMsg += ": " + *locationSendError;
+    return std::unexpected(errorMsg);
   }
 
   bool set = sock.setReceiveTimeout(ReceiveSignalTimeoutMsec);
   if (!set) {
-    return std::unexpected("Error setting receive timeout");
+    return std::unexpected(_("Failed to receive signal level"));
   }
 
   common::MeasurementControlResponse bestSignalResponse{"", 0, 0};
@@ -156,7 +162,7 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
       bsLeft = false;
       if (bestSignalResponse.getSignal() == 0) {
         signalLevel = 0;
-        return std::unexpected("BS not found");
+        return std::unexpected(_("BS not found"));
       }
     } else {
       if (signalResponse->getImei() != info.state.imei) {
@@ -174,7 +180,9 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
       info.state.imei, info.state.mTimsi, bestSignalResponse.getBsId());
   auto bsIdSendError = sendRequest(std::move(chosenBsReq));
   if (bsIdSendError) {
-    return std::unexpected("Failed to send chosen BS id - " + *bsIdSendError);
+    std::string errorMsg = _("Failed to send chosen BS id");
+    errorMsg += ": " + *bsIdSendError;
+    return std::unexpected(errorMsg);
   }
 
   common::RequestType responseType;
@@ -215,13 +223,13 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
     return std::unexpected(error ? error->getDescription() : error.error());
   }
   default:
-    return std::unexpected(
-        "Unexpected request type - Keep or Handover expected");
+    return std::unexpected(_("Unexpected request"));
   }
 
   if (newBsId != bestSignalResponse.getBsId()) {
-    return std::unexpected("Unexpected BS id in info: " +
-                           std::to_string(newBsId));
+    std::string errorMsg = _("Unknown BS responded");
+    errorMsg += ": " + std::to_string(newBsId);
+    return std::unexpected(errorMsg);
   }
 
   auto configureCompleteReq =
@@ -229,14 +237,16 @@ UeExchange::handleLocationUpdate(RequestInfo info) {
   auto configureCompleteSendError =
       sendRequest(std::move(configureCompleteReq));
   if (configureCompleteSendError) {
-    return std::unexpected("Failed to send configure confirm - " +
-                           *configureCompleteSendError);
+    std::string errorMsg = _("Failed to send configure confirm");
+    errorMsg += ": " + *configureCompleteSendError;
+    return std::unexpected(errorMsg);
   }
 
   auto acceptResponse = receiveResponse<common::AttachAcceptResponse>();
   if (!acceptResponse) {
-    return std::unexpected("Failed to receive accept response - " +
-                           acceptResponse.error());
+    std::string errorMsg = _("Failed to receive accept response");
+    errorMsg += ": " + acceptResponse.error();
+    return std::unexpected(errorMsg);
   }
 
   signalLevel = bestSignalResponse.getSignal();
@@ -325,8 +335,7 @@ void UeExchange::receiveFromBsInBackground(const callback_t &callback) {
         continue;
       }
       default:
-        callback(nullptr, "Unexpected response received from BS: " +
-                              common::requestTypeToStr(responseType));
+        callback(nullptr, UnexpectedResponseMsg);
         continue;
       }
 
@@ -344,19 +353,21 @@ UeExchange::sendUssd(const UeState &state,
 
   auto sendError = sendRequest(std::move(req));
   if (sendError) {
-    return std::unexpected("Failed to send ussd - " + *sendError);
+    std::string errorMsg = _("Failed to send ussd");
+    errorMsg += ": " + *sendError;
+    return std::unexpected(errorMsg);
   }
 
   bool set = sock.setReceiveTimeout(ReceiveUssdTimeoutMsec);
   if (!set) {
-    return std::unexpected("Error setting receive timeout");
+    return std::unexpected(_("Failed to receive ussd response"));
   }
 
   common::RequestType responseType;
   auto data = receiveResponseData(responseType);
   lock.unlock();
   if (!data) {
-    return std::unexpected("Unable to process command");
+    return std::unexpected(_("Failed to process command"));
   }
 
   switch (responseType) {
@@ -385,8 +396,7 @@ UeExchange::sendUssd(const UeState &state,
     }
   }
   default:
-    return std::unexpected("Unexpected response received from BS: " +
-                           common::requestTypeToStr(responseType));
+    return std::unexpected(UnexpectedResponseMsg);
   }
 }
 } // namespace client
