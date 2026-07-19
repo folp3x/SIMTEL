@@ -1,4 +1,4 @@
-#include "common/network/network_address/network_address.h"
+#include "network/network_address/network_address.h"
 
 #include <gtest/gtest.h>
 

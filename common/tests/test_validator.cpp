@@ -1,4 +1,4 @@
-#include "common/validator/validator.h"
+#include "validator/validator.h"
 
 #include <filesystem>
 #include <gtest/gtest.h>
