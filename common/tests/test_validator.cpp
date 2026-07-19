@@ -1,4 +1,4 @@
-#include "common/validator/validator.h"
+#include "validator/validator.h"
 
 #include <filesystem>
 #include <gtest/gtest.h>
@@ -7,10 +7,9 @@
 
 class ValidatorTest : public testing::Test {
 protected:
-  static constexpr int MIN_IMEI_LENGTH = 1;
-  static constexpr int MAX_IMEI_LENGTH = 15;
-  static constexpr int MIN_IMSI_LENGTH = 6;
-  static constexpr int MAX_IMSI_LENGTH = 15;
+  static constexpr size_t MaxImeiLength = 15;
+  static constexpr size_t MinImsiLength = 6;
+  static constexpr size_t MaxImsiLength = 15;
 };
 
 // isCorrectIp
@@ -55,17 +54,17 @@ TEST_F(ValidatorTest, IsCorrectImei_Empty) {
 }
 
 TEST_F(ValidatorTest, IsCorrectImei_LengthGreater) {
-  common::imei_t imei = std::string(MAX_IMEI_LENGTH + 1, '1');
+  common::imei_t imei = std::string(MaxImeiLength + 1, '1');
   EXPECT_FALSE(common::Validator::isCorrectImei(imei).empty());
 }
 
 TEST_F(ValidatorTest, IsCorrectImei_WithLetters) {
-  common::imei_t imei = std::string(MAX_IMEI_LENGTH - 1, '1') + "A";
+  common::imei_t imei = std::string(MaxImeiLength - 1, '1') + "A";
   EXPECT_FALSE(common::Validator::isCorrectImei(imei).empty());
 }
 
 TEST_F(ValidatorTest, IsCorrectImei_Correct) {
-  common::imei_t imei = std::string(MAX_IMEI_LENGTH - 1, '1');
+  common::imei_t imei = std::string(MaxImeiLength - 1, '1');
   EXPECT_TRUE(common::Validator::isCorrectImei(imei).empty());
 }
 
@@ -76,22 +75,22 @@ TEST_F(ValidatorTest, IsCorrectImsi_Empty) {
 }
 
 TEST_F(ValidatorTest, IsCorrectImsi_LengthLess) {
-  common::imsi_t imsi = std::string(MIN_IMSI_LENGTH - 1, '1');
+  common::imsi_t imsi = std::string(MinImsiLength - 1, '1');
   EXPECT_FALSE(common::Validator::isCorrectImsi(imsi).empty());
 }
 
 TEST_F(ValidatorTest, IsCorrectImsi_LengthGreater) {
-  common::imsi_t imsi = std::string(MAX_IMSI_LENGTH + 1, '1');
+  common::imsi_t imsi = std::string(MaxImsiLength + 1, '1');
   EXPECT_FALSE(common::Validator::isCorrectImsi(imsi).empty());
 }
 
 TEST_F(ValidatorTest, IsCorrectImsi_WithLetters) {
-  common::imsi_t imsi = std::string(MAX_IMSI_LENGTH - 1, '1') + "A";
+  common::imsi_t imsi = std::string(MaxImsiLength - 1, '1') + "A";
   EXPECT_FALSE(common::Validator::isCorrectImsi(imsi).empty());
 }
 
 TEST_F(ValidatorTest, IsCorrectImsi_Correct) {
-  common::imei_t imei = std::string(MIN_IMSI_LENGTH + 1, '1');
+  common::imei_t imei = std::string(MinImsiLength + 1, '1');
   EXPECT_TRUE(common::Validator::isCorrectImsi(imei).empty());
 }
 

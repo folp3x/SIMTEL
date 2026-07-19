@@ -1,0 +1,24 @@
+#pragma once
+
+#include "common/app/menu/menu/menu.h"
+
+#include <concepts>
+
+#include "common/app/menu/command_info/command_info.h"
+#include "common/app/menu/command_parser/command_parser.h"
+
+namespace common {
+template <std::derived_from<CommandParser> T>
+class InteractiveMenu : public Menu {
+private:
+  T parser{};
+
+public:
+  std::unique_ptr<MenuItem> getCommand(std::string &extraMsg) const;
+
+  void showCommandsInfo(
+      const std::unordered_map<std::string, CommandInfo> &commands) const;
+};
+} // namespace common
+
+#include "interactive_menu_impl.h"

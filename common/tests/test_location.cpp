@@ -1,4 +1,4 @@
-#include "common/core/location/location/location.h"
+#include "core/location/location/location.h"
 
 #include <gtest/gtest.h>
 
@@ -9,7 +9,7 @@ protected:
 };
 
 TEST_F(LocationTest, Move_VectorWithNoCoords) {
-  std::vector<float> newLoc = {};
+  std::vector<float> newLoc{};
   EXPECT_THROW(loc.move(newLoc), std::invalid_argument);
 }
 
@@ -57,7 +57,7 @@ TEST_F(LocationTest, ToStr) {
 }
 
 TEST_F(LocationTest, CoordsEqual_NoCoords) {
-  std::vector<float> newLoc = {};
+  std::vector<float> newLoc{};
   EXPECT_THROW(loc.move(newLoc), std::invalid_argument);
 }
 

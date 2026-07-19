@@ -15,7 +15,7 @@ fetchcontent_makeavailable(gtest)
 set(TESTS_SOURCES_LIST
 	"main_test.cpp"
 	"test_cli_parser.cpp"
-	"test_config_parser.cpp"
+	"test_config_parse.cpp"
 	"test_command_parser.cpp"
 )
 

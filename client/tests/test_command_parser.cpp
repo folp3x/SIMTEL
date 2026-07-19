@@ -13,14 +13,14 @@ protected:
 
 TEST_F(CommandParserTest, Parse_MoveNoArg) {
   auto cmd = parser.parseCommand("move", extraMsg);
-  auto invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
+  auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(invalidCmd == nullptr);
 }
 
 TEST_F(CommandParserTest, Parse_MoveRedundantArg) {
   auto cmd = parser.parseCommand("move 1 2", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+  auto *moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
   client::MenuItemMove<float> correctCmd{{1}};
 
@@ -31,7 +31,7 @@ TEST_F(CommandParserTest, Parse_MoveRedundantArg) {
 
 TEST_F(CommandParserTest, Parse_MoveInvalidArg) {
   auto cmd = parser.parseCommand("move str", extraMsg);
-  auto invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
+  auto *invalidCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(invalidCmd == nullptr);
 }
@@ -39,7 +39,7 @@ TEST_F(CommandParserTest, Parse_MoveInvalidArg) {
 TEST_F(CommandParserTest, Parse_MoveOneFloatArg) {
 
   auto cmd = parser.parseCommand("move 1.1", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+  auto *moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
   client::MenuItemMove<float> correctCmd{{1.1}};
 
@@ -50,7 +50,7 @@ TEST_F(CommandParserTest, Parse_MoveOneFloatArg) {
 TEST_F(CommandParserTest, Parse_MoveOneIntegerArg) {
 
   auto cmd = parser.parseCommand("move 1", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+  auto *moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
   client::MenuItemMove<float> correctCmd{{1}};
 
@@ -59,12 +59,12 @@ TEST_F(CommandParserTest, Parse_MoveOneIntegerArg) {
 }
 
 TEST_F(CommandParserTest, Parse_MoveTwoArgs) {
-  if constexpr (common::constants::LOCATION_COORDS_COUNT < 2) {
+  if constexpr (common::constants::LocationCoordsCount < 2) {
     GTEST_SKIP() << "Test used only in n-dimensional space where n >= 2";
   }
 
   auto cmd = parser.parseCommand("move 1.1 2", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+  auto *moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
   client::MenuItemMove<float> correctCmd{{1.1, 2}};
 
@@ -73,12 +73,12 @@ TEST_F(CommandParserTest, Parse_MoveTwoArgs) {
 }
 
 TEST_F(CommandParserTest, Parse_MoveThreeArgs) {
-  if constexpr (common::constants::LOCATION_COORDS_COUNT < 3) {
+  if constexpr (common::constants::LocationCoordsCount < 3) {
     GTEST_SKIP() << "Test used only in n-dimensional space where n >= 3";
   }
 
   auto cmd = parser.parseCommand("move 1.1 2 3", extraMsg);
-  auto moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
+  auto *moveCmd = dynamic_cast<client::MenuItemMove<float> *>(cmd.get());
 
   client::MenuItemMove<float> correctCmd{{1.1, 2, 3}};
 
@@ -89,14 +89,14 @@ TEST_F(CommandParserTest, Parse_MoveThreeArgs) {
 TEST_F(CommandParserTest, Parse_UnknownCommand) {
   std::string tempMsg = "";
   auto cmd = parser.parseCommand("123", tempMsg);
-  auto unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
+  auto *unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_FALSE(unknownCmd == nullptr);
 }
 
 TEST_F(CommandParserTest, Parse_EmptyCommand) {
   auto cmd = parser.parseCommand("", extraMsg);
-  auto unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
+  auto *unknownCmd = dynamic_cast<common::MenuItemInvalid *>(cmd.get());
 
   EXPECT_TRUE(unknownCmd == nullptr);
 }
