@@ -1,4 +1,4 @@
-#include "client/app/config/config/config.h"
+#include "app/config/config/config.h"
 
 #include <filesystem>
 #include <gtest/gtest.h>

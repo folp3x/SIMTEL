@@ -1,4 +1,4 @@
-#include "client/app/cli_parser/cli_parser.h"
+#include "app/cli_parser/cli_parser.h"
 
 #include <filesystem>
 #include <gtest/gtest.h>

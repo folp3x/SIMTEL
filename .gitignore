@@ -2,12 +2,10 @@
 /out/
 **/build/
 
-# VS
-.editorconfig
-.vs
-
 # VS Code
 .vscode
+.editorconfig
+.cppcheck-config
 
 # cmake
 CMakeUserPresets.json

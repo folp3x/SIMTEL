@@ -1,8 +1,8 @@
-#include "client/app/menu/command_parser/command_parser.h"
+#include "app/menu/command_parser/command_parser.h"
 
 #include <gtest/gtest.h>
 
-#include "client/app/menu/menu_item/menu_item_move/menu_item_move.h"
+#include "app/menu/menu_item/menu_item_move/menu_item_move.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 
 class CommandParserTest : public testing::Test {

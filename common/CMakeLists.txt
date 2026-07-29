@@ -52,6 +52,7 @@ set(SOURCES_LIST
 add_library(${APP_LIB_NAME} STATIC ${SOURCES_LIST})
 
 # поиск заголовочных файлов в поддиректориях
+target_include_directories(${APP_LIB_NAME} PUBLIC "${CMAKE_SOURCE_DIR}")
 target_include_directories(${APP_LIB_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 target_link_libraries(${APP_LIB_NAME} PUBLIC ${LIBRARIES_LIST})

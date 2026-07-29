@@ -1,4 +1,4 @@
-#include "core/location/location/location.h"
+#include "common/core/location/location/location.h"
 
 #include <gtest/gtest.h>
 
