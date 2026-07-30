@@ -47,6 +47,7 @@ add_custom_command(TARGET ${APP_TARGET_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory 
         "${CMAKE_CURRENT_SOURCE_DIR}/data" 
         "$<TARGET_FILE_DIR:${APP_TARGET_NAME}>/data"
+	COMMENT "Copying 'data' directory"
 )
 
 if(BUILD_CLIENT_TESTS)

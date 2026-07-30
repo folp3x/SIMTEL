@@ -2,7 +2,6 @@
   "port": 60000,
   "bsFilePath": "./data/config/nodes.json",
   "epcFilePath": "./data/config/epc.json",
-
   "mmeConfigs": [
     {
       "id": 1,
@@ -13,11 +12,9 @@
       "maxVlrSize": 20
     }
   ],
-
   "smscConfig": {
     "smsTtl_ms": 30000
   },
-
   "pcrfConfig": {
     "smsPrice_rub": 2,
     "balanceInfo": [

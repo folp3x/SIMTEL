@@ -2,6 +2,7 @@
 #include "app/cli_parser/cli_parser.h"
 
 #include "app/config/bs_config/bs_config_list/bs_config_list.h"
+#include <string>
 
 int main(int argc, char *argv[]) {
   try {

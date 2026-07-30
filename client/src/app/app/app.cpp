@@ -8,7 +8,6 @@
 #include "app/menu/menu_item/menu_item_exit/menu_item_exit.h"
 #include "app/menu/menu_item/menu_item_sms/menu_item_sms.h"
 
-#include "common/app/menu/menu_item/menu_item_empty/menu_item_empty.h"
 #include "common/app/menu/menu_item/menu_item_invalid/menu_item_invalid.h"
 #include "common/app/signal_handler/signal_handler.h"
 

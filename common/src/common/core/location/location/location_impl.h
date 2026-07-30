@@ -6,6 +6,7 @@ template <typename T, size_t S>
 Location<T, S>::Location(const coords_t<T, S> &coords_) : coords(coords_) {}
 
 template <typename T, size_t S>
+  requires std::is_arithmetic_v<T>
 template <typename Container>
   requires std::ranges::sized_range<Container>
 void Location<T, S>::move(const Container &newCoords) {

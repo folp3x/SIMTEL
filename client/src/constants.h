@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace client::constants {
 constexpr size_t MaxAddressBookSize = 5;
 constexpr char EmptySpeedDialNum = '_';

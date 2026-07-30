@@ -6,6 +6,10 @@
 .vscode
 .editorconfig
 .cppcheck-config
+.clang-format
+.clangd
+cspell.json
+.cache
 
 # cmake
 CMakeUserPresets.json

@@ -1,23 +1,29 @@
 [
-    {
-        "ecgi": 1,
-        "mmeId": 1,
-        "radius": 120,
-        "loc": [-100],
-        "maxConnections": 10
-    },
-    {
-        "ecgi": 2,
-        "mmeId": 1,
-        "radius": 120,
-        "loc": [100],
-        "maxConnections": 10
-    },
-    {
-        "ecgi": 3,
-        "mmeId": 2,
-        "radius": 120,
-        "loc": [1000],
-        "maxConnections": 10
-    }
+  {
+    "ecgi": 1,
+    "mmeId": 1,
+    "radius": 120,
+    "loc": [
+      -100
+    ],
+    "maxConnections": 10
+  },
+  {
+    "ecgi": 2,
+    "mmeId": 1,
+    "radius": 120,
+    "loc": [
+      100
+    ],
+    "maxConnections": 10
+  },
+  {
+    "ecgi": 3,
+    "mmeId": 2,
+    "radius": 120,
+    "loc": [
+      1000
+    ],
+    "maxConnections": 10
+  }
 ]

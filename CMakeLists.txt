@@ -77,3 +77,12 @@ if(BUILD_CLIENT_TESTS OR BUILD_COMMON_TESTS)
 	)
 	add_library(test_utils STATIC ${TEST_UTILS_SOURCES_LIST})
 endif()
+
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+  add_custom_target(copy_compile_commands ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_BINARY_DIR}/compile_commands.json
+      ${CMAKE_SOURCE_DIR}/build/compile_commands.json
+    COMMENT "Copying compile_commands.json to 'build' directory"
+  )
+endif()

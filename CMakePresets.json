@@ -2,10 +2,10 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "linux-debug",
-      "displayName": "Linux Debug",
+      "name": "debug",
+      "displayName": "Debug",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_CLIENT": "ON",
@@ -13,17 +13,17 @@
       }
     },
     {
-      "name": "linux-release",
-      "displayName": "Linux Release",
-      "inherits": "linux-debug",
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
-      "name": "linux-release-tests",
-      "displayName": "Linux Release with Tests",
-      "inherits": "linux-release",
+      "name": "release-with-tests",
+      "displayName": "Release with Tests",
+      "inherits": "release",
       "cacheVariables": {
         "BUILD_COMMON_TESTS": "ON",
         "BUILD_CLIENT_TESTS": "ON"
